@@ -10,6 +10,9 @@
 analyzer:
   errors:
     unused_element: ignore
+    deprecated_member_use: ignore
+    unused_import: ignore
+    undefined_hidden_name: ignore
 include: package:flutter_lints/flutter.yaml
 
 linter:

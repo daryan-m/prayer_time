@@ -20,11 +20,13 @@ dependencies:
   provider: ^6.1.2
   flutter_local_notifications: ^17.0.0  # ← نوێ
   timezone: ^0.9.0  # ← نوێ
+  adhan: ^2.0.0+1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^2.0.0
+  flutter_launcher_icons: ^0.14.4
   #flutter_launcher_icons: ^0.14.4
 
 flutter:
@@ -33,12 +35,12 @@ flutter:
     - assets/audio/
     - assets/images/
   fonts:
-    - family: notonaskh
+    - family: NotoNaskh
       fonts:
         - asset: assets/fonts/noto.ttf
 
 flutter_launcher_icons:  # ← ناوی دروست
   android: true
   ios: true
-  image_path: "assets/images/app_icon.png"
+  image_path: "assets/images/m_icon.png"
   remove_alpha_ios: true

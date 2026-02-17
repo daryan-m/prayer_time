@@ -17,8 +17,6 @@ class TimeService {
       .replaceAll('9', '٩');
 
   double timeZoneHours() {
-    // Iraq = UTC+3
-    // (هەروەها هەرێمی کوردستان هەمانە)
     return 3.0;
   }
 
@@ -34,8 +32,6 @@ class TimeService {
 
     return "${toKu(h.toString().padLeft(2, '0'))}:${toKu(m.toString().padLeft(2, '0'))} $period";
   }
-
-  // ------------------- Next Prayer -------------------
 
   String nextPrayerRemaining(DateTime now, PrayerTimesModel times) {
     final nowSec = now.hour * 3600 + now.minute * 60 + now.second;
@@ -98,8 +94,6 @@ class TimeService {
     return h * 3600 + m * 60;
   }
 
-  // ------------------- Dates -------------------
-
   String gregorianDateString(DateTime dt) {
     final f = DateFormat("dd-MM-yyyy");
     return f.format(dt);
@@ -107,35 +101,15 @@ class TimeService {
 
   String hijriDateString(DateTime dt) {
     final h = HijriCalendar.fromDate(dt);
-    String hijriDateString(DateTime dt) {
-      final h = HijriCalendar.fromDate(dt);
-
-      // لیستی مانگەکان بە کوردی
-      final hijriMonthsKu = [
-        "موحەرەم",
-        "سەفەر",
-        "ڕەبیعى یەکەم",
-        "ڕەبیعى دووەم",
-        "جەمادی یەکەم",
-        "جەمادی دووەم",
-        "رەجەب",
-        "شەعبان",
-        "ڕەمەزان",
-        "شەوال",
-        "ذیقعدە",
-        "ذیحیجە"
-      ];
-
-      final monthName = hijriMonthsKu[h.hMonth - 1];
-
-      return "${toKu(h.hDay.toString())} ـی $monthName ${toKu(h.hYear.toString())} کۆچی";
-    }
-
-    // هەمان شێوازی تۆ:
-    return "${toKu(h.hDay.toString())} ـی ${h.longMonthName} ${toKu(h.hYear.toString())} کۆچی";
+    final hijriMonthsKu = [
+      "موحەرەم", "سەفەر", "ڕەبیعى یەکەم", "ڕەبیعى دووەم",
+      "جەمادی یەکەم", "جەمادی دووەم", "رەجەب", "شەعبان",
+      "ڕەمەزان", "شەوال", "ذیقعدە", "ذیحیجە"
+    ];
+    final monthName = hijriMonthsKu[h.hMonth - 1];
+    return "${toKu(h.hDay.toString())} ـی $monthName ${toKu(h.hYear.toString())} کۆچی";
   }
 
-  // Kurdish (Solar Hijri-like) approximate
   String kurdishDateString(DateTime dt) {
     final k = _gregorianToKurdish(dt);
     return "${toKu(k.day.toString())}ـی ${k.monthName} ${toKu(k.year.toString())}";
@@ -145,10 +119,8 @@ class TimeService {
     final gY = date.year;
     final gM = date.month;
     final gD = date.day;
-
+    
     int jy;
-    int jm;
-    int jd;
 
     final gDaysInMonth = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
     bool leap = (gY % 4 == 0 && gY % 100 != 0) || (gY % 400 == 0);
@@ -182,10 +154,11 @@ class TimeService {
 
     final jDaysInMonth = [31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29];
 
+    int jm;
     for (jm = 0; jm < 11 && jDayNo >= jDaysInMonth[jm]; ++jm) {
       jDayNo -= jDaysInMonth[jm];
     }
-    jd = jDayNo + 1;
+    int jd = jDayNo + 1;
 
     final kurdishYear = jy + 700;
 
@@ -194,6 +167,13 @@ class TimeService {
       month: jm + 1,
       year: kurdishYear,
     );
+  }
+
+  String formatDuration(Duration d) {
+      final h = d.inHours.toString().padLeft(2, '0');
+      final m = d.inMinutes.remainder(60).toString().padLeft(2, '0');
+      final s = d.inSeconds.remainder(60).toString().padLeft(2, '0');
+      return "$h:$m:$s";
   }
 }
 
@@ -206,18 +186,8 @@ class _Kurdish {
 
   String get monthName {
     const months = [
-      "خاکەلێوە",
-      "گوڵان",
-      "جۆزەردان",
-      "پووشپەڕ",
-      "گەلاوێژ",
-      "خەرمانان",
-      "ڕەزبەر",
-      "گەڵاڕێزان",
-      "سەرماوەز",
-      "بەفرانبار",
-      "ڕێبەندان",
-      "ڕەشەمە",
+      "خاکەلێوە", "گوڵان", "جۆزەردان", "پووشپەڕ", "گەلاوێژ", "خەرمانان",
+      "ڕەزبەر", "گەڵاڕێزان", "سەرماوەز", "بەفرانبار", "ڕێبەندان", "ڕەشەمە",
     ];
     return months[(month - 1).clamp(0, 11)];
   }

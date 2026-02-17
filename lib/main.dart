@@ -1,10 +1,11 @@
+import 'package:flutter/material.dart' show TextDirection;
 import 'package:flutter/material.dart';
 import 'dart:async';
-
+import 'package:intl/intl.dart';
+import 'package:adhan/adhan.dart' hide TextDirection;
 import 'time_service.dart';
-import 'kurdistan_cities.dart';
-import 'prayer_calc_service.dart';
-import 'prayer_times_model.dart';
+import 'prayer_data_service.dart';
+import 'dart:ui' as ui;
 
 void main() => runApp(const PrayerTimesApp());
 
@@ -31,22 +32,14 @@ class PrayerHomePage extends StatefulWidget {
 
 class _PrayerHomePageState extends State<PrayerHomePage>
     with TickerProviderStateMixin {
+  // --- SERVICES ---
   final TimeService _timeService = TimeService();
-  final PrayerCalcService _prayerCalc = PrayerCalcService();
+  final PrayerDataService _prayerDataService = PrayerDataService();
 
+  // --- STATE ---
   DateTime _now = DateTime.now();
   String currentCity = "پێنجوێن";
   String? activeAthan;
-
-  final List<String> prayerNames = [
-    "بەیانی",
-    "خۆرهەڵاتن",
-    "نیوەڕۆ",
-    "عەسر",
-    "ئێوارە",
-    "خەوتنان"
-  ];
-
   List<String> todayTimes = [
     "--:--",
     "--:--",
@@ -55,7 +48,17 @@ class _PrayerHomePageState extends State<PrayerHomePage>
     "--:--",
     "--:--"
   ];
+  late PrayerTimes _prayerTimesToday;
 
+  // --- CONSTANTS & CONTROLLERS ---
+  final List<String> prayerNames = [
+    "بەیانی",
+    "خۆرهەڵاتن",
+    "نیوەڕۆ",
+    "عەسر",
+    "ئێوارە",
+    "خەوتنان"
+  ];
   late AnimationController _sunController;
   Timer? _ticker;
 
@@ -68,29 +71,35 @@ class _PrayerHomePageState extends State<PrayerHomePage>
       duration: const Duration(milliseconds: 1200),
     )..repeat(reverse: true);
 
-    // ✅ چارەسەری جولەی کاتژمێر:
-    // تەنها چرکە نوێ دەکاتەوە، بەڵام UI نەلەرزێت
     _ticker = Timer.periodic(const Duration(seconds: 1), (t) {
       final now = DateTime.now();
       if (!mounted) return;
-      if (now.second != _now.second) setState(() => _now = now);
+
+      if (now.second != _now.second) {
+        setState(() => _now = now);
+      }
+
+      if (now.hour == 0 && now.minute == 0 && now.second == 1) {
+        _recalculateForCity();
+      }
     });
 
     _recalculateForCity();
   }
 
   void _recalculateForCity() {
-    final city = kurdistanCities.firstWhere((c) => c.name == currentCity);
+    _prayerTimesToday = _prayerDataService.getPrayerTimes(currentCity, _now);
 
-    final times = _prayerCalc.calculateForDate(
-      date: DateTime(_now.year, _now.month, _now.day),
-      latitude: city.lat,
-      longitude: city.lng,
-      timeZoneHours: _timeService.timeZoneHours(),
-    );
-
+    final DateFormat formatter = DateFormat('HH:mm');
     setState(() {
-      todayTimes = times.toSixTimesList();
+      todayTimes = [
+        formatter.format(_prayerTimesToday.fajr.toLocal()),
+        formatter.format(_prayerTimesToday.sunrise.toLocal()),
+        formatter.format(_prayerTimesToday.dhuhr.toLocal()),
+        formatter.format(_prayerTimesToday.asr.toLocal()),
+        formatter.format(_prayerTimesToday.maghrib.toLocal()),
+        formatter.format(_prayerTimesToday.isha.toLocal()),
+      ];
     });
   }
 
@@ -102,69 +111,88 @@ class _PrayerHomePageState extends State<PrayerHomePage>
   }
 
   String toKu(String n) => _timeService.toKu(n);
-
   String get hijriDate => _timeService.hijriDateString(_now);
   String get gregorianDate => _timeService.gregorianDateString(_now);
-  String get kurdishDate {
-    // offline calculation sample
-    int kMonth = (_now.month + 8) % 12 + 1;
-    int kDay = _now.day;
-    int kYear = 2725;
-    return "$kDay / $kMonth / $kYear";
-  }
+  String get kurdishDate => _timeService.kurdishDateString(_now);
 
   String getNextPrayerRemaining() {
-    final times = PrayerTimesModel.fromSixTimes(todayTimes);
-    return toKu(_timeService.nextPrayerRemaining(_now, times));
+    final nextPrayer = _prayerTimesToday.nextPrayer();
+    if (nextPrayer == Prayer.none) {
+      final tomorrow = _now.add(const Duration(days: 1));
+      final tomorrowPrayers =
+          _prayerDataService.getPrayerTimes(currentCity, tomorrow);
+      final nextFajrTime = tomorrowPrayers.fajr.toLocal();
+      final difference = nextFajrTime.difference(_now);
+      return _timeService.formatDuration(difference);
+    }
+
+    final prayerTime = _prayerTimesToday.timeForPrayer(nextPrayer)!.toLocal();
+    final difference = prayerTime.difference(_now);
+
+    return _timeService.formatDuration(difference);
   }
 
   String getNextPrayerName() {
-    final times = PrayerTimesModel.fromSixTimes(todayTimes);
-    return _timeService.nextPrayerName(_now, times);
+    final next = _prayerTimesToday.nextPrayer();
+    if (next == Prayer.none) return "بەیانی";
+
+    switch (next) {
+      case Prayer.fajr:
+        return "بەیانی";
+      case Prayer.sunrise:
+        return "خۆرهەڵاتن";
+      case Prayer.dhuhr:
+        return "نیوەڕۆ";
+      case Prayer.asr:
+        return "عەسر";
+      case Prayer.maghrib:
+        return "ئێوارە";
+      case Prayer.isha:
+        return "خەوتنان";
+      default:
+        return "";
+    }
   }
 
   String formatTo12Hr(String time24) => _timeService.formatTo12Hr(time24);
 
   @override
   Widget build(BuildContext context) {
-    // ئەگەر ڕۆژ گۆڕا، کاتەکان نوێ بکەوە (ئۆفلاین)
-    if (_now.hour == 0 && _now.minute == 0 && _now.second == 1) {
-      Future.microtask(_recalculateForCity);
-    }
-
     return Directionality(
-      textDirection: TextDirection.rtl,
+     textDirection: ui.TextDirection.rtl,
       child: Scaffold(
         appBar: AppBar(
           backgroundColor: const Color(0xFF0F172A),
           elevation: 0,
-          leadingWidth: 120,
-          leading: const Row(
-            mainAxisSize: MainAxisSize.min,
+          automaticallyImplyLeading: false,
+          title: Row(
             children: [
-              SizedBox(width: 15),
-              Icon(Icons.mosque, color: Color(0xFF10B981), size: 22),
-              SizedBox(width: 6),
-              Flexible(
-                child: Text(
-                  "کاتەکان",
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                  overflow: TextOverflow.ellipsis,
+              const Icon(Icons.mosque, color: Color(0xFF10B981), size: 22),
+              const SizedBox(width: 10),
+              const Text(
+                "کاتەکانى بانگ",
+                style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                "($currentCity)",
+                style: const TextStyle(
+                  fontSize: 15,
+                  color: Colors.white70,
+                  fontWeight: FontWeight.normal,
                 ),
               ),
             ],
           ),
-          title: Text(currentCity,
-              style: const TextStyle(
-                  fontSize: 18,
-                  color: Colors.white,
-                  fontWeight: FontWeight.w500)),
-          centerTitle: true,
           actions: [
             Builder(
               builder: (context) => IconButton(
                 icon: const Icon(Icons.menu_open,
                     color: Color(0xFF22D3EE), size: 30),
+                tooltip: "ڕێکخستنەکان",
                 onPressed: () => Scaffold.of(context).openEndDrawer(),
               ),
             ),
@@ -193,8 +221,6 @@ class _PrayerHomePageState extends State<PrayerHomePage>
       ),
     );
   }
-
-  // ---------------- UI (هەمووی هەمانە) ----------------
 
   Widget _buildClockSection() {
     return Column(
@@ -232,7 +258,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
             ]),
             boxShadow: [
               BoxShadow(
-                  color: const Color(0xFF22D3EE).withValues(alpha: 0.7),
+                  color: const Color(0xFF22D3EE).withOpacity(0.7),
                   blurRadius: 12)
             ],
           ),
@@ -277,19 +303,17 @@ class _PrayerHomePageState extends State<PrayerHomePage>
       decoration: BoxDecoration(
         color: const Color(0xFF0F172A),
         borderRadius: BorderRadius.circular(15),
-        border:
-            Border.all(color: const Color(0xFF22D3EE).withValues(alpha: 0.3)),
+        border: Border.all(color: const Color(0xFF22D3EE).withOpacity(0.3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(getNextPrayerRemaining(),
+          Text(toKu(getNextPrayerRemaining()),
               style: const TextStyle(
                   color: Color(0xFF4ADE80),
                   fontSize: 22,
                   fontWeight: FontWeight.bold)),
           const SizedBox(width: 15),
-          Text(toKu(getNextPrayerRemaining())),
           Text("ماوە بۆ بانگی ${getNextPrayerName()}",
               style: const TextStyle(color: Colors.white, fontSize: 14)),
         ],
@@ -327,8 +351,8 @@ class _PrayerHomePageState extends State<PrayerHomePage>
               ],
         border: Border.all(
           color: isActive
-              ? const Color(0xFF22D3EE).withValues(alpha: 0.2)
-              : Colors.white.withValues(alpha: 0.03),
+              ? const Color(0xFF22D3EE).withOpacity(0.2)
+              : Colors.white.withOpacity(0.03),
         ),
       ),
       child: Row(
@@ -344,8 +368,8 @@ class _PrayerHomePageState extends State<PrayerHomePage>
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                                color: Colors.orange.withValues(
-                                    alpha: _sunController.value * 0.8),
+                                color: Colors.orange
+                                    .withOpacity(_sunController.value * 0.8),
                                 blurRadius: 20)
                           ],
                         ),
@@ -415,7 +439,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
                     _buildExpansionTile(
                       Icons.location_city,
                       "هەڵبژاردنی شار",
-                      kurdistanCities
+                      kurdistanCitiesData
                           .map((c) => ListTile(
                                 title: Text(c.name),
                                 onTap: () {
