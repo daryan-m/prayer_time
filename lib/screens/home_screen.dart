@@ -14,6 +14,7 @@ import '../widgets/prayer_widgets.dart';
 import '../widgets/drawer_widget.dart';
 import '../utils/constants.dart';
 import '../main.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class PrayerHomePage extends StatefulWidget {
   const PrayerHomePage({super.key});
@@ -259,7 +260,13 @@ class _PrayerHomePageState extends State<PrayerHomePage>
     );
   }
 
-  void _startUpdate(String url) {
+  void _startUpdate(String url) async {
+    if (await Permission.requestInstallPackages.isDenied) {
+      await Permission.requestInstallPackages.request();
+    }
+
+    if (!mounted) return;
+
     showDialog(
       context: context,
       barrierDismissible: false,
