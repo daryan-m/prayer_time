@@ -110,7 +110,7 @@ class PrayerDataService {
         'کانونی یەکەم': 12
       };
 
-      int? month = months[parts[1].trim()];
+      int? month = months[parts[1].trim().replaceAll('\u200f', '').replaceAll('\u200e', '').trim()];
       if (month == null) return false;
 
       return day == targetDate.day && month == targetDate.month;
