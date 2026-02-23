@@ -651,8 +651,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
                                 isSun: i == 1,
                                 isActive: activeAthans.contains(prayerNames[i]),
                                 sunAnimation: i == 1 ? _sunController : null,
-                                onTap: () => _handlePrayerCardTap(
-                                    prayerNames[i], todayTimes[i]),
+                                onTap: () async => await _handlePrayerCardTap(prayerNames[i], todayTimes[i]),
                                 timeService: _timeService,
                               );
                             },
@@ -718,8 +717,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
                                         activeAthans.contains(prayerNames[i]),
                                     sunAnimation:
                                         i == 1 ? _sunController : null,
-                                    onTap: () => _handlePrayerCardTap(
-                                        prayerNames[i], todayTimes[i]),
+                                    onTap: () async => await _handlePrayerCardTap(prayerNames[i], todayTimes[i]),
                                     timeService: _timeService,
                                   );
                                 }),
