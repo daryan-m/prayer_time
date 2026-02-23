@@ -140,7 +140,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
       // ناوی بانگەکە دەگۆڕین بۆ ژمارە (index)
       int index = prayerNames.indexOf(prayerName);
       if (index == -1) return; // ئەگەر نەدۆزرایەوە, هیچ مەکە
-
+      if (index == 1) return;
       // کاتەکان دەهێنین
       final allTimes = [
         times.fajr,
@@ -360,7 +360,6 @@ class _PrayerHomePageState extends State<PrayerHomePage>
   // --- NOTIFICATION ---
   Future<void> _scheduleAthanBackground(
       int id, String prayerName, DateTime prayerTime) async {
-    // بەکارهێنانی دەنگی هەڵبژێردراو
     String soundFileName = selectedAthanFile.replaceAll('.mp3', '');
 
     AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
@@ -372,16 +371,35 @@ class _PrayerHomePageState extends State<PrayerHomePage>
       playSound: true,
     );
 
+    // ✅ هەمیشەیی - هەر ڕۆژ هەمان کات بانگ دەدات
     await flutterLocalNotificationsPlugin.zonedSchedule(
       id,
       'کاتی بانگی $prayerName',
       'ئێستا کاتی بانگی $prayerNameەیە',
-      tz.TZDateTime.from(prayerTime, tz.local),
+      _nextInstanceOfTime(prayerTime),
       NotificationDetails(android: androidDetails),
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
       uiLocalNotificationDateInterpretation:
           UILocalNotificationDateInterpretation.absoluteTime,
+      matchDateTimeComponents: DateTimeComponents.time, // ✅ هەر ڕۆژ
     );
+  }
+
+// ✅ فەنکشنی نوێ - کاتی داهاتووی بانگ دیاری دەکات
+  tz.TZDateTime _nextInstanceOfTime(DateTime prayerTime) {
+    final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
+    tz.TZDateTime scheduledDate = tz.TZDateTime(
+      tz.local,
+      now.year,
+      now.month,
+      now.day,
+      prayerTime.hour,
+      prayerTime.minute,
+    );
+    if (scheduledDate.isBefore(now)) {
+      scheduledDate = scheduledDate.add(const Duration(days: 1));
+    }
+    return scheduledDate;
   }
 
   // --- HELPER METHODS ---
@@ -414,8 +432,13 @@ class _PrayerHomePageState extends State<PrayerHomePage>
       }
     }
 
-    // ئەگەر هەموو بانگەکانی ئەمڕۆ تەواو بووبوون، بانگی بەیانی ڕۆژی دواتر هەڵبژێرە
-    nextPrayerTime ??= times.fajr.add(const Duration(days: 1));
+    nextPrayerTime ??= DateTime(
+      now.year,
+      now.month,
+      now.day,
+      times.fajr.hour,
+      times.fajr.minute,
+    ).add(const Duration(days: 1));
 
     final Duration diff = nextPrayerTime.difference(now);
     final int hours = diff.inHours;
@@ -444,6 +467,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
   }
 
   Future<void> _handlePrayerCardTap(String name, String time) async {
+    if (name == "خۆرهەڵاتن") return;
     if (activeAthans.contains(name)) {
       // ناچالاککردن
       await _audioPlayer.stop();
@@ -472,12 +496,8 @@ class _PrayerHomePageState extends State<PrayerHomePage>
         if (scheduledDate.isBefore(now)) {
           scheduledDate = scheduledDate.add(const Duration(days: 1));
         }
-
-        await _scheduleAthanBackground(
-          name.hashCode,
-          name,
-          scheduledDate,
-        );
+        await flutterLocalNotificationsPlugin.cancel(name.hashCode);
+        await _scheduleAthanBackground(name.hashCode, name, scheduledDate);
       } catch (e) {
         debugPrint("کێشەیەک هەیە لە ڕێکخستنی کاتی بانگ: $e");
       }
