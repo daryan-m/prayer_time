@@ -1,4 +1,4 @@
-package com.example.myapp
+package com.daryan.prayer
 
 import io.flutter.embedding.android.FlutterActivity
 
