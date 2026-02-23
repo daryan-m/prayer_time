@@ -260,15 +260,94 @@ class _PrayerHomePageState extends State<PrayerHomePage>
   }
 
   void _startUpdate(String url) {
-    try {
-      OtaUpdate()
-          .execute(url, destinationFilename: 'athan_app.apk')
-          .listen((event) {
-        debugPrint('Status: ${event.status}, Progress: ${event.value}%');
-      });
-    } catch (e) {
-      debugPrint('Error: $e');
-    }
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF1E293B),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        title: const Text(
+          "داگرتنی نوێکردنەوە",
+          textAlign: TextAlign.center,
+          style: TextStyle(color: Colors.white),
+        ),
+        content: StreamBuilder<OtaEvent>(
+          stream:
+              OtaUpdate().execute(url, destinationFilename: 'athan_app.apk'),
+          builder: (context, snapshot) {
+            if (snapshot.hasError) {
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.error, color: Colors.red, size: 50),
+                  const SizedBox(height: 10),
+                  Text(
+                    "کێشەیەک هەیە:\n${snapshot.error}",
+                    style: const TextStyle(color: Colors.white70),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 10),
+                  ElevatedButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text("داخستن"),
+                  ),
+                ],
+              );
+            }
+
+            if (snapshot.data?.status == OtaStatus.INSTALLING) {
+              return const Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircularProgressIndicator(color: AppColors.secondary),
+                  SizedBox(height: 15),
+                  Text("دامەزراندنی نوێکردنەوە...",
+                      style: TextStyle(color: Colors.white70)),
+                ],
+              );
+            }
+
+            if (snapshot.data?.status == OtaStatus.INSTALLATION_DONE) {
+              return const Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.check_circle, color: Colors.green, size: 50),
+                  SizedBox(height: 10),
+                  Text("تەواو بوو!",
+                      style: TextStyle(color: Colors.white, fontSize: 16)),
+                ],
+              );
+            }
+
+            double progress = double.tryParse(snapshot.data?.value ?? '0') ?? 0;
+
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(height: 5),
+                LinearProgressIndicator(
+                  value: progress / 100,
+                  color: AppColors.primary,
+                  backgroundColor: Colors.white24,
+                  minHeight: 8,
+                ),
+                const SizedBox(height: 15),
+                Text(
+                  "${progress.toStringAsFixed(0)}%",
+                  style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 5),
+                const Text("داگرتنی نوێکردنەوە...",
+                    style: TextStyle(color: Colors.white70, fontSize: 13)),
+              ],
+            );
+          },
+        ),
+      ),
+    );
   }
 
   // --- NOTIFICATION ---
