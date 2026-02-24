@@ -572,7 +572,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
                       color: Colors.white,
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 10),
                   Text(
                     "($currentCity)",
                     style: const TextStyle(
@@ -583,7 +583,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
                 ],
               ),
               bottom: PreferredSize(
-                preferredSize: const Size.fromHeight(7),
+                preferredSize: const Size.fromHeight(4),
                 child: Container(
                   height: 2.0,
                   color: Colors.amber,
@@ -596,12 +596,17 @@ class _PrayerHomePageState extends State<PrayerHomePage>
                       Icons.menu_open,
                       color: AppColors.primary,
                       size: 40,
+                      
                     ),
                     onPressed: () => Scaffold.of(context).openDrawer(),
+                    
                   ),
                 ),
               ],
             ),
+            
+            drawerEnableOpenDragGesture: true,
+            drawerEdgeDragWidth: 50,
             drawer: PrayerDrawer(
               currentCity: currentCity,
               onCityChanged: (city) {
@@ -651,7 +656,8 @@ class _PrayerHomePageState extends State<PrayerHomePage>
                                 isSun: i == 1,
                                 isActive: activeAthans.contains(prayerNames[i]),
                                 sunAnimation: i == 1 ? _sunController : null,
-                                onTap: () async => await _handlePrayerCardTap(prayerNames[i], todayTimes[i]),
+                                onTap: () async => await _handlePrayerCardTap(
+                                    prayerNames[i], todayTimes[i]),
                                 timeService: _timeService,
                               );
                             },
@@ -692,7 +698,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
                       child: IntrinsicHeight(
                         child: Column(
                           children: [
-                            const SizedBox(height: 5),
+                            const SizedBox(height: 3),
                             ClockWidget(now: _now, timeService: _timeService),
                             DatesWidget(
                               timeService: _timeService,
@@ -703,7 +709,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
                               remainingTime: _getNextRemaining(prayerTimes),
                               nextPrayerName: _getNextPrayerName(prayerTimes),
                             ),
-                            const Divider(color: Colors.amber, height: 20),
+                            const Divider(color: Colors.amber, height: 10),
                             Padding(
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 20, vertical: 10),
@@ -717,7 +723,9 @@ class _PrayerHomePageState extends State<PrayerHomePage>
                                         activeAthans.contains(prayerNames[i]),
                                     sunAnimation:
                                         i == 1 ? _sunController : null,
-                                    onTap: () async => await _handlePrayerCardTap(prayerNames[i], todayTimes[i]),
+                                    onTap: () async =>
+                                        await _handlePrayerCardTap(
+                                            prayerNames[i], todayTimes[i]),
                                     timeService: _timeService,
                                   );
                                 }),

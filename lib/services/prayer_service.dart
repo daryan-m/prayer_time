@@ -88,9 +88,9 @@ class PrayerDataService {
 
   bool _compareDates(String jsonDate, DateTime targetDate) {
     try {
-      // فۆرماتی JSON: "01 - کانونی دووەم - 2026"
+      // فۆرماتی JSON: "01 - کانونی دووەم "
       List<String> parts = jsonDate.split(' - ');
-      if (parts.length != 3) return false;
+      if (parts.length < 2) return false;
 
       int day = int.parse(parts[0].trim());
 
@@ -110,7 +110,12 @@ class PrayerDataService {
         'کانونی یەکەم': 12
       };
 
-      int? month = months[parts[1].trim().replaceAll('\u200f', '').replaceAll('\u200e', '').trim()];
+      int? month = months[parts[1]
+          .trim()
+          .replaceAll('\u200f', '')
+          .replaceAll('\u200e', '')
+          .replaceAll(RegExp(r'\s+'), ' ')
+          .trim()];
       if (month == null) return false;
 
       return day == targetDate.day && month == targetDate.month;
@@ -163,7 +168,7 @@ class TimeService {
 
   String gregorianDateString(DateTime dt) {
     // فۆرماتی میلادی بە /
-    return "\u200E${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year}";
+    return "\u200E${dt.year}/${dt.month.toString().padLeft(2, '0')}/${dt.day.toString().padLeft(2, '0')}";
   }
 
   String hijriDateString() {
