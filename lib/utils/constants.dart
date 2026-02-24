@@ -35,7 +35,8 @@ class AppColors {
   static const Color secondary = Color(0xFF10B981);
   static const Color textPrimary = Colors.white;
   static const Color textSecondary = Color(0xFFCBD5E1);
+  static const Color nily = Color(0xFF020617);
 }
 
 // وەشان
-const String currentAppVersion = "1.0.2";
+const String currentAppVersion = "1.0.3";

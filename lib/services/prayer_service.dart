@@ -63,13 +63,13 @@ class PrayerDataService {
       todayPrayer ??= prayerData[0]; // ← چاککرایەوە
 
       return PrayerTimes(
-        fajr: _parseTime(date, todayPrayer!['بەیانی']), // ← ! زیادکرا
-        sunrise: _parseTime(date, todayPrayer['خۆرهەڵاتن']), // ← ! زیادکرا
-        dhuhr: _parseTime(date, todayPrayer['نیوەڕۆ']), // ← ! زیادکرا
-        asr: _parseTime(date, todayPrayer['عەسر']), // ← ! زیادکرا
-        maghrib: _parseTime(date, todayPrayer['ئێوارە']), // ← ! زیادکرا
-        isha: _parseTime(date, todayPrayer['خەوتنان']), // ← ! زیادکرا
-        gregorianDate: todayPrayer['میلادى'], // ← ! زیادکرا
+        fajr: _parseTime(date, todayPrayer!['بەیانی']),
+        sunrise: _parseTime(date, todayPrayer['خۆرهەڵاتن']),
+        dhuhr: _parseTime(date, todayPrayer['نیوەڕۆ'], isAfternoon: true),
+        asr: _parseTime(date, todayPrayer['عەسر'], isAfternoon: true),
+        maghrib: _parseTime(date, todayPrayer['ئێوارە'], isAfternoon: true),
+        isha: _parseTime(date, todayPrayer['خەوتنان'], isAfternoon: true),
+        gregorianDate: todayPrayer['میلادى'],
       );
     } catch (e) {
       debugPrint("Error loading prayer times: $e"); // ← ئێستا کاردەکات
@@ -124,11 +124,15 @@ class PrayerDataService {
     }
   }
 
-  DateTime _parseTime(DateTime date, String time) {
+  DateTime _parseTime(DateTime date, String time, {bool isAfternoon = false}) {
     try {
       List<String> parts = time.split(':');
       int hour = int.parse(parts[0]);
       int minute = int.parse(parts[1]);
+
+      if (isAfternoon && hour < 12 && hour >= 1) {
+        hour += 12;
+      }
 
       return DateTime(date.year, date.month, date.day, hour, minute);
     } catch (e) {
