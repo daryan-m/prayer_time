@@ -210,7 +210,7 @@ class PrayerCard extends StatelessWidget {
     List<Shadow>? embossedShadow = isActive
         ? null
         : const [
-            Shadow(offset: Offset(1, 1), blurRadius: 2, color: Colors.black),
+            Shadow(offset: Offset(1, 1), blurRadius: 2, color: Colors.green),
             Shadow(
                 offset: Offset(-0.5, -0.5),
                 blurRadius: 1,
@@ -219,7 +219,7 @@ class PrayerCard extends StatelessWidget {
 
     var list = [
       const BoxShadow(
-          color: Colors.black, offset: Offset(5, 5), blurRadius: 10),
+          color: Colors.teal, offset: Offset(5, 5), blurRadius: 10),
       BoxShadow(
           color: Colors.teal.withOpacity(0.9),
           offset: const Offset(-3, -3),

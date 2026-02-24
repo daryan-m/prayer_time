@@ -35,6 +35,12 @@ class PrayerDrawer extends StatelessWidget {
       width: MediaQuery.of(context).size.width * 0.75,
       child: Drawer(
         backgroundColor: AppColors.background,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(20),
+            bottomLeft: Radius.circular(20),
+          ),
+        ),
         child: Container(
           decoration: const BoxDecoration(
             border: Border(
@@ -43,10 +49,12 @@ class PrayerDrawer extends StatelessWidget {
           ),
           child: Column(
             children: [
-             Padding(
-                padding: const EdgeInsets.fromLTRB(16, 25, 8, 10), // بۆشایی دەوری هیدەر
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                    16, 25, 8, 10), // بۆشایی دەوری هیدەر
                 child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center, // بۆ ئەوەی هەمووی لە یەک ئاست بن
+                  crossAxisAlignment: CrossAxisAlignment
+                      .center, // بۆ ئەوەی هەمووی لە یەک ئاست بن
                   children: [
                     // --- بەشی چەپ: ئایکۆن و نووسین ---
                     const Icon(
@@ -63,9 +71,9 @@ class PrayerDrawer extends StatelessWidget {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    
+
                     const Spacer(), // ئەمە هەموو بۆشایی نێوانەکە پڕ دەکاتەوە
-                    
+
                     // --- بەشی ڕاست: دوگمەی داخستن ---
                     IconButton(
                       icon: const Icon(Icons.close, color: Colors.red),
@@ -74,11 +82,13 @@ class PrayerDrawer extends StatelessWidget {
                   ],
                 ),
               ),
-              const Divider(color: AppColors.primary, thickness: 1,), // هێڵێکی جوان لە ژێر هیدەر 
+              const Divider(
+                color: AppColors.primary,
+                thickness: 1,
+              ), // هێڵێکی جوان لە ژێر هیدەر
               Expanded(
                 child: ListView(
                   children: [
-
                     _buildExpansionTile(
                       context,
                       Icons.record_voice_over,
@@ -86,17 +96,16 @@ class PrayerDrawer extends StatelessWidget {
                       [
                         _buildAthanOption(
                             context, "م. کمال رؤوف", "kamal_rauf.mp3"),
-                        _buildAthanOption(context, "بانگی مەدینە", "madina.mp3"),
+                        _buildAthanOption(
+                            context, "بانگی مەدینە", "madina.mp3"),
                         _buildAthanOption(context, "بانگی کوەیت", "kwait.mp3"),
                       ],
                     ),
-
                     const Divider(
                         color: Colors.white10,
                         thickness: 2,
                         indent: 20,
                         endIndent: 20),
-
                     _buildExpansionTile(
                       context,
                       Icons.location_city,
@@ -135,8 +144,10 @@ class PrayerDrawer extends StatelessWidget {
                         );
                       }).toList(),
                     ),
-
-                    const Divider(color: Colors.white10, thickness: 2,),
+                    const Divider(
+                      color: Colors.white10,
+                      thickness: 2,
+                    ),
                     ListTile(
                       leading: const Icon(
                         Icons.play_circle_fill,
@@ -211,7 +222,6 @@ class PrayerDrawer extends StatelessWidget {
                         ),
                       ],
                     ),
-                    
                   ],
                 ),
               ),
@@ -240,8 +250,7 @@ class PrayerDrawer extends StatelessWidget {
     );
   }
 
-  Widget _buildAthanOption(
-      BuildContext context, String name, String fileName) {
+  Widget _buildAthanOption(BuildContext context, String name, String fileName) {
     bool isPlayingPreview = previewingSound == fileName;
 
     return ListTile(
