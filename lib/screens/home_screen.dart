@@ -302,14 +302,41 @@ class _PrayerHomePageState extends State<PrayerHomePage>
               );
             }
 
-            if (snapshot.data?.status == OtaStatus.INSTALLING) {
+            if (snapshot.data?.status == OtaStatus.INSTALLATION_DONE) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (!context.mounted) return;
+                Navigator.pop(context);
+                if (!context.mounted) return;
+                showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    backgroundColor: const Color(0xFF1E293B),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15)),
+                    title: const Text("تەواو بوو!",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: Colors.white)),
+                    content: const Text("تکایە ئەپەکە دامەزرێنە",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: Colors.white70)),
+                    actions: [
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary),
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text("باشە"),
+                      ),
+                    ],
+                  ),
+                );
+              });
               return const Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  CircularProgressIndicator(color: AppColors.secondary),
-                  SizedBox(height: 15),
-                  Text("دامەزراندنی نوێکردنەوە...",
-                      style: TextStyle(color: Colors.white70)),
+                  Icon(Icons.check_circle, color: Colors.green, size: 50),
+                  SizedBox(height: 10),
+                  Text("تەواو بوو! تکایە دامەزرێنە",
+                      style: TextStyle(color: Colors.white, fontSize: 16)),
                 ],
               );
             }
@@ -473,33 +500,53 @@ class _PrayerHomePageState extends State<PrayerHomePage>
       await _audioPlayer.stop();
       await flutterLocalNotificationsPlugin.cancel(name.hashCode);
       setState(() => activeAthans.remove(name));
-      await _saveSettings(); // پاشەکەوتکردن
+      await _saveSettings();
     } else {
-      // چالاککردن
-      setState(() => activeAthans.add(name));
-      await _saveSettings(); // پاشەکەوتکردن
-
+      // چالاککردن - سەرەتا schedule، دواتر state
       try {
         final now = DateTime.now();
-        final timeParts = time.split(':');
-        int hour = int.parse(timeParts[0]);
-        int minute = int.parse(timeParts[1]);
+        final cleanTime = time
+            .replaceAll('٠', '0')
+            .replaceAll('١', '1')
+            .replaceAll('٢', '2')
+            .replaceAll('٣', '3')
+            .replaceAll('٤', '4')
+            .replaceAll('٥', '5')
+            .replaceAll('٦', '6')
+            .replaceAll('٧', '7')
+            .replaceAll('٨', '8')
+            .replaceAll('٩', '9')
+            .replaceAll('۰', '0')
+            .replaceAll('۱', '1')
+            .replaceAll('۲', '2')
+            .replaceAll('۳', '3')
+            .replaceAll('۴', '4')
+            .replaceAll('۵', '5')
+            .replaceAll('۶', '6')
+            .replaceAll('۷', '7')
+            .replaceAll('۸', '8')
+            .replaceAll('۹', '9');
+
+        final timeParts = cleanTime.split(':');
+        if (timeParts.length < 2) return;
 
         DateTime scheduledDate = DateTime(
           now.year,
           now.month,
           now.day,
-          hour,
-          minute,
+          int.parse(timeParts[0]),
+          int.parse(timeParts[1]),
         );
-
         if (scheduledDate.isBefore(now)) {
           scheduledDate = scheduledDate.add(const Duration(days: 1));
         }
         await flutterLocalNotificationsPlugin.cancel(name.hashCode);
         await _scheduleAthanBackground(name.hashCode, name, scheduledDate);
+        // تەنها دوای سەرکەوتن state دەستکاری دەکەین
+        setState(() => activeAthans.add(name));
+        await _saveSettings();
       } catch (e) {
-        debugPrint("کێشەیەک هەیە لە ڕێکخستنی کاتی بانگ: $e");
+        debugPrint("❌ کێشە لە schedule: $e");
       }
     }
   }
@@ -555,8 +602,9 @@ class _PrayerHomePageState extends State<PrayerHomePage>
           ];
 
           return Scaffold(
+            backgroundColor: AppColors.background,
             appBar: AppBar(
-              backgroundColor: AppColors.cardBackground,
+              backgroundColor: AppColors.nily,
               elevation: 0,
               automaticallyImplyLeading: false,
               title: Row(
@@ -596,15 +644,12 @@ class _PrayerHomePageState extends State<PrayerHomePage>
                       Icons.menu_open,
                       color: AppColors.primary,
                       size: 40,
-                      
                     ),
                     onPressed: () => Scaffold.of(context).openDrawer(),
-                    
                   ),
                 ),
               ],
             ),
-            
             drawerEnableOpenDragGesture: true,
             drawerEdgeDragWidth: 50,
             drawer: PrayerDrawer(

@@ -218,8 +218,7 @@ class PrayerCard extends StatelessWidget {
           ];
 
     var list = [
-      const BoxShadow(
-          color: Colors.teal, offset: Offset(5, 5), blurRadius: 10),
+      const BoxShadow(color: Colors.teal, offset: Offset(5, 5), blurRadius: 10),
       BoxShadow(
           color: Colors.teal.withOpacity(0.9),
           offset: const Offset(-3, -3),
@@ -227,86 +226,87 @@ class PrayerCard extends StatelessWidget {
           spreadRadius: 2.5),
     ];
 
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 7),
-      padding: const EdgeInsets.all(13),
-      decoration: BoxDecoration(
-        color: isActive ? const Color(0xFF080D1A) : const Color(0xFF0F172A),
-        borderRadius: BorderRadius.circular(15),
-        boxShadow: isActive
-            ? [
-                BoxShadow(
-                    color: const Color(0xFF22D3EE).withOpacity(0.7),
-                    blurRadius: 10,
-                    spreadRadius: 3)
-              ]
-            : list,
-        border: Border.all(
-          color: isActive
-              ? const Color(0xFF22D3EE).withOpacity(0.50)
-              : Colors.white.withOpacity(0.09),
+    return GestureDetector(
+      onTap: isSun ? null : onTap,
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 7),
+        padding: const EdgeInsets.all(13),
+        decoration: BoxDecoration(
+          color: isActive ? const Color(0xFF080D1A) : const Color(0xFF0F172A),
+          borderRadius: BorderRadius.circular(15),
+          boxShadow: isActive
+              ? [
+                  BoxShadow(
+                      color: const Color(0xFF22D3EE).withOpacity(0.7),
+                      blurRadius: 10,
+                      spreadRadius: 3)
+                ]
+              : list,
+          border: Border.all(
+            color: isActive
+                ? const Color(0xFF22D3EE).withOpacity(0.50)
+                : Colors.white.withOpacity(0.09),
+          ),
         ),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: [
-              isSun && sunAnimation != null
-                  ? RepaintBoundary(
-                      child: AnimatedBuilder(
-                        animation: sunAnimation!,
-                        builder: (context, child) => Container(
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.orange
-                                    .withOpacity(sunAnimation!.value * 0.7),
-                                blurRadius: 15,
-                                spreadRadius: sunAnimation!.value * 5,
-                              )
-                            ],
-                          ),
-                          child: const Icon(
-                            Icons.wb_sunny,
-                            color: Colors.orange,
-                            size: 28,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: [
+                isSun && sunAnimation != null
+                    ? RepaintBoundary(
+                        child: AnimatedBuilder(
+                          animation: sunAnimation!,
+                          builder: (context, child) => Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.orange
+                                      .withOpacity(sunAnimation!.value * 0.7),
+                                  blurRadius: 15,
+                                  spreadRadius: sunAnimation!.value * 5,
+                                )
+                              ],
+                            ),
+                            child: const Icon(
+                              Icons.wb_sunny,
+                              color: Colors.orange,
+                              size: 28,
+                            ),
                           ),
                         ),
-                      ),
-                    )
-                  : GestureDetector(
-                      onTap: onTap,
-                      child: Icon(
+                      )
+                    : Icon(
                         isActive ? Icons.volume_up : Icons.volume_off,
                         color: isActive
                             ? const Color(0xFF22D3EE)
                             : Colors.blueGrey,
                         size: 24,
                       ),
-                    ),
-              const SizedBox(width: 15),
-              Text(isSun ? name : "بانگی $name",
-                  style: TextStyle(
-                      color: isSun
-                          ? Colors.orange
-                          : (isActive ? const Color(0xFF22D3EE) : Colors.white),
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                      shadows: embossedShadow)),
-            ],
-          ),
-          Text(timeService.formatTo12Hr(time),
-              style: TextStyle(
+                const SizedBox(width: 15),
+                Text(isSun ? name : "بانگی $name",
+                    style: TextStyle(
+                        color: isSun
+                            ? Colors.orange
+                            : (isActive
+                                ? const Color(0xFF22D3EE)
+                                : Colors.white),
+                        fontSize: 16,
+                        shadows: embossedShadow)),
+              ],
+            ),
+            Text(timeService.formatTo12Hr(time),
+                style: TextStyle(
                   fontSize: 18,
                   color: isSun
                       ? Colors.orange
-                      : (isActive ? const Color(0xFF22D3EE) : Colors.white70),
+                      : (isActive ? const Color(0xFF22D3EE) : Colors.white30),
                   shadows: embossedShadow,
-                  fontWeight: FontWeight.bold)),
-        ],
-      ),
-    );
+                )),
+          ],
+        ),
+      ), // ← کۆتایی Container
+    ); // ← کۆتایی GestureDetector
   }
 }

@@ -198,8 +198,8 @@ class PrayerDrawer extends StatelessWidget {
                               const SizedBox(height: 15),
                               Row(
                                 children: [
-                                  Icon(Icons.label_outline,
-                                      color: primaryColor, size: 16),
+                                   Icon(Icons.label_outline,
+                                       color: primaryColor, size: 16),
                                   const SizedBox(width: 8),
                                   Text("وەشانى: $currentAppVersion",
                                       style: const TextStyle(
