@@ -201,8 +201,8 @@ class PrayerDrawer extends StatelessWidget {
                                   Icon(Icons.label_outline,
                                       color: primaryColor, size: 16),
                                   const SizedBox(width: 8),
-                                  const Text("وەشانى: ١.٠.٠",
-                                      style: TextStyle(
+                                  Text("وەشانى: $currentAppVersion",
+                                      style: const TextStyle(
                                           color: Colors.white70, fontSize: 14)),
                                 ],
                               ),
