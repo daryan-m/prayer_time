@@ -301,8 +301,8 @@ class PrayerCard extends StatelessWidget {
                   fontSize: 18,
                   color: isSun
                       ? Colors.orange
-                      : (isActive ? const Color(0xFF22D3EE) : Colors.white30),
-                  shadows: embossedShadow,
+                      : (isActive ? const Color(0xFF22D3EE) : Colors.white70),
+                  shadows: embossedShadow
                 )),
           ],
         ),
