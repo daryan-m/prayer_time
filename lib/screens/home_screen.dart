@@ -541,10 +541,9 @@ class _PrayerHomePageState extends State<PrayerHomePage>
           scheduledDate = scheduledDate.add(const Duration(days: 1));
         }
         await flutterLocalNotificationsPlugin.cancel(name.hashCode);
-        await _scheduleAthanBackground(name.hashCode, name, scheduledDate);
-        // تەنها دوای سەرکەوتن state دەستکاری دەکەین
         setState(() => activeAthans.add(name));
         await _saveSettings();
+        await _scheduleAthanBackground(name.hashCode, name, scheduledDate);
       } catch (e) {
         debugPrint("❌ کێشە لە schedule: $e");
       }
