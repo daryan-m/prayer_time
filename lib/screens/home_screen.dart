@@ -15,6 +15,7 @@ import '../widgets/drawer_widget.dart';
 import '../utils/constants.dart';
 import '../main.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 class PrayerHomePage extends StatefulWidget {
   const PrayerHomePage({super.key});
@@ -55,7 +56,10 @@ class _PrayerHomePageState extends State<PrayerHomePage>
   @override
   void initState() {
     super.initState();
-
+    // ئەم بەشە زیاد بکە
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      _checkAndShowPermissions();
+    });
     _sunController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 2),
@@ -265,6 +269,8 @@ class _PrayerHomePageState extends State<PrayerHomePage>
       await Permission.requestInstallPackages.request();
     }
 
+    await WakelockPlus.enable();
+
     if (!mounted) return;
 
     showDialog(
@@ -282,6 +288,11 @@ class _PrayerHomePageState extends State<PrayerHomePage>
           stream:
               OtaUpdate().execute(url, destinationFilename: 'athan_app.apk'),
           builder: (context, snapshot) {
+            if (snapshot.hasError ||
+                snapshot.data?.status == OtaStatus.INSTALLING) {
+              WakelockPlus.disable();
+            }
+
             if (snapshot.hasError) {
               return Column(
                 mainAxisSize: MainAxisSize.min,
@@ -303,6 +314,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
             }
 
             if (snapshot.data?.status == OtaStatus.INSTALLATION_DONE) {
+              WakelockPlus.disable();
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 if (!context.mounted) return;
                 Navigator.pop(context);
@@ -390,7 +402,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
     String soundFileName = selectedAthanFile.replaceAll('.mp3', '');
 
     AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-      'athan_channel_id',
+      'athan_channel_v1',
       'Notifications',
       importance: Importance.max,
       priority: Priority.high,
@@ -495,17 +507,20 @@ class _PrayerHomePageState extends State<PrayerHomePage>
 
   Future<void> _handlePrayerCardTap(String name, String time) async {
     if (name == "خۆرهەڵاتن") return;
+
     if (activeAthans.contains(name)) {
-      // ناچالاککردن
+      // ❌ ناچالاککردن
       await _audioPlayer.stop();
       await flutterLocalNotificationsPlugin.cancel(name.hashCode);
       setState(() => activeAthans.remove(name));
       await _saveSettings();
     } else {
-      // چالاککردن - سەرەتا schedule، دواتر state
+      // ✅ چالاککردن
       try {
         final now = DateTime.now();
-        final cleanTime = time
+
+        // ١. پاککردنەوەی هەموو جۆرە ژمارە کوردی، فارسی و عەرەبییەکان
+        String cleanTime = time
             .replaceAll('٠', '0')
             .replaceAll('١', '1')
             .replaceAll('٢', '2')
@@ -525,27 +540,66 @@ class _PrayerHomePageState extends State<PrayerHomePage>
             .replaceAll('۶', '6')
             .replaceAll('۷', '7')
             .replaceAll('۸', '8')
-            .replaceAll('۹', '9');
+            .replaceAll('۹', '9')
+            .trim();
 
-        final timeParts = cleanTime.split(':');
-        if (timeParts.length < 2) return;
+        // ٢. جیاکردنەوەی کاتژمێر و خولەک بە RegExp
+        final RegExp regExp = RegExp(r'(\d+):(\d+)');
+        final match = regExp.firstMatch(cleanTime);
+
+        if (match == null) return;
+
+        int hour = int.parse(match.group(1)!);
+        int minute = int.parse(match.group(2)!);
+
+        // ٣. گۆڕینی کات بۆ ٢٤ کاتژمێری (پشکنینی پاشگرە کوردی و ئینگلیزییەکان)
+        // ئەگەر "د.ن" (دوای نیوەڕۆ) یان "PM" بوو، ١٢ کاتژمێر زیاد دەکەین
+        if ((cleanTime.contains("د.ن") ||
+                cleanTime.toUpperCase().contains("PM")) &&
+            hour < 12) {
+          hour += 12;
+        }
+        // ئەگەر "پ.ن" (پێش نیوەڕۆ) یان "AM" بوو و کاتژمێر ١٢ بوو، دەبێتە ٠
+        if ((cleanTime.contains("پ.ن") ||
+                cleanTime.toUpperCase().contains("AM")) &&
+            hour == 12) {
+          hour = 0;
+        }
 
         DateTime scheduledDate = DateTime(
           now.year,
           now.month,
           now.day,
-          int.parse(timeParts[0]),
-          int.parse(timeParts[1]),
+          hour,
+          minute,
         );
+
+        // ٤. ئەگەر کاتی بانگەکە بۆ ئەمڕۆ تێپەڕیبوو، بۆ سبەینێ دایبنێ
         if (scheduledDate.isBefore(now)) {
           scheduledDate = scheduledDate.add(const Duration(days: 1));
         }
+
         await flutterLocalNotificationsPlugin.cancel(name.hashCode);
-        setState(() => activeAthans.add(name));
+
+        setState(() {
+          activeAthans.add(name);
+        });
+
         await _saveSettings();
         await _scheduleAthanBackground(name.hashCode, name, scheduledDate);
+
+        if (!mounted) return;
+
+        // پیشاندانی ئاگادارکردنەوەیەکی کورت بۆ دڵنیایی بەکارهێنەر
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("بانگی $name چالاک کرا", textAlign: TextAlign.right),
+            backgroundColor: const Color(0xFF10B981),
+            duration: const Duration(seconds: 1),
+          ),
+        );
       } catch (e) {
-        debugPrint("❌ کێشە لە schedule: $e");
+        debugPrint("❌ کێشە لە چالاککردنی کارت: $e");
       }
     }
   }
@@ -788,4 +842,35 @@ class _PrayerHomePageState extends State<PrayerHomePage>
       ),
     );
   }
-}
+
+  Future<void> _checkAndShowPermissions() async {
+    if (await Permission.notification.isDenied ||
+        await Permission.ignoreBatteryOptimizations.isDenied) {
+      if (!mounted) return;
+
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => Directionality(
+          textDirection: ui.TextDirection.rtl,
+          child: AlertDialog(
+            title: const Text('ڕێپێدانی پێویست'),
+            content: const Text(
+                'بۆ ئەوەی ئەپڵیکەیشنەکە بە دروستى کار بکات، تکایە ڕێپێدانەکان چالاک بکە.'),
+            actions: [
+              TextButton(
+                onPressed: () async {
+                  Navigator.pop(context);
+                  await Permission.notification.request();
+                  await Permission.ignoreBatteryOptimizations.request();
+                  await Permission.scheduleExactAlarm.request();
+                },
+                child: const Text('باشە'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+  } // ئەمە کەوانەی داخستنی فەنکشنەکەیە
+} // ئەمە کۆتا کەوانەیە و کڵاسەکە دادەخات (تەنها یەک دانە بێت)

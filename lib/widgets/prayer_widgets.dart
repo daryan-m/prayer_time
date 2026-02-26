@@ -227,7 +227,7 @@ class PrayerCard extends StatelessWidget {
     ];
 
     return GestureDetector(
-      onTap: isSun ? null : onTap,
+      onTap: isSun ? null : () => onTap(),
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 7),
         padding: const EdgeInsets.all(13),
