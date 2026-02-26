@@ -172,6 +172,52 @@ class _PrayerHomePageState extends State<PrayerHomePage>
     }
   }
 
+  Future<void> _checkAndShowPermissions() async {
+    // نیو چرکە چاوەڕێ دەکات تا شاشە ڕەشەکە دروست نەبێت
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    // پشکنین: ئایا مۆڵەتەکان پێشتر دراون یان نا؟
+    if (await Permission.notification.isDenied ||
+        await Permission.scheduleExactAlarm.isDenied) {
+      if (!mounted) return;
+
+      // پیشاندانی دیالۆگ بۆ بەکارهێنەر
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => Directionality(
+          textDirection: ui.TextDirection
+              .rtl, // پێویستی بە import 'package:flutter/material.dart' هەیە
+          child: AlertDialog(
+            backgroundColor:
+                const Color(0xFF4E668D), // ڕەنگێکی گونجاو لەگەڵ دیزاینەکەت
+            title: const Text('ڕێپێدانی پێویست',
+                style: TextStyle(color: Colors.white)),
+            content: const Text(
+              'بۆ ئەوەی بانگەکان لە کاتی خۆیدا کار بکەن، تکایە ڕێپێدانەکان چالاک بکە.',
+              style: TextStyle(color: Colors.white70),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () async {
+                  Navigator.pop(context);
+                  // داواکردنی هەموو مۆڵەتەکان پێکەوە
+                  await [
+                    Permission.notification,
+                    Permission.scheduleExactAlarm,
+                    Permission.ignoreBatteryOptimizations,
+                  ].request();
+                },
+                child: const Text('باشە',
+                    style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+  }
+
   @override
   void dispose() {
     _ticker?.cancel();
@@ -842,35 +888,4 @@ class _PrayerHomePageState extends State<PrayerHomePage>
       ),
     );
   }
-
-  Future<void> _checkAndShowPermissions() async {
-    if (await Permission.notification.isDenied ||
-        await Permission.ignoreBatteryOptimizations.isDenied) {
-      if (!mounted) return;
-
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => Directionality(
-          textDirection: ui.TextDirection.rtl,
-          child: AlertDialog(
-            title: const Text('ڕێپێدانی پێویست'),
-            content: const Text(
-                'بۆ ئەوەی ئەپڵیکەیشنەکە بە دروستى کار بکات، تکایە ڕێپێدانەکان چالاک بکە.'),
-            actions: [
-              TextButton(
-                onPressed: () async {
-                  Navigator.pop(context);
-                  await Permission.notification.request();
-                  await Permission.ignoreBatteryOptimizations.request();
-                  await Permission.scheduleExactAlarm.request();
-                },
-                child: const Text('باشە'),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-  } // ئەمە کەوانەی داخستنی فەنکشنەکەیە
 } // ئەمە کۆتا کەوانەیە و کڵاسەکە دادەخات (تەنها یەک دانە بێت)

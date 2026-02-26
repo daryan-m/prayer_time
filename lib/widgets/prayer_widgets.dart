@@ -142,22 +142,31 @@ class NextPrayerBar extends StatelessWidget {
       decoration: BoxDecoration(
         color: const Color(0xFF0F172A),
         borderRadius: BorderRadius.circular(15),
+
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF22D3EE).withOpacity(0.9),
+            color: const Color(0xFF22D3EE).withOpacity(0.1),
             blurRadius: 15,
-            spreadRadius: 3,
+            spreadRadius: 1,
             offset: const Offset(0, 0),
           ),
           BoxShadow(
-            color: Colors.black.withOpacity(0.5),
+            color: Colors.black26.withOpacity(0.5),
             blurRadius: 10,
-            offset: const Offset(4, 4),
+            offset: const Offset(1, 1),
           ),
+          BoxShadow(
+            color: Colors.teal.shade900,
+            offset: const Offset(0, 0),
+            spreadRadius: 2.5, // ئەمە وەک هێڵی دووەم دەردەکەوێت
+            blurRadius: 0,
+            ),
         ],
-        border: Border.all(
-          color: const Color(0xFF22D3EE).withOpacity(1.0),
-          width: 1.4,
+        // ١. بۆردەرەکە تەنها بۆ لای ڕاست و چەپ (ڕەنگی کاڵ)
+        border: Border(
+          left: BorderSide(
+              color: Colors.teal.shade300, width: 4.0), // هێڵی یەکەم (کاڵ)
+          right: BorderSide(color: Colors.teal.shade300, width: 4.0),
         ),
       ),
       child: Row(
@@ -210,19 +219,18 @@ class PrayerCard extends StatelessWidget {
     List<Shadow>? embossedShadow = isActive
         ? null
         : const [
-            Shadow(offset: Offset(1, 1), blurRadius: 2, color: Colors.green),
+            Shadow(offset: Offset(1, 1), blurRadius: 2, color: Colors.black),
             Shadow(
-                offset: Offset(-0.5, -0.5),
-                blurRadius: 1,
-                color: Colors.white10),
+                offset: Offset(-0.5, -0.5), blurRadius: 1, color: Colors.black),
           ];
 
     var list = [
-      const BoxShadow(color: Colors.teal, offset: Offset(5, 5), blurRadius: 10),
+      const BoxShadow(
+          color: Colors.black26, offset: Offset(5, 5), blurRadius: 10),
       BoxShadow(
-          color: Colors.teal.withOpacity(0.9),
+          color: Colors.black26.withOpacity(0.9),
           offset: const Offset(-3, -3),
-          blurRadius: 7,
+          blurRadius: 6,
           spreadRadius: 2.5),
     ];
 
@@ -232,19 +240,20 @@ class PrayerCard extends StatelessWidget {
         margin: const EdgeInsets.symmetric(vertical: 7),
         padding: const EdgeInsets.all(13),
         decoration: BoxDecoration(
-          color: isActive ? const Color(0xFF080D1A) : const Color(0xFF0F172A),
+          color: isActive ? const Color(0xFF0F172A) : const Color(0xFF0F172A),
           borderRadius: BorderRadius.circular(15),
           boxShadow: isActive
               ? [
                   BoxShadow(
-                      color: const Color(0xFF22D3EE).withOpacity(0.7),
+                      color: const Color.fromARGB(255, 7, 206, 100)
+                          .withOpacity(0.9),
                       blurRadius: 10,
-                      spreadRadius: 3)
+                      spreadRadius: 2)
                 ]
               : list,
           border: Border.all(
             color: isActive
-                ? const Color(0xFF22D3EE).withOpacity(0.50)
+                ? const Color(0xFb72D3EE).withOpacity(0.50)
                 : Colors.white.withOpacity(0.09),
           ),
         ),
@@ -298,12 +307,11 @@ class PrayerCard extends StatelessWidget {
             ),
             Text(timeService.formatTo12Hr(time),
                 style: TextStyle(
-                  fontSize: 18,
-                  color: isSun
-                      ? Colors.orange
-                      : (isActive ? const Color(0xFF22D3EE) : Colors.white70),
-                  shadows: embossedShadow
-                )),
+                    fontSize: 18,
+                    color: isSun
+                        ? Colors.orange
+                        : (isActive ? const Color(0xFF22D3EE) : Colors.white70),
+                    shadows: embossedShadow)),
           ],
         ),
       ), // ← کۆتایی Container
