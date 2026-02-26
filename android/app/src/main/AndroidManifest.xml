@@ -6,11 +6,18 @@
     <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"/>
+    <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY"/>
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
     <application
         android:label="بانگ"
         android:name="${applicationName}"
-        android:icon="@mipmap/launcher_icon">
+        android:icon="@mipmap/launcher_icon"
+        android:roundIcon="@mipmap/launcher_icon">
         
         <activity
             android:name=".MainActivity"
@@ -51,7 +58,14 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
-    </application>
+
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="athan_channel_v1" />
+        <meta-data
+            android:name="com.dexterous.flutterlocalnotifications.default_notification_channel_id"
+            android:value="athan_channel_v1" />
+        </application>
 
     <queries>
         <intent>

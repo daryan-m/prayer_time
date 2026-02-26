@@ -1,23 +1,41 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest.dart' as tz;
+import 'package:timezone/timezone.dart' as tz; // ئەم دووانە وەک یەک ناویان لێنراوە، کێشە نییە
+import 'package:permission_handler/permission_handler.dart';
 import 'screens/home_screen.dart';
-import 'package:timezone/timezone.dart' as tz;
 
+// ئەم دێڕە پێویستە لە دەرەوەی main بێت
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
     FlutterLocalNotificationsPlugin();
 
 void main() async {
-  // ئەم دێڕە پێویستە بۆ ئەوەی پێش دەستپێکردنی ئەپەکە، سێرڤسەکان ئامادە بن
+  // ١. دڵنیابوونەوە لەوەی سێرڤسەکان ئامادەن
   WidgetsFlutterBinding.ensureInitialized();
 
-  // ١. ڕێکخستنی کات بۆ بانگدان
+  // ٢. کات و نۆتیفیکەیشن چەناڵ
   tz.initializeTimeZones();
   tz.setLocalLocation(tz.getLocation('Asia/Baghdad'));
 
-  // ٢. ڕێکخستنی سەرەتایی نوتیفیکەیشن (ئایکۆنەکە)
+  const AndroidNotificationChannel channel = AndroidNotificationChannel(
+    'athan_channel_v1',
+    'Athan Notifications',
+    importance: Importance.max,
+    sound: RawResourceAndroidNotificationSound('kamal_rauf'),
+    playSound: true,
+  );
+
+  final AndroidFlutterLocalNotificationsPlugin? androidPlugin =
+      flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin>();
+
+  if (androidPlugin != null) {
+    await androidPlugin.createNotificationChannel(channel);
+  }
+
+  // ٣. ڕێکخستنی ئایکۆنی نۆتیفیکەیشن
   const AndroidInitializationSettings initializationSettingsAndroid =
-      AndroidInitializationSettings('@mipmap/launcher_icon');
+      AndroidInitializationSettings('launcher_icon');
 
   const InitializationSettings initializationSettings = InitializationSettings(
     android: initializationSettingsAndroid,
@@ -25,7 +43,23 @@ void main() async {
 
   await flutterLocalNotificationsPlugin.initialize(initializationSettings);
 
-  // دەستپێکردنی ئەپەکە
+  // ٤. داواکردنی مۆڵەتەکان (لێرەدا هەڵەکەت هەبوو، چاککراوە)
+  Future.delayed(const Duration(milliseconds: 700), () async {
+    var notificationStatus = await Permission.notification.status;
+    var alarmStatus = await Permission.scheduleExactAlarm.status;
+
+    if (notificationStatus.isDenied || alarmStatus.isDenied) {
+      try {
+        await [
+          Permission.notification,
+          Permission.scheduleExactAlarm,
+        ].request();
+      } catch (e) {
+        debugPrint("Error requesting permissions: $e");
+      }
+    }
+  });
+
   runApp(const PrayerTimesApp());
 }
 

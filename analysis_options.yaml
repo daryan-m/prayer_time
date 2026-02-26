@@ -13,6 +13,7 @@ analyzer:
     deprecated_member_use: ignore
     unused_import: ignore
     undefined_hidden_name: ignore
+    await_only_futures: ignore
 include: package:flutter_lints/flutter.yaml
 
 linter:
