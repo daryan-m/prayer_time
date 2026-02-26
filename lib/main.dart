@@ -35,30 +35,13 @@ void main() async {
 
   // ٣. ڕێکخستنی ئایکۆنی نۆتیفیکەیشن
   const AndroidInitializationSettings initializationSettingsAndroid =
-      AndroidInitializationSettings('launcher_icon');
+      AndroidInitializationSettings('@mipmap/launcher_icon');
 
   const InitializationSettings initializationSettings = InitializationSettings(
     android: initializationSettingsAndroid,
   );
 
   await flutterLocalNotificationsPlugin.initialize(initializationSettings);
-
-  // ٤. داواکردنی مۆڵەتەکان (لێرەدا هەڵەکەت هەبوو، چاککراوە)
-  Future.delayed(const Duration(milliseconds: 700), () async {
-    var notificationStatus = await Permission.notification.status;
-    var alarmStatus = await Permission.scheduleExactAlarm.status;
-
-    if (notificationStatus.isDenied || alarmStatus.isDenied) {
-      try {
-        await [
-          Permission.notification,
-          Permission.scheduleExactAlarm,
-        ].request();
-      } catch (e) {
-        debugPrint("Error requesting permissions: $e");
-      }
-    }
-  });
 
   runApp(const PrayerTimesApp());
 }
