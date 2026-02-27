@@ -138,56 +138,45 @@ class NextPrayerBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 10),
-      padding: const EdgeInsets.symmetric(vertical: 7, horizontal: 20),
       decoration: BoxDecoration(
-        color: const Color(0xFF0F172A),
-        borderRadius: BorderRadius.circular(15),
-
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF22D3EE).withOpacity(0.1),
-            blurRadius: 15,
-            spreadRadius: 1,
-            offset: const Offset(0, 0),
-          ),
-          BoxShadow(
-            color: Colors.black26.withOpacity(0.5),
-            blurRadius: 10,
-            offset: const Offset(1, 1),
-          ),
-          BoxShadow(
-            color: Colors.teal.shade900,
-            offset: const Offset(0, 0),
-            spreadRadius: 2.5, // ئەمە وەک هێڵی دووەم دەردەکەوێت
-            blurRadius: 0,
-            ),
-        ],
-        // ١. بۆردەرەکە تەنها بۆ لای ڕاست و چەپ (ڕەنگی کاڵ)
+        borderRadius: BorderRadius.circular(35),
         border: Border(
-          left: BorderSide(
-              color: Colors.teal.shade300, width: 4.0), // هێڵی یەکەم (کاڵ)
-          right: BorderSide(color: Colors.teal.shade300, width: 4.0),
+          top: BorderSide(color: Colors.teal.shade500, width: 1.0),
+          bottom: BorderSide(color: Colors.teal.shade500, width: 1.0),
+          left: BorderSide(color: Colors.teal.shade500, width: 8.0),
+          right: BorderSide(color: Colors.teal.shade500, width: 8.0),
         ),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            remainingTime,
-            style: const TextStyle(
-              color: Color(0xFF10B981),
-              fontSize: 23,
-              fontWeight: FontWeight.bold,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 7, horizontal: 20),
+        decoration: BoxDecoration(
+          color: const Color(0xFF0F172A),
+          borderRadius: BorderRadius.circular(15),
+          border: Border(
+            left: BorderSide(color: Colors.teal.shade900, width: 8.0),
+            right: BorderSide(color: Colors.teal.shade900, width: 8.0),
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              remainingTime,
+              style: const TextStyle(
+                color: Color(0xFF10B981),
+                fontSize: 23,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-          ),
-          const SizedBox(width: 20),
-          Text(
-            nextPrayerName == "خۆرهەڵاتن"
-                ? "ماوە بۆ خۆرهەڵاتن"
-                : "ماوە بۆ بانگی $nextPrayerName",
-            style: const TextStyle(color: Colors.white, fontSize: 16),
-          ),
-        ],
+            const SizedBox(width: 20),
+            Text(
+              nextPrayerName == "خۆرهەڵاتن"
+                  ? "ماوە بۆ خۆرهەڵاتن"
+                  : "ماوە بۆ بانگی $nextPrayerName",
+              style: const TextStyle(color: Colors.white, fontSize: 16),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -200,7 +189,7 @@ class PrayerCard extends StatelessWidget {
   final bool isSun;
   final bool isActive;
   final Animation<double>? sunAnimation;
-  final VoidCallback onTap;
+  final Future<void> Function() onTap;
   final TimeService timeService;
 
   const PrayerCard({
@@ -235,7 +224,11 @@ class PrayerCard extends StatelessWidget {
     ];
 
     return GestureDetector(
-      onTap: isSun ? null : () => onTap(),
+      onTap: isSun
+          ? null
+          : () {
+              onTap();
+            },
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 7),
         padding: const EdgeInsets.all(13),
@@ -245,15 +238,15 @@ class PrayerCard extends StatelessWidget {
           boxShadow: isActive
               ? [
                   BoxShadow(
-                      color: const Color.fromARGB(255, 7, 206, 100)
-                          .withOpacity(0.9),
+                      color: const Color.fromARGB(255, 5, 126, 95)
+                          .withOpacity(0.6),
                       blurRadius: 10,
                       spreadRadius: 2)
                 ]
               : list,
           border: Border.all(
             color: isActive
-                ? const Color(0xFb72D3EE).withOpacity(0.50)
+                ? const Color.fromARGB(255, 255, 255, 255).withOpacity(0.50)
                 : Colors.white.withOpacity(0.09),
           ),
         ),
@@ -273,8 +266,8 @@ class PrayerCard extends StatelessWidget {
                                 BoxShadow(
                                   color: Colors.orange
                                       .withOpacity(sunAnimation!.value * 0.7),
-                                  blurRadius: 15,
-                                  spreadRadius: sunAnimation!.value * 5,
+                                  blurRadius: 10,
+                                  spreadRadius: sunAnimation!.value * 8,
                                 )
                               ],
                             ),
