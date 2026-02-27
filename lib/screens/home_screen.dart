@@ -56,6 +56,11 @@ class _PrayerHomePageState extends State<PrayerHomePage>
   @override
   void initState() {
     super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkAndShowPermissions();
+    });
+
     // ئەم بەشە زیاد بکە
     _sunController = AnimationController(
       vsync: this,
@@ -442,10 +447,27 @@ class _PrayerHomePageState extends State<PrayerHomePage>
   Future<void> _scheduleAthanBackground(
       int id, String prayerName, DateTime prayerTime) async {
     String soundFileName = selectedAthanFile.replaceAll('.mp3', '');
+    String channelId = 'athan_channel_$soundFileName';
+
+    // چانێڵی نوێ دروست بکە بەپێی دەنگی هەڵبژێردراو
+    final AndroidFlutterLocalNotificationsPlugin? androidPlugin =
+        flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>();
+    if (androidPlugin != null) {
+      await androidPlugin.createNotificationChannel(
+        AndroidNotificationChannel(
+          channelId,
+          'Athan $soundFileName',
+          importance: Importance.max,
+          sound: RawResourceAndroidNotificationSound(soundFileName),
+          playSound: true,
+        ),
+      );
+    }
 
     AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-      'athan_channel_v1',
-      'Notifications',
+      channelId,
+      'Athan $soundFileName',
       importance: Importance.max,
       priority: Priority.high,
       sound: RawResourceAndroidNotificationSound(soundFileName),
