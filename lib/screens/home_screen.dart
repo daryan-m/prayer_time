@@ -57,9 +57,6 @@ class _PrayerHomePageState extends State<PrayerHomePage>
   void initState() {
     super.initState();
     // ئەم بەشە زیاد بکە
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      _checkAndShowPermissions();
-    });
     _sunController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 2),
@@ -133,7 +130,6 @@ class _PrayerHomePageState extends State<PrayerHomePage>
     await prefs.setStringList('activePrayers', activeAthans.toList());
   }
 
-  // دووبارە ڕێکخستنی notification بۆ کارتێکی تایبەت
   // دووبارە ڕێکخستنی notification بۆ کارتێکی تایبەت
   Future<void> _reSchedulePrayer(String prayerName) async {
     try {
@@ -278,8 +274,8 @@ class _PrayerHomePageState extends State<PrayerHomePage>
     return false;
   }
 
-  void _showUpdateDialog(String url, String version) {
-    showDialog(
+  Future<void> _showUpdateDialog(String url, String version) async {
+    await showDialog(
       context: context,
       barrierDismissible: false,
       builder: (context) => AlertDialog(
@@ -639,7 +635,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
         // پیشاندانی ئاگادارکردنەوەیەکی کورت بۆ دڵنیایی بەکارهێنەر
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text("بانگی $name چالاک کرا", textAlign: TextAlign.right),
+            content: Text("بانگی $name چالاک کرا", textAlign: TextAlign.center),
             backgroundColor: const Color(0xFF10B981),
             duration: const Duration(seconds: 1),
           ),
@@ -699,11 +695,10 @@ class _PrayerHomePageState extends State<PrayerHomePage>
             formatter.format(prayerTimes.maghrib),
             formatter.format(prayerTimes.isha),
           ];
-
           return Scaffold(
             backgroundColor: AppColors.background,
             appBar: AppBar(
-              backgroundColor: AppColors.nily,
+              backgroundColor: AppColors.background,
               elevation: 0,
               automaticallyImplyLeading: false,
               title: Row(
@@ -730,7 +725,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
                 ],
               ),
               bottom: PreferredSize(
-                preferredSize: const Size.fromHeight(4),
+                preferredSize: const Size.fromHeight(2),
                 child: Container(
                   height: 2.0,
                   color: Colors.amber,
