@@ -1,10 +1,13 @@
 name: Build APK
+
 on:
   push:
     tags:
-      - 'v*'
+      - 'v*' # کاتێک تاگێک بە v دەست پێدەکات کاردەکات
+
 permissions:
   contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -18,11 +21,19 @@ jobs:
         with:
           flutter-version: '3.41.2'
       - run: flutter pub get
+      
+      # ١. دروستکردنی فایلەکان بە جیا (بۆ قەبارەی بچووک)
       - run: flutter build apk --split-per-abi --release
+      
+      # ٢. دروستکردنی فایلی گشتی (Fat APK - بۆ هەموو مۆبایلەکان)
+      - run: flutter build apk --release
+      
+      # ٣. ناردنی فایلەکان بۆ ریلیز
       - uses: softprops/action-gh-release@v1
         with:
           files: |
             build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
             build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk
+            build/app/outputs/flutter-apk/app-release.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
