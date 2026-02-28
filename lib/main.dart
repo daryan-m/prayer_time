@@ -14,11 +14,14 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // ٢. کات و نۆتیفیکەیشن چەناڵ
-  tz.initializeTimeZones();
+  tz
+  
+  
+  .initializeTimeZones();
   tz.setLocalLocation(tz.getLocation('Asia/Baghdad'));
 
   const AndroidNotificationChannel channel = AndroidNotificationChannel(
-    'athan_channel_v1',
+    'athan_channel_v2',
     'Athan Notifications',
     importance: Importance.max,
     sound: RawResourceAndroidNotificationSound('kamal_rauf'),
