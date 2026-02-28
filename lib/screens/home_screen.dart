@@ -302,7 +302,8 @@ class _PrayerHomePageState extends State<PrayerHomePage>
             style: ElevatedButton.styleFrom(backgroundColor: primaryColor),
             onPressed: () {
               Navigator.pop(context);
-              _startUpdate(url);
+              // ✅ چارەسەر: لێرە version تێپەڕێنرا
+              _startUpdate(url, version);
             },
             child: const Text("نوێکردنەوە"),
           ),
@@ -311,9 +312,17 @@ class _PrayerHomePageState extends State<PrayerHomePage>
     );
   }
 
-  void _startUpdate(String url) async {
+  // ✅ تێبینی: پارامێتەری version زیادکرا
+  void _startUpdate(String url, String version) async {
+    // 1. داواکردنی مۆڵەتی دامەزراندنی ئەپ (زۆر گرنگە بۆ ئەندرۆید)
     if (await Permission.requestInstallPackages.isDenied) {
       await Permission.requestInstallPackages.request();
+    }
+
+    // 2. دڵنیابوون: ئەگەر مۆڵەت نەدرا، بەردەوام مەبە
+    if (await Permission.requestInstallPackages.isDenied) {
+      debugPrint("بەکارهێنەر مۆڵەتی دامەزراندنی نەدا");
+      return;
     }
 
     await WakelockPlus.enable();
@@ -334,7 +343,8 @@ class _PrayerHomePageState extends State<PrayerHomePage>
         content: StreamBuilder<OtaEvent>(
           stream: OtaUpdate().execute(
             url,
-            destinationFilename: 'athan_app.apk',
+            // ✅ ✅ چارەسەر: بەکارهێنانی version بۆ ناوی فایلەکە
+            destinationFilename: 'athan_app_v$version.apk',
             usePackageInstaller: true,
           ),
           builder: (context, snapshot) {
@@ -363,11 +373,12 @@ class _PrayerHomePageState extends State<PrayerHomePage>
               );
             }
 
+            // 💡 ئەم پشکنینە یەکجارە و کار دەکات
             if (snapshot.data?.status == OtaStatus.INSTALLATION_DONE) {
               WakelockPlus.disable();
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 if (!context.mounted) return;
-                Navigator.pop(context);
+                Navigator.pop(context); // داخستنی دایەلۆگی Progress
                 if (!context.mounted) return;
                 showDialog(
                   context: context,
@@ -403,17 +414,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
               );
             }
 
-            if (snapshot.data?.status == OtaStatus.INSTALLATION_DONE) {
-              return const Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.check_circle, color: Colors.green, size: 50),
-                  SizedBox(height: 10),
-                  Text("تەواو بوو!",
-                      style: TextStyle(color: Colors.white, fontSize: 16)),
-                ],
-              );
-            }
+            // ⚠️ پاککردنەوە: بەشە دووبارەبووەکەی INSTALLATION_DONE لێرە سڕایەوە
 
             double progress = double.tryParse(snapshot.data?.value ?? '0') ?? 0;
 
@@ -450,7 +451,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
   Future<void> _scheduleAthanBackground(
       int id, String prayerName, DateTime prayerTime) async {
     String soundFileName = selectedAthanFile.replaceAll('.mp3', '');
-    String channelId = 'athan_channel_$soundFileName';
+    String channelId = 'athan_$soundFileName';
 
     // چانێڵی نوێ دروست بکە بەپێی دەنگی هەڵبژێردراو
     final AndroidFlutterLocalNotificationsPlugin? androidPlugin =
