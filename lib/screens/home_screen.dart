@@ -332,8 +332,11 @@ class _PrayerHomePageState extends State<PrayerHomePage>
           style: TextStyle(color: Colors.white),
         ),
         content: StreamBuilder<OtaEvent>(
-          stream:
-              OtaUpdate().execute(url, destinationFilename: 'athan_app.apk'),
+          stream: OtaUpdate().execute(
+            url,
+            destinationFilename: 'athan_app.apk',
+            usePackageInstaller: true,
+          ),
           builder: (context, snapshot) {
             if (snapshot.hasError ||
                 snapshot.data?.status == OtaStatus.INSTALLING) {
@@ -570,20 +573,29 @@ class _PrayerHomePageState extends State<PrayerHomePage>
   }
 
   Future<void> _handlePrayerCardTap(String name, String time) async {
-    if (name == "خۆرهەڵاتن") return;
+    // چارەسەری هەڵەی یەکەم (زیادکردنی { })
+    if (name == "خۆرهەڵاتن") {
+      return;
+    }
+
+    // 🔴 setState دەهێنینە سەرەتا
+    setState(() {
+      if (activeAthans.contains(name)) {
+        activeAthans.remove(name); // ❌ نائەکتیڤکردن
+      } else {
+        activeAthans.add(name); // ✅ ئەکتیڤکردن
+      }
+    });
+
+    // پاشەکەوتکردنی دۆخەکە
+    await _saveSettings();
 
     if (activeAthans.contains(name)) {
-      // ❌ ناچالاککردن
-      await _audioPlayer.stop();
-      await flutterLocalNotificationsPlugin.cancel(name.hashCode);
-      setState(() => activeAthans.remove(name));
-      await _saveSettings();
-    } else {
-      // ✅ چالاککردن
+      // ✅ ئەکتیڤکردن
       try {
         final now = DateTime.now();
 
-        // ١. پاککردنەوەی هەموو جۆرە ژمارە کوردی، فارسی و عەرەبییەکان
+        // پاککردنەوەی ژمارەکان
         String cleanTime = time
             .replaceAll('٠', '0')
             .replaceAll('١', '1')
@@ -607,54 +619,44 @@ class _PrayerHomePageState extends State<PrayerHomePage>
             .replaceAll('۹', '9')
             .trim();
 
-        // ٢. جیاکردنەوەی کاتژمێر و خولەک بە RegExp
+        // RegExp
         final RegExp regExp = RegExp(r'(\d+):(\d+)');
         final match = regExp.firstMatch(cleanTime);
-
-        if (match == null) return;
+        if (match == null) {
+          return;
+        }
 
         int hour = int.parse(match.group(1)!);
         int minute = int.parse(match.group(2)!);
 
-        // ٣. گۆڕینی کات بۆ ٢٤ کاتژمێری (پشکنینی پاشگرە کوردی و ئینگلیزییەکان)
-        // ئەگەر "د.ن" (دوای نیوەڕۆ) یان "PM" بوو، ١٢ کاتژمێر زیاد دەکەین
+        // گۆڕینی کات
         if ((cleanTime.contains("د.ن") ||
                 cleanTime.toUpperCase().contains("PM")) &&
             hour < 12) {
           hour += 12;
         }
-        // ئەگەر "پ.ن" (پێش نیوەڕۆ) یان "AM" بوو و کاتژمێر ١٢ بوو، دەبێتە ٠
         if ((cleanTime.contains("پ.ن") ||
                 cleanTime.toUpperCase().contains("AM")) &&
             hour == 12) {
           hour = 0;
         }
 
-        DateTime scheduledDate = DateTime(
-          now.year,
-          now.month,
-          now.day,
-          hour,
-          minute,
-        );
+        DateTime scheduledDate =
+            DateTime(now.year, now.month, now.day, hour, minute);
 
-        // ٤. ئەگەر کاتی بانگەکە بۆ ئەمڕۆ تێپەڕیبوو، بۆ سبەینێ دایبنێ
+        // ئەگەر کاتی تێپەڕیبوو
         if (scheduledDate.isBefore(now)) {
           scheduledDate = scheduledDate.add(const Duration(days: 1));
         }
 
+        // دووبارە scheduleکردنەوە
         await flutterLocalNotificationsPlugin.cancel(name.hashCode);
-
-        setState(() {
-          activeAthans.add(name);
-        });
-
-        await _saveSettings();
         await _scheduleAthanBackground(name.hashCode, name, scheduledDate);
 
-        if (!mounted) return;
-
-        // پیشاندانی ئاگادارکردنەوەیەکی کورت بۆ دڵنیایی بەکارهێنەر
+        // چارەسەری هەڵەی دووەم (زیادکردنی { })
+        if (!mounted) {
+          return;
+        }
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text("بانگی $name چالاک کرا", textAlign: TextAlign.center),
@@ -665,6 +667,22 @@ class _PrayerHomePageState extends State<PrayerHomePage>
       } catch (e) {
         debugPrint("❌ کێشە لە چالاککردنی کارت: $e");
       }
+    } else {
+      // ❌ ناچالاککردن
+      await _audioPlayer.stop();
+      await flutterLocalNotificationsPlugin.cancel(name.hashCode);
+
+      // چارەسەری هەڵەی دووەم (زیادکردنی { })
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("بانگی $name ناچالاک کرا", textAlign: TextAlign.center),
+          backgroundColor: Colors.redAccent,
+          duration: const Duration(seconds: 1),
+        ),
+      );
     }
   }
 
