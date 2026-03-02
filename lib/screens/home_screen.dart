@@ -314,17 +314,18 @@ class _PrayerHomePageState extends State<PrayerHomePage>
 
   // ✅ تێبینی: پارامێتەری version زیادکرا
   void _startUpdate(String url, String version) async {
-    // 1. داواکردنی مۆڵەتی دامەزراندنی ئەپ (زۆر گرنگە بۆ ئەندرۆید)
+    // 1. داواکردنی مۆڵەتی پێویست بۆ ئەندرۆید
     if (await Permission.requestInstallPackages.isDenied) {
       await Permission.requestInstallPackages.request();
     }
 
-    // 2. دڵنیابوون: ئەگەر مۆڵەت نەدرا، بەردەوام مەبە
+    // ئەگەر بەکارهێنەر ڕەتی کردەوە، بەردەوام مەبە
     if (await Permission.requestInstallPackages.isDenied) {
       debugPrint("بەکارهێنەر مۆڵەتی دامەزراندنی نەدا");
       return;
     }
 
+    // ڕێگری لە کوژانەوەی شاشە لەکاتی دابەزاندن
     await WakelockPlus.enable();
 
     if (!mounted) return;
@@ -332,118 +333,95 @@ class _PrayerHomePageState extends State<PrayerHomePage>
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1E293B),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-        title: const Text(
-          "داگرتنی نوێکردنەوە",
-          textAlign: TextAlign.center,
-          style: TextStyle(color: Colors.white),
-        ),
-        content: StreamBuilder<OtaEvent>(
-          stream: OtaUpdate().execute(
-            url,
-            // ✅ ✅ چارەسەر: بەکارهێنانی version بۆ ناوی فایلەکە
-            destinationFilename: 'athan_app_v$version.apk',
-            usePackageInstaller: true,
+      builder: (context) => Directionality(
+        // 💡 زیادکرایەوە
+        textDirection: ui.TextDirection.rtl, // 💡 زیادکرایەوە
+        child: AlertDialog(
+          backgroundColor: const Color(0xFF1E293B),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+          title: const Text(
+            "داگرتنی نوێکردنەوە",
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.white),
           ),
-          builder: (context, snapshot) {
-            if (snapshot.hasError ||
-                snapshot.data?.status == OtaStatus.INSTALLING) {
-              WakelockPlus.disable();
-            }
+          content: StreamBuilder<OtaEvent>(
+            stream: OtaUpdate().execute(
+              url,
+              // ✅ ناوی فایلەکە بە ڤێرشنەکەوە
+              destinationFilename: 'update_v$version.apk',
+              // 💡 checkSignature لادرا بۆ ئەوەی هەڵەکە نەمێنێت
+              usePackageInstaller: true,
+            ),
+            builder: (context, snapshot) {
+              if (snapshot.hasError) {
+                WakelockPlus.disable();
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.error, color: Colors.red, size: 50),
+                    const SizedBox(height: 10),
+                    Text("کێشەیەک ڕوویدا: ${snapshot.error}",
+                        style: const TextStyle(color: Colors.white70),
+                        textAlign: TextAlign.center),
+                    const SizedBox(height: 10),
+                    ElevatedButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text("داخستن"),
+                    ),
+                  ],
+                );
+              }
 
-            if (snapshot.hasError) {
+              // کاتێک دابەزاندن تەواو دەبێت یان دەچێتە قۆناغی ئینستاڵ
+              if (snapshot.data?.status == OtaStatus.INSTALLING ||
+                  snapshot.data?.status == OtaStatus.INSTALLATION_DONE) {
+                WakelockPlus.disable();
+                return const Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.check_circle, color: Colors.green, size: 50),
+                    SizedBox(height: 10),
+                    Text("داگرتن تەواو بوو\nئێستا دەست دەکات بە ئینستاڵ",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: Colors.white, fontSize: 15)),
+                  ],
+                );
+              }
+
+              // وەرگرتنی ڕێژەی سەدی دابەزاندن
+              double progress = 0;
+              if (snapshot.hasData && snapshot.data!.value != null) {
+                progress = double.tryParse(snapshot.data!.value!) ?? 0;
+              }
+
               return Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.error, color: Colors.red, size: 50),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 5),
+                  LinearProgressIndicator(
+                    value: progress / 100,
+                    color: Colors.blue,
+                    backgroundColor: Colors.white24,
+                    minHeight: 8,
+                  ),
+                  const SizedBox(height: 15),
                   Text(
-                    "کێشەیەک هەیە:\n${snapshot.error}",
-                    style: const TextStyle(color: Colors.white70),
-                    textAlign: TextAlign.center,
+                    "${progress.toStringAsFixed(0)}%",
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold),
                   ),
-                  const SizedBox(height: 10),
-                  ElevatedButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text("داخستن"),
-                  ),
+                  const SizedBox(height: 5),
+                  const Text("تکایە چاوەڕوان بن...",
+                      style: TextStyle(color: Colors.white70, fontSize: 13)),
                 ],
               );
-            }
-
-            // 💡 ئەم پشکنینە یەکجارە و کار دەکات
-            if (snapshot.data?.status == OtaStatus.INSTALLATION_DONE) {
-              WakelockPlus.disable();
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (!context.mounted) return;
-                Navigator.pop(context); // داخستنی دایەلۆگی Progress
-                if (!context.mounted) return;
-                showDialog(
-                  context: context,
-                  builder: (context) => AlertDialog(
-                    backgroundColor: const Color(0xFF1E293B),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15)),
-                    title: const Text("تەواو بوو!",
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: Colors.white)),
-                    content: const Text("تکایە ئەپەکە دامەزرێنە",
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: Colors.white70)),
-                    actions: [
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary),
-                        onPressed: () => Navigator.pop(context),
-                        child: const Text("باشە"),
-                      ),
-                    ],
-                  ),
-                );
-              });
-              return const Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.check_circle, color: Colors.green, size: 50),
-                  SizedBox(height: 10),
-                  Text("تەواو بوو! تکایە دامەزرێنە",
-                      style: TextStyle(color: Colors.white, fontSize: 16)),
-                ],
-              );
-            }
-
-            // ⚠️ پاککردنەوە: بەشە دووبارەبووەکەی INSTALLATION_DONE لێرە سڕایەوە
-
-            double progress = double.tryParse(snapshot.data?.value ?? '0') ?? 0;
-
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const SizedBox(height: 5),
-                LinearProgressIndicator(
-                  value: progress / 100,
-                  color: AppColors.primary,
-                  backgroundColor: Colors.white24,
-                  minHeight: 8,
-                ),
-                const SizedBox(height: 15),
-                Text(
-                  "${progress.toStringAsFixed(0)}%",
-                  style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 5),
-                const Text("داگرتنی نوێکردنەوە...",
-                    style: TextStyle(color: Colors.white70, fontSize: 13)),
-              ],
-            );
-          },
+            },
+          ),
         ),
-      ),
+      ), // 💡 قوسەکەی Directionality زیادکرایەوە
     );
   }
 
