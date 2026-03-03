@@ -59,6 +59,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkAndShowPermissions();
+      _requestNotificationPermission();
     });
 
     // ئەم بەشە زیاد بکە
@@ -88,6 +89,14 @@ class _PrayerHomePageState extends State<PrayerHomePage>
     _updateCheckTimer = Timer.periodic(const Duration(hours: 24), (timer) {
       _checkForUpdate();
     });
+  }
+
+  Future<void> _requestNotificationPermission() async {
+    final androidPlugin =
+        flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>();
+
+    await androidPlugin?.requestNotificationsPermission();
   }
 
   // بارکردنی زانیارییە پاشەکەوتکراوەکان
@@ -201,13 +210,22 @@ class _PrayerHomePageState extends State<PrayerHomePage>
             actions: [
               TextButton(
                 onPressed: () async {
+                  // ١. داخستنی دیالۆگەکە
                   Navigator.pop(context);
-                  // داواکردنی هەموو مۆڵەتەکان پێکەوە
-                  await [
+
+                  // ٢. داواکردنی هەموو مۆڵەتەکان پێکەوە
+                  Map<Permission, PermissionStatus> statuses = await [
                     Permission.notification,
                     Permission.scheduleExactAlarm,
                     Permission.ignoreBatteryOptimizations,
                   ].request();
+
+                  // ٣. پشکنین: ئەگەر مۆڵەتی Alarms (کاتی ورد) یان Notification ڕەتکرایەوە
+                  if (statuses[Permission.scheduleExactAlarm]!.isDenied ||
+                      statuses[Permission.notification]!.isDenied) {
+                    // بەکارهێنەر دەنێرێت بۆ سێتینگ بۆ ئەوەی بە دەست چالاکی بکات
+                    await openAppSettings();
+                  }
                 },
                 child: const Text('باشە',
                     style: TextStyle(fontWeight: FontWeight.bold)),
@@ -428,18 +446,27 @@ class _PrayerHomePageState extends State<PrayerHomePage>
   // --- NOTIFICATION ---
   Future<void> _scheduleAthanBackground(
       int id, String prayerName, DateTime prayerTime) async {
+    // 1️⃣ ناوی فایل بدون .mp3
     String soundFileName = selectedAthanFile.replaceAll('.mp3', '');
+
+    // 2️⃣ channelId یکتا بۆ هەر فایلێک
     String channelId = 'athan_$soundFileName';
 
-    // چانێڵی نوێ دروست بکە بەپێی دەنگی هەڵبژێردراو
+    // 3️⃣ Android plugin
     final AndroidFlutterLocalNotificationsPlugin? androidPlugin =
         flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin>();
+
     if (androidPlugin != null) {
+      // 🔹 پێش دروستکردنی چانێڵ بسڕەوە بۆ گۆڕینی دەنگ
+      await androidPlugin.deleteNotificationChannel(channelId);
+
+      // 🔹 دروستکردنی چانێڵ نوێ
       await androidPlugin.createNotificationChannel(
         AndroidNotificationChannel(
           channelId,
           'Athan $soundFileName',
+          description: 'Athan notification channel',
           importance: Importance.max,
           sound: RawResourceAndroidNotificationSound(soundFileName),
           playSound: true,
@@ -447,6 +474,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
       );
     }
 
+    // 4️⃣ جزئیات notification
     AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
       channelId,
       'Athan $soundFileName',
@@ -456,23 +484,24 @@ class _PrayerHomePageState extends State<PrayerHomePage>
       playSound: true,
     );
 
-    // ✅ هەمیشەیی - هەر ڕۆژ هەمان کات بانگ دەدات
+    // 5️⃣ Schedule Notification
     await flutterLocalNotificationsPlugin.zonedSchedule(
-      id,
-      'کاتی بانگی $prayerName',
-      'ئێستا کاتی بانگی $prayerNameەیە',
-      _nextInstanceOfTime(prayerTime),
-      NotificationDetails(android: androidDetails),
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
-      matchDateTimeComponents: DateTimeComponents.time, // ✅ هەر ڕۆژ
-    );
+        id,
+        'کاتی بانگی $prayerName',
+        'ئێستا کاتی بانگی $prayerNameەیە',
+        _nextInstanceOfTime(prayerTime),
+        NotificationDetails(android: androidDetails),
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        uiLocalNotificationDateInterpretation:
+            UILocalNotificationDateInterpretation.absoluteTime,
+        matchDateTimeComponents: DateTimeComponents.time);
   }
 
-// ✅ فەنکشنی نوێ - کاتی داهاتووی بانگ دیاری دەکات
+  // ✅ فەنکشنی نوێ - کاتی داهاتووی بانگ دیاری دەکات
+
   tz.TZDateTime _nextInstanceOfTime(DateTime prayerTime) {
     final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
+
     tz.TZDateTime scheduledDate = tz.TZDateTime(
       tz.local,
       now.year,
@@ -481,15 +510,19 @@ class _PrayerHomePageState extends State<PrayerHomePage>
       prayerTime.hour,
       prayerTime.minute,
     );
+
     if (scheduledDate.isBefore(now)) {
       scheduledDate = scheduledDate.add(const Duration(days: 1));
     }
+
     return scheduledDate;
   }
 
   // --- HELPER METHODS ---
+
   void _refreshData() {
     if (!mounted) return;
+
     setState(() {
       _prayerTimesFuture = _prayerDataService.getPrayerTimes(currentCity, _now);
     });
@@ -499,6 +532,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
     final now = DateTime.now();
 
     // ڕیزبەندی بانگەکان (بەبێ خۆرهەڵاتن)
+
     final prayerTimesList = [
       times.fajr,
       times.dhuhr,
@@ -510,9 +544,11 @@ class _PrayerHomePageState extends State<PrayerHomePage>
     DateTime? nextPrayerTime;
 
     // دۆزینەوەی یەکەم بانگ لە ڕیزبەندییەکەدا کە دوای کاتی ئێستایە
+
     for (final prayerTime in prayerTimesList) {
       if (prayerTime.isAfter(now)) {
         nextPrayerTime = prayerTime;
+
         break;
       }
     }
@@ -526,12 +562,17 @@ class _PrayerHomePageState extends State<PrayerHomePage>
     ).add(const Duration(days: 1));
 
     final Duration diff = nextPrayerTime.difference(now);
+
     final int hours = diff.inHours;
+
     final int minutes = diff.inMinutes.remainder(60);
+
     final int seconds = diff.inSeconds.remainder(60);
 
     final String h = hours.toString().padLeft(2, '0');
+
     final String m = minutes.toString().padLeft(2, '0');
+
     final String s = seconds.toString().padLeft(2, '0');
 
     return _timeService.toKu("$h:$m:$s");
@@ -541,120 +582,133 @@ class _PrayerHomePageState extends State<PrayerHomePage>
     final now = DateTime.now();
 
     // بەپێی کاتی ئێستا، ناوی بانگی داهاتوو دیاری دەکات
+
     if (now.isBefore(times.fajr)) return "بەیانی";
+
     if (now.isBefore(times.dhuhr)) return "نیوەڕۆ";
+
     if (now.isBefore(times.asr)) return "عەسر";
+
     if (now.isBefore(times.maghrib)) return "ئێوارە";
+
     if (now.isBefore(times.isha)) return "خەوتنان";
 
     // ئەگەر هەمووی تەواو بوو، چاوەڕێی بەیانی ڕۆژی دواتر بە
+
     return "بەیانی";
   }
 
   Future<void> _handlePrayerCardTap(String name, String time) async {
-    // چارەسەری هەڵەی یەکەم (زیادکردنی { })
+    // ❌ ئەگەر کارت خۆرهەڵاتنە، هیچ کارێک مەکە
     if (name == "خۆرهەڵاتن") {
       return;
     }
 
-    // 🔴 setState دەهێنینە سەرەتا
+    // 🔴 Update UI
     setState(() {
       if (activeAthans.contains(name)) {
-        activeAthans.remove(name); // ❌ نائەکتیڤکردن
+        activeAthans.remove(name); // ناچالاک
       } else {
-        activeAthans.add(name); // ✅ ئەکتیڤکردن
+        activeAthans.add(name); // چالاک
       }
     });
 
-    // پاشەکەوتکردنی دۆخەکە
+    // پاشەکەوتکردنی دۆخ
     await _saveSettings();
 
+    final now = DateTime.now();
+
+    // پاککردن ژمارەکان و گۆڕینی بۆ 24h format
+    String cleanTime = time.replaceAllMapped(RegExp(r'[٠-٩]'), (match) {
+      const arabicToEnglish = {
+        '٠': '0',
+        '١': '1',
+        '٢': '2',
+        '٣': '3',
+        '٤': '4',
+        '٥': '5',
+        '٦': '6',
+        '٧': '7',
+        '٨': '8',
+        '٩': '9'
+      };
+      return arabicToEnglish[match.group(0)]!;
+    }).replaceAllMapped(RegExp(r'[۰-۹]'), (match) {
+      const persianToEnglish = {
+        '۰': '0',
+        '۱': '1',
+        '۲': '2',
+        '۳': '3',
+        '۴': '4',
+        '۵': '5',
+        '۶': '6',
+        '۷': '7',
+        '۸': '8',
+        '۹': '9'
+      };
+      return persianToEnglish[match.group(0)]!;
+    }).trim();
+
+    final regExp = RegExp(r'(\d+):(\d+)');
+    final match = regExp.firstMatch(cleanTime);
+    if (match == null) return;
+
+    int hour = int.parse(match.group(1)!);
+    int minute = int.parse(match.group(2)!);
+
+    // AM/PM to 24h
+    if ((cleanTime.contains("د.ن") || cleanTime.toUpperCase().contains("PM")) &&
+        hour < 12) {
+      hour += 12;
+    }
+    if ((cleanTime.contains("پ.ن") || cleanTime.toUpperCase().contains("AM")) &&
+        hour == 12) {
+      hour = 0;
+    }
+
+    DateTime scheduledDate =
+        DateTime(now.year, now.month, now.day, hour, minute);
+    if (scheduledDate.isBefore(now)) {
+      scheduledDate = scheduledDate.add(const Duration(days: 1));
+    }
+
+    // ⚡ پێش بەکارهێنانی context یا UI چک بکە widget هەیە
+    // ⚡ پێش بەکارهێنانی context چک بکە widget هەیە
+    if (!mounted) {
+      return;
+    }
+
     if (activeAthans.contains(name)) {
-      // ✅ ئەکتیڤکردن
-      try {
-        final now = DateTime.now();
+      // ✅ کارت چالاک: هەموو ڕۆژ notification + دەنگ
+      // ⚡ پێش بەکارهێنانی context چک بکە widget هەیە
+      if (!mounted) return;
 
-        // پاککردنەوەی ژمارەکان
-        String cleanTime = time
-            .replaceAll('٠', '0')
-            .replaceAll('١', '1')
-            .replaceAll('٢', '2')
-            .replaceAll('٣', '3')
-            .replaceAll('٤', '4')
-            .replaceAll('٥', '5')
-            .replaceAll('٦', '6')
-            .replaceAll('٧', '7')
-            .replaceAll('٨', '8')
-            .replaceAll('٩', '9')
-            .replaceAll('۰', '0')
-            .replaceAll('۱', '1')
-            .replaceAll('۲', '2')
-            .replaceAll('۳', '3')
-            .replaceAll('۴', '4')
-            .replaceAll('۵', '5')
-            .replaceAll('۶', '6')
-            .replaceAll('۷', '7')
-            .replaceAll('۸', '8')
-            .replaceAll('۹', '9')
-            .trim();
-
-        // RegExp
-        final RegExp regExp = RegExp(r'(\d+):(\d+)');
-        final match = regExp.firstMatch(cleanTime);
-        if (match == null) {
-          return;
-        }
-
-        int hour = int.parse(match.group(1)!);
-        int minute = int.parse(match.group(2)!);
-
-        // گۆڕینی کات
-        if ((cleanTime.contains("د.ن") ||
-                cleanTime.toUpperCase().contains("PM")) &&
-            hour < 12) {
-          hour += 12;
-        }
-        if ((cleanTime.contains("پ.ن") ||
-                cleanTime.toUpperCase().contains("AM")) &&
-            hour == 12) {
-          hour = 0;
-        }
-
-        DateTime scheduledDate =
-            DateTime(now.year, now.month, now.day, hour, minute);
-
-        // ئەگەر کاتی تێپەڕیبوو
-        if (scheduledDate.isBefore(now)) {
-          scheduledDate = scheduledDate.add(const Duration(days: 1));
-        }
-
-        // دووبارە scheduleکردنەوە
-        await flutterLocalNotificationsPlugin.cancel(name.hashCode);
-        await _scheduleAthanBackground(name.hashCode, name, scheduledDate);
-
-        // چارەسەری هەڵەی دووەم (زیادکردنی { })
-        if (!mounted) {
-          return;
-        }
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("بانگی $name چالاک کرا", textAlign: TextAlign.center),
-            backgroundColor: const Color(0xFF10B981),
-            duration: const Duration(seconds: 1),
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "بانگی $name چالاک کرا",
+            textAlign: TextAlign.center,
           ),
-        );
-      } catch (e) {
-        debugPrint("❌ کێشە لە چالاککردنی کارت: $e");
-      }
+          backgroundColor: const Color(0xFF10B981),
+          duration: const Duration(seconds: 1),
+        ),
+      );
+
+      // پێش schedule، cancel بکە بۆ جلوگیری duplicate
+      await flutterLocalNotificationsPlugin.cancel(name.hashCode);
+
+      // schedule notification هەموو ڕۆژ
+      await _scheduleAthanBackground(name.hashCode, name, scheduledDate);
     } else {
-      // ❌ ناچالاککردن
+      // ❌ کارت ناچالاک: notification + دەنگ بسڕە
       await _audioPlayer.stop();
       await flutterLocalNotificationsPlugin.cancel(name.hashCode);
 
-      // چارەسەری هەڵەی دووەم (زیادکردنی { })
-      if (!mounted) {
-        return;
-      }
+      // اگر پێویست بە async function هەیە
+      // await someAsyncFunction(); // اگر نییە، ڕەوانە بکە
+
+      // دوبارە چک بکە widget هەیە پێش UI
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text("بانگی $name ناچالاک کرا", textAlign: TextAlign.center),
@@ -705,7 +759,9 @@ class _PrayerHomePageState extends State<PrayerHomePage>
           }
 
           final prayerTimes = snapshot.data!;
+
           final DateFormat formatter = DateFormat('HH:mm');
+
           todayTimes = [
             formatter.format(prayerTimes.fajr),
             formatter.format(prayerTimes.sunrise),
@@ -714,6 +770,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
             formatter.format(prayerTimes.maghrib),
             formatter.format(prayerTimes.isha),
           ];
+
           return Scaffold(
             backgroundColor: AppColors.background,
             appBar: AppBar(
@@ -770,8 +827,10 @@ class _PrayerHomePageState extends State<PrayerHomePage>
               onCityChanged: (city) {
                 setState(() {
                   currentCity = city;
+
                   _refreshData();
                 });
+
                 _saveSettings(); // پاشەکەوتکردن
               },
               selectedThemeName: selectedThemeName,
@@ -779,13 +838,16 @@ class _PrayerHomePageState extends State<PrayerHomePage>
               onThemeChanged: (name, color) {
                 setState(() {
                   selectedThemeName = name;
+
                   primaryColor = color;
                 });
+
                 _saveSettings(); // پاشەکەوتکردن
               },
               selectedAthanFile: selectedAthanFile,
               onAthanChanged: (file) {
                 setState(() => selectedAthanFile = file);
+
                 _saveSettings(); // پاشەکەوتکردن
               },
               previewingSound: _previewingSound,
@@ -798,6 +860,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
               builder: (context, constraints) {
                 if (constraints.maxWidth > 600) {
                   // WIDE LAYOUT (TABLET)
+
                   return Row(
                     children: [
                       Expanded(
@@ -848,6 +911,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
                   );
                 } else {
                   // NARROW LAYOUT (PHONE)
+
                   return SingleChildScrollView(
                     child: ConstrainedBox(
                       constraints: BoxConstraints(

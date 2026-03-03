@@ -104,7 +104,7 @@ class PrayerDataService {
         'حوزەیران': 6,
         'تەمووز': 7,
         'ئاب': 8,
-        'ئەیلول': 9,
+        'ئەیلوول': 9,
         'تشرینی یەکەم': 10,
         'تشرینی دووەم': 11,
         'کانونی یەکەم': 12
@@ -146,6 +146,7 @@ class TimeService {
   TimeService() {
     HijriCalendar.setLocal('ar');
   }
+
   String toKu(String n) {
     return n
         .replaceAll('0', '٠')
@@ -171,105 +172,71 @@ class TimeService {
   }
 
   String gregorianDateString(DateTime dt) {
-    // فۆرماتی میلادی بە /
     return "\u200E${dt.year}/${dt.month.toString().padLeft(2, '0')}/${dt.day.toString().padLeft(2, '0')}";
   }
 
   String hijriDateString() {
     var hijriDate = HijriCalendar.now();
     var day = toKu(hijriDate.hDay.toString());
-    var month = hijriDate.toFormat("MMMM"); // ناوی مانگەکە وەردەگرێت
+    var month = hijriDate.toFormat("MMMM");
     var year = toKu(hijriDate.hYear.toString());
-
-    // لێرەدا پیتى "ی" دەخەینە نێوان ڕۆژ و مانگ
     return "کۆچى: $dayـى $month $year";
   }
 
   String kurdishDateString(DateTime dt) {
-    // فۆرمولای ڕاست بەپێی ساڵنامەی کوردی
-    // نەورۆز = ٢١ مارت = ١/١ کوردی
-
     final months = [
-      "نەورۆز", // ١ (٢١ مارت - ١٩ ئەپریل)
-      "گوڵان", // ٢ (٢٠ ئەپریل - ٢٠ مای)
-      "جۆزەردان", // ٣ (٢١ مای - ٢٠ جوون)
-      "پووشپەڕ", // ٤ (٢١ جوون - ٢٢ جولای)
-      "گەلاوێژ", // ٥ (٢٣ جولای - ٢٢ ئاگۆست)
-      "خەرمانان", // ٦ (٢٣ ئاگۆست - ٢٢ سێپتەمبەر)
-      "ڕەزبەر", // ٧ (٢٣ سێپتەمبەر - ٢٢ ئۆکتۆبەر)
-      "گەڵاڕێزان", // ٨ (٢٣ ئۆکتۆبەر - ٢١ نۆڤەمبەر)
-      "سەرماوەز", // ٩ (٢٢ نۆڤەمبەر - ٢١ دجەمبەر)
-      "بەفرانبار", // ١٠ (٢٢ دجەمبەر - ٢٠ یانویەر)
-      "ڕێبەندان", // ١١ (٢١ یانویەر - ١٩ فیبرایەر)
-      "ڕەشەمە" // ١٢ (٢٠ فیبرایەر - ٢٠ مارت)
+      "نەورۆز",
+      "گوڵان",
+      "جۆزەردان",
+      "پووشپەڕ",
+      "گەلاوێژ",
+      "خەرمانان",
+      "ڕەزبەر",
+      "گەڵاڕێزان",
+      "سەرماوەز",
+      "بەفرانبار",
+      "ڕێبەندان",
+      "ڕەشەمە"
     ];
 
-    // سەرەتاکانی هەر مانگێک (مانگ/ڕۆژ)
-    final monthStarts = [
-      [3, 21], // نەورۆز
-      [4, 20], // گوڵان
-      [5, 21], // جۆزەردان
-      [6, 21], // پووشپەڕ
-      [7, 23], // گەلاوێژ
-      [8, 23], // خەرمانان
-      [9, 23], // ڕەزبەر
-      [10, 23], // گەڵاڕێزان
-      [11, 22], // سەرماوەز
-      [12, 22], // بەفرانبار
-      [1, 21], // ڕێبەندان
-      [2, 20], // ڕەشەمە
-    ];
+    int kYear, kMonth, kDay;
 
-    int kurdishYear = dt.year + 700;
-    int kurdishMonth = 1;
-    int kurdishDay = 1;
+    // دیاریکردنی ڕۆژی یەکەمی نەورۆز (٢١ی مارت)
+    DateTime noroz = DateTime(dt.year, 3, 21);
 
-    // دۆزینەوەی مانگ بەپێی بەروار
-    if (dt.month >= 3 && (dt.month > 3 || dt.day >= 21)) {
-      // دوای نەورۆز لە هەمان ساڵدا
-      for (int i = 0; i < 11; i++) {
-        int nextMonth = monthStarts[i + 1][0];
-        int nextDay = monthStarts[i + 1][1];
+    if (dt.isBefore(noroz)) {
+      // پێش نەورۆز = ساڵی پێشوو
+      kYear = dt.year + 700 - 1;
+      DateTime previousNoroz = DateTime(dt.year - 1, 3, 21);
+      int diff = dt.difference(previousNoroz).inDays;
 
-        if (dt.month < nextMonth ||
-            (dt.month == nextMonth && dt.day < nextDay)) {
-          kurdishMonth = i + 1;
-          int startMonth = monthStarts[i][0];
-          int startDay = monthStarts[i][1];
-
-          DateTime monthStart = DateTime(dt.year, startMonth, startDay);
-          kurdishDay = dt.difference(monthStart).inDays + 1;
-          break;
-        }
+      if (diff < 186) {
+        kMonth = (diff ~/ 31) + 1;
+        kDay = (diff % 31) + 1;
+      } else {
+        int remainingDays = diff - 186;
+        kMonth = (remainingDays ~/ 30) + 7;
+        kDay = (remainingDays % 30) + 1;
       }
     } else {
-      // پێش نەورۆز = ساڵی پێشوو
-      kurdishYear = dt.year + 700 - 1;
+      // دوای نەورۆز یان لە ڕۆژی نەورۆز
+      kYear = dt.year + 700;
+      int diff = dt.difference(noroz).inDays;
 
-      if (dt.month == 2 && dt.day >= 20) {
-        // ڕەشەمە (٢٠ فیبرایەر - ٢٠ مارت)
-        kurdishMonth = 12;
-        kurdishDay = dt.day - 20 + 1;
-      } else if (dt.month == 1 && dt.day >= 21) {
-        // ڕێبەندان (٢١ یانویەر - ١٩ فیبرایەر)
-        kurdishMonth = 11;
-        kurdishDay = dt.day - 21 + 1;
-      } else if (dt.month == 2 && dt.day < 20) {
-        // کۆتایی ڕێبەندان
-        kurdishMonth = 11;
-        kurdishDay = 10 + dt.day + 1;
+      if (diff < 186) {
+        kMonth = (diff ~/ 31) + 1;
+        kDay = (diff % 31) + 1;
       } else {
-        // مانگەکانی تر
-        kurdishMonth = 10;
-        kurdishDay = dt.day + 10;
+        int remainingDays = diff - 186;
+        kMonth = (remainingDays ~/ 30) + 7;
+        kDay = (remainingDays % 30) + 1;
       }
     }
 
-    int monthIndex = kurdishMonth - 1;
-    if (monthIndex < 0) monthIndex = 0;
-    if (monthIndex > 11) monthIndex = 11;
+    // پاراستنی ئەوەی مانگ لە ١٢ زیاتر نەبێت
+    if (kMonth > 12) kMonth = 12;
 
-    return "${toKu(kurdishDay.toString())}ـى ${months[monthIndex]} ${toKu(kurdishYear.toString())}";
+    return "${toKu(kDay.toString())}ـى ${months[kMonth - 1]} ${toKu(kYear.toString())}";
   }
 }
 
