@@ -12,7 +12,6 @@
     <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY"/>
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
 
     <application
         android:label="بانگ"
@@ -62,10 +61,10 @@
 
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_channel_id"
-            android:value="athan_channel_v1" />
+            android:value="athan_alerts_v2" />
         <meta-data
             android:name="com.dexterous.flutterlocalnotifications.default_notification_channel_id"
-            android:value="athan_channel_v1" />
+            android:value="athan_alerts_v2" />
         </application>
 
     <queries>

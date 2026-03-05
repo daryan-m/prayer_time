@@ -59,7 +59,6 @@ class _PrayerHomePageState extends State<PrayerHomePage>
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkAndShowPermissions();
-      _requestNotificationPermission();
     });
 
     // ئەم بەشە زیاد بکە
@@ -89,14 +88,6 @@ class _PrayerHomePageState extends State<PrayerHomePage>
     _updateCheckTimer = Timer.periodic(const Duration(hours: 24), (timer) {
       _checkForUpdate();
     });
-  }
-
-  Future<void> _requestNotificationPermission() async {
-    final androidPlugin =
-        flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>();
-
-    await androidPlugin?.requestNotificationsPermission();
   }
 
   // بارکردنی زانیارییە پاشەکەوتکراوەکان
@@ -183,52 +174,76 @@ class _PrayerHomePageState extends State<PrayerHomePage>
   }
 
   Future<void> _checkAndShowPermissions() async {
-    // نیو چرکە چاوەڕێ دەکات تا شاشە ڕەشەکە دروست نەبێت
-    await Future.delayed(const Duration(milliseconds: 500));
+    // نیو چرکە چاوەڕێ دەکات تا شاشە جێگیر بێت
+    await Future.delayed(const Duration(seconds: 2));
 
-    // پشکنین: ئایا مۆڵەتەکان پێشتر دراون یان نا؟
-    if (await Permission.notification.isDenied ||
-        await Permission.scheduleExactAlarm.isDenied) {
+    // ١. پشکنین بەبێ داواکردن (Request ناگۆڕین تەنها Check دەکەین)
+    bool isNotificationDenied = await Permission.notification.isDenied;
+    bool isAlarmDenied = await Permission.scheduleExactAlarm.isDenied;
+
+    // ئەگەر یەکێکیان ڕەتکرابووەوە، نامەکەی خۆت نیشان بدە
+    if (isNotificationDenied || isAlarmDenied) {
       if (!mounted) return;
 
-      // پیشاندانی دیالۆگ بۆ بەکارهێنەر
       showDialog(
         context: context,
         barrierDismissible: false,
         builder: (context) => Directionality(
-          textDirection: ui.TextDirection
-              .rtl, // پێویستی بە import 'package:flutter/material.dart' هەیە
+          textDirection: ui.TextDirection.rtl,
           child: AlertDialog(
-            backgroundColor:
-                const Color(0xFF4E668D), // ڕەنگێکی گونجاو لەگەڵ دیزاینەکەت
-            title: const Text('ڕێپێدانی پێویست',
-                style: TextStyle(color: Colors.white)),
+            backgroundColor: const Color(0xFF1E293B),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+            title: const Text(
+              "ڕێپێدانی پێویست",
+              style:
+                  TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
             content: const Text(
-              'بۆ ئەوەی بانگەکان لە کاتی خۆیدا کار بکەن، تکایە ڕێپێدانەکان چالاک بکە.',
+              "بۆ ئەوەی ئەپەکە بتوانێت لە کاتی بانگەکاندا ئاگادارت بکاتەوە و دەنگی بانگ لێ بدات، تکایە ڕێپێدانەکان چالاک بکە.",
               style: TextStyle(color: Colors.white70),
+              textAlign: TextAlign.center,
             ),
             actions: [
               TextButton(
                 onPressed: () async {
-                  // ١. داخستنی دیالۆگەکە
+                  // ١. یەکەمجار نامە شینەکەی خۆت دایدەخەین
                   Navigator.pop(context);
 
-                  // ٢. داواکردنی هەموو مۆڵەتەکان پێکەوە
+                  // ٢. بانگکردنی ڕێپێدانی نۆتیفیکەیشن بەو فەنکشنە تایبەتەی خۆت (بۆ ئەندرۆید ١٣+)
+                  try {
+                    final androidPlugin = flutterLocalNotificationsPlugin
+                        .resolvePlatformSpecificImplementation<
+                            AndroidFlutterLocalNotificationsPlugin>();
+                    await androidPlugin?.requestNotificationsPermission();
+                  } catch (e) {
+                    debugPrint("Error requesting notification permission: $e");
+                  }
+
+                  // ٣. داواکردنی هەموو مۆڵەتەکان بەیەکەوە (ئەمە پەنجەرە سپییە فەرمییەکان دەهێنێت)
                   Map<Permission, PermissionStatus> statuses = await [
                     Permission.notification,
                     Permission.scheduleExactAlarm,
                     Permission.ignoreBatteryOptimizations,
                   ].request();
 
-                  // ٣. پشکنین: ئەگەر مۆڵەتی Alarms (کاتی ورد) یان Notification ڕەتکرایەوە
-                  if (statuses[Permission.scheduleExactAlarm]!.isDenied ||
-                      statuses[Permission.notification]!.isDenied) {
-                    // بەکارهێنەر دەنێرێت بۆ سێتینگ بۆ ئەوەی بە دەست چالاکی بکات
+                  // ٤. پشکنین: ئەگەر بەکارهێنەر بە تەواوی ڕەستی کردەوە (Permanently Denied)
+                  if (statuses[Permission.notification]!.isPermanentlyDenied ||
+                      statuses[Permission.scheduleExactAlarm]!
+                          .isPermanentlyDenied) {
+                    // کردنەوەی پەڕەی ڕێکخستنی ئەپەکە بۆ ئەوەی بە دەست چالاکی بکات
                     await openAppSettings();
                   }
                 },
-                child: const Text('باشە',
-                    style: TextStyle(fontWeight: FontWeight.bold)),
+                child: const Text(
+                  'باشە',
+                  style: TextStyle(
+                    color: Colors.blueAccent,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
               ),
             ],
           ),
@@ -332,18 +347,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
 
   // ✅ تێبینی: پارامێتەری version زیادکرا
   void _startUpdate(String url, String version) async {
-    // 1. داواکردنی مۆڵەتی پێویست بۆ ئەندرۆید
-    if (await Permission.requestInstallPackages.isDenied) {
-      await Permission.requestInstallPackages.request();
-    }
-
-    // ئەگەر بەکارهێنەر ڕەتی کردەوە، بەردەوام مەبە
-    if (await Permission.requestInstallPackages.isDenied) {
-      debugPrint("بەکارهێنەر مۆڵەتی دامەزراندنی نەدا");
-      return;
-    }
-
-    // ڕێگری لە کوژانەوەی شاشە لەکاتی دابەزاندن
+    // ڕێگری لە کوژانەوەی شاشە
     await WakelockPlus.enable();
 
     if (!mounted) return;
@@ -352,8 +356,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
       context: context,
       barrierDismissible: false,
       builder: (context) => Directionality(
-        // 💡 زیادکرایەوە
-        textDirection: ui.TextDirection.rtl, // 💡 زیادکرایەوە
+        textDirection: ui.TextDirection.rtl,
         child: AlertDialog(
           backgroundColor: const Color(0xFF1E293B),
           shape:
@@ -361,130 +364,168 @@ class _PrayerHomePageState extends State<PrayerHomePage>
           title: const Text(
             "داگرتنی نوێکردنەوە",
             textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.white),
+            style: TextStyle(color: Colors.white, fontSize: 18),
           ),
           content: StreamBuilder<OtaEvent>(
             stream: OtaUpdate().execute(
               url,
-              // ✅ ناوی فایلەکە بە ڤێرشنەکەوە
               destinationFilename: 'update_v$version.apk',
-              // 💡 checkSignature لادرا بۆ ئەوەی هەڵەکە نەمێنێت
               usePackageInstaller: true,
             ),
             builder: (context, snapshot) {
+              // ئەگەر هەڵەیەک ڕوو بدات (وەک نەبوونی ئینتەرنێت)
               if (snapshot.hasError) {
                 WakelockPlus.disable();
-                return Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.error, color: Colors.red, size: 50),
-                    const SizedBox(height: 10),
-                    Text("کێشەیەک ڕوویدا: ${snapshot.error}",
-                        style: const TextStyle(color: Colors.white70),
-                        textAlign: TextAlign.center),
-                    const SizedBox(height: 10),
-                    ElevatedButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text("داخستن"),
-                    ),
-                  ],
-                );
+                return _buildErrorUI("کێشەیەک لە پەیوەندی ڕوویدا");
               }
 
-              // کاتێک دابەزاندن تەواو دەبێت یان دەچێتە قۆناغی ئینستاڵ
-              if (snapshot.data?.status == OtaStatus.INSTALLING ||
-                  snapshot.data?.status == OtaStatus.INSTALLATION_DONE) {
-                WakelockPlus.disable();
-                return const Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.check_circle, color: Colors.green, size: 50),
-                    SizedBox(height: 10),
-                    Text("داگرتن تەواو بوو\nئێستا دەست دەکات بە ئینستاڵ",
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: Colors.white, fontSize: 15)),
-                  ],
-                );
+              if (snapshot.hasData) {
+                final status = snapshot.data!.status;
+                final value = snapshot.data!.value;
+
+                switch (status) {
+                  case OtaStatus.DOWNLOADING:
+                    double progress = double.tryParse(value ?? "0") ?? 0;
+                    return _buildDownloadUI(progress);
+
+                  case OtaStatus.INSTALLING:
+                    WakelockPlus.disable();
+                    return _buildStatusUI(
+                        Icons.settings, "ئێستا دەست دەکات بە ئینستاڵ...");
+
+                  case OtaStatus.PERMISSION_NOT_GRANTED_ERROR:
+                    WakelockPlus.disable();
+                    return _buildErrorUI(
+                        "تکایە مۆڵەتی ئینستاڵ بدە بە ئەپەکە لە ڕێکخستن");
+
+                  case OtaStatus.DOWNLOAD_ERROR:
+                  case OtaStatus.INTERNAL_ERROR:
+                    WakelockPlus.disable();
+                    return _buildErrorUI("هەڵە لە داگرتنی فایلەکە");
+
+                  default:
+                    return _buildStatusUI(
+                        Icons.cloud_download, "ئامادەکاری دەکرێت...");
+                }
               }
 
-              // وەرگرتنی ڕێژەی سەدی دابەزاندن
-              double progress = 0;
-              if (snapshot.hasData && snapshot.data!.value != null) {
-                progress = double.tryParse(snapshot.data!.value!) ?? 0;
-              }
-
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const SizedBox(height: 5),
-                  LinearProgressIndicator(
-                    value: progress / 100,
-                    color: Colors.blue,
-                    backgroundColor: Colors.white24,
-                    minHeight: 8,
-                  ),
-                  const SizedBox(height: 15),
-                  Text(
-                    "${progress.toStringAsFixed(0)}%",
-                    style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 5),
-                  const Text("تکایە چاوەڕوان بن...",
-                      style: TextStyle(color: Colors.white70, fontSize: 13)),
-                ],
+              return const SizedBox(
+                height: 100,
+                child: Center(
+                    child: CircularProgressIndicator(color: Colors.blue)),
               );
             },
           ),
         ),
-      ), // 💡 قوسەکەی Directionality زیادکرایەوە
+      ),
+    );
+  }
+
+// --- فەنکشنە یارمەتیدەرەکان بۆ ئەوەی کۆدەکەت خاوێن بێت ---
+
+  Widget _buildDownloadUI(double progress) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        LinearProgressIndicator(
+          value: progress / 100,
+          color: Colors.blue,
+          backgroundColor: Colors.white24,
+          minHeight: 8,
+        ),
+        const SizedBox(height: 15),
+        Text(
+          "${progress.toStringAsFixed(0)}%",
+          style: const TextStyle(
+              color: Colors.white, fontSize: 25, fontWeight: FontWeight.bold),
+        ),
+        const Text("تکایە چاوەڕوان بن...",
+            style: TextStyle(color: Colors.white70, fontSize: 13)),
+      ],
+    );
+  }
+
+  Widget _buildStatusUI(IconData icon, String text) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, color: Colors.green, size: 50),
+        const SizedBox(height: 10),
+        Text(text,
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: Colors.white)),
+      ],
+    );
+  }
+
+  Widget _buildErrorUI(String errorText) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const Icon(Icons.error, color: Colors.red, size: 50),
+        const SizedBox(height: 10),
+        Text(errorText,
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: Colors.white70)),
+        const SizedBox(height: 15),
+        ElevatedButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text("داخستن"),
+        ),
+      ],
     );
   }
 
   // --- NOTIFICATION ---
   Future<void> _scheduleAthanBackground(
       int id, String prayerName, DateTime prayerTime) async {
-    // 1️⃣ ناوی فایل بدون .mp3
-    String soundFileName = selectedAthanFile.replaceAll('.mp3', '');
+    // 1️⃣ خاوێنکردنەوەی ناوی فایل (لادانی سپەیس و گۆڕین بۆ پیتی بچووک)
+    // زۆر گرنگە: ناوی فایلەکە لە ناو res/raw دەبێت تەنها پیت و ژمارە و _ بێت
+    String soundFileName = selectedAthanFile
+        .replaceAll('.mp3', '')
+        .replaceAll(' ', '_') // سپەیس دەکاتە _
+        .toLowerCase();
 
-    // 2️⃣ channelId یکتا بۆ هەر فایلێک
-    String channelId = 'athan_$soundFileName';
+    // 2️⃣ بەکارهێنانی هەمان ئەو ناوەی لە مانیفێست دامان ناوە
+    const String channelId = 'athan_alerts_v2';
 
-    // 3️⃣ Android plugin
     final AndroidFlutterLocalNotificationsPlugin? androidPlugin =
         flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin>();
 
     if (androidPlugin != null) {
-      // 🔹 پێش دروستکردنی چانێڵ بسڕەوە بۆ گۆڕینی دەنگ
+      // 🔹 سڕینەوەی کەناڵە کۆنەکە بۆ ئەوەی ئەندرۆید دەنگە نوێیەکە قبوڵ بکات
       await androidPlugin.deleteNotificationChannel(channelId);
 
-      // 🔹 دروستکردنی چانێڵ نوێ
+      // 🔹 دروستکردنی کەناڵەکە بە هەمان ID ی ناو مانیفێست
       await androidPlugin.createNotificationChannel(
         AndroidNotificationChannel(
           channelId,
-          'Athan $soundFileName',
-          description: 'Athan notification channel',
+          'بانگ', // ناوێکی سابت و جوان بۆ سێتینگ
+          description: 'کەناڵی نۆتیفیکەیشنی بانگ',
           importance: Importance.max,
           sound: RawResourceAndroidNotificationSound(soundFileName),
           playSound: true,
+          enableVibration: true,
         ),
       );
     }
 
-    // 4️⃣ جزئیات notification
+    // 3️⃣ دیاریکردنی وردەکارییەکان
     AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
       channelId,
-      'Athan $soundFileName',
+      'بانگ',
+      channelDescription: 'کەناڵی نۆتیفیکەیشنی بانگ',
       importance: Importance.max,
       priority: Priority.high,
       sound: RawResourceAndroidNotificationSound(soundFileName),
       playSound: true,
+      fullScreenIntent: true, // بۆ ئەوەی لە شاشەی قفڵیش نیشانی بدات
+      category:
+          AndroidNotificationCategory.alarm, // وەک ئەلارم مامەڵەی لەگەڵ بکات
     );
 
-    // 5️⃣ Schedule Notification
+    // 4️⃣ خشتەکردن (Schedule)
     await flutterLocalNotificationsPlugin.zonedSchedule(
         id,
         'کاتی بانگی $prayerName',
@@ -495,6 +536,80 @@ class _PrayerHomePageState extends State<PrayerHomePage>
         uiLocalNotificationDateInterpretation:
             UILocalNotificationDateInterpretation.absoluteTime,
         matchDateTimeComponents: DateTimeComponents.time);
+  }
+
+  Future<void> refreshAllAthanSchedulesFromJson(
+      Map<String, dynamic> todayJson) async {
+    // ١. سڕینەوەی هەموو بانگە کۆنەکان
+    await flutterLocalNotificationsPlugin.cancelAll();
+
+    // ٢. لیستێک دروست دەکەین بۆ ناوەکان و کاتەکان ڕێک بەپێی کلیلەکانی ناو JSONەکەت
+    final prayerMapping = [
+      {'id': 1, 'name': 'بەیانی', 'key': 'بەیانی'},
+      {'id': 2, 'name': 'نیوەڕۆ', 'key': 'نیوەڕۆ'},
+      {'id': 3, 'name': 'عەسر', 'key': 'عەسر'},
+      {
+        'id': 4,
+        'name': 'مەغریب',
+        'key': 'ئێوارە'
+      }, // لێرە 'ئێوارە' کلیلی ناو JSONەکەتە
+      {
+        'id': 5,
+        'name': 'عیشا',
+        'key': 'خەوتنان'
+      }, // لێرە 'خەوتنان' کلیلی ناو JSONەکەتە
+    ];
+
+    final now = DateTime.now();
+
+    for (var prayer in prayerMapping) {
+      String timeString = todayJson[prayer['key']]; // بۆ نموونە "05:00"
+
+      // ٣. گۆڕینی "05:00" بۆ DateTime ی تەواوی ئەمڕۆ
+      List<String> parts = timeString.split(':');
+      DateTime prayerDateTime = DateTime(
+        now.year,
+        now.month,
+        now.day,
+        int.parse(parts[0]),
+        int.parse(parts[1]),
+      );
+
+      // ٤. ئەگەر کاتی بانگەکە بەسەرچووبوو، بۆ بەیانی خشتەی بکە
+      if (prayerDateTime.isBefore(now)) {
+        prayerDateTime = prayerDateTime.add(const Duration(days: 1));
+      }
+
+      // ٥. بانگی فەنکشنی ئەسڵ دەکەین بۆ دانانی نۆتیفیکەیشنەکە
+      await _scheduleAthanBackground(
+        prayer['id'] as int,
+        prayer['name'] as String,
+        prayerDateTime,
+      );
+    }
+  }
+
+  Future<void> refreshAllAthanSchedules(PrayerTimes times) async {
+    // ١. سڕینەوەی هەموو بانگە کۆنەکان
+    await flutterLocalNotificationsPlugin.cancelAll();
+
+    // ٢. دیاریکردنی بانگەکان (بەبێ خۆرهەڵاتن)
+    final prayers = [
+      {'id': 1, 'name': 'بەیانی', 'time': times.fajr},
+      {'id': 2, 'name': 'نیوەڕۆ', 'time': times.dhuhr},
+      {'id': 3, 'name': 'عەسر', 'time': times.asr},
+      {'id': 4, 'name': 'مەغریب', 'time': times.maghrib},
+      {'id': 5, 'name': 'عیشا', 'time': times.isha},
+    ];
+
+    // ٣. دووبارە خشتەکردنەوە بە دەنگە نوێیەکە
+    for (var prayer in prayers) {
+      await _scheduleAthanBackground(
+        prayer['id'] as int,
+        prayer['name'] as String,
+        prayer['time'] as DateTime,
+      );
+    }
   }
 
   // ✅ فەنکشنی نوێ - کاتی داهاتووی بانگ دیاری دەکات
