@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../utils/constants.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class PrayerDrawer extends StatelessWidget {
+class PrayerDrawer extends StatefulWidget {
   final String currentCity;
   final Function(String) onCityChanged;
   final String selectedThemeName;
@@ -14,6 +15,8 @@ class PrayerDrawer extends StatelessWidget {
   final String? previewingSound;
   final Function(String?) onPreviewChanged;
   final AudioPlayer audioPlayer;
+  // لێرەدا کاتەکانی بانگ زیاد دەکەین بۆ ئەوەی بیناسێت
+  final dynamic prayerTimes;
 
   const PrayerDrawer({
     super.key,
@@ -27,7 +30,37 @@ class PrayerDrawer extends StatelessWidget {
     required this.previewingSound,
     required this.onPreviewChanged,
     required this.audioPlayer,
+    this.prayerTimes, // کاتەکان لێرە وەردەگرین
   });
+
+  @override
+  State<PrayerDrawer> createState() => _PrayerDrawerState();
+}
+
+class _PrayerDrawerState extends State<PrayerDrawer> {
+  final AudioPlayer _testPlayer = AudioPlayer();
+  String? _currentlyPlaying; // بۆ ئەوەی بزانین کام دەنگە ئێستا لێدەدات
+
+  // دروستکردنی گۆڕاوێکی ناوخۆیی بۆ ئەوەی بتوانین بە setState بیگۆڕین
+  late String _localSelectedAthan;
+
+  @override
+  void initState() {
+    super.initState();
+    _localSelectedAthan = widget.selectedAthanFile;
+  }
+
+  @override
+  void dispose() {
+    _testPlayer.dispose(); // دەنگەکە دەکوژێنێتەوە کاتێک لاپەڕەکە دادەخرێت
+    super.dispose();
+  }
+
+  // فەنکشنی نوێکردنەوەی بانگەکان (ئەگەر لە شوێنێکی تر نەتناسابێت لێرە کار دەکات)
+  Future<void> refreshAllAthanSchedules(dynamic times) async {
+    // لێرە دەبێت لۆجیکی خشتەکردنی بانگەکانت هەبێت
+    debugPrint("Updating schedules for: $_localSelectedAthan");
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -50,13 +83,10 @@ class PrayerDrawer extends StatelessWidget {
           child: Column(
             children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(
-                    16, 25, 8, 10), // بۆشایی دەوری هیدەر
+                padding: const EdgeInsets.fromLTRB(16, 25, 8, 10),
                 child: Row(
-                  crossAxisAlignment: CrossAxisAlignment
-                      .center, // بۆ ئەوەی هەمووی لە یەک ئاست بن
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    // --- بەشی چەپ: ئایکۆن و نووسین ---
                     const Icon(
                       Icons.mosque,
                       size: 30,
@@ -71,10 +101,7 @@ class PrayerDrawer extends StatelessWidget {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-
-                    const Spacer(), // ئەمە هەموو بۆشایی نێوانەکە پڕ دەکاتەوە
-
-                    // --- بەشی ڕاست: دوگمەی داخستن ---
+                    const Spacer(),
                     IconButton(
                       icon: const Icon(Icons.close, color: Colors.red),
                       onPressed: () => Navigator.pop(context),
@@ -85,7 +112,7 @@ class PrayerDrawer extends StatelessWidget {
               const Divider(
                 color: AppColors.primary,
                 thickness: 1,
-              ), // هێڵێکی جوان لە ژێر هیدەر
+              ),
               Expanded(
                 child: ListView(
                   children: [
@@ -132,14 +159,15 @@ class PrayerDrawer extends StatelessWidget {
                           ),
                           leading: Radio<String>(
                             value: themeName,
-                            groupValue: selectedThemeName,
+                            groupValue: widget.selectedThemeName,
                             activeColor: appThemes[themeName],
                             onChanged: (value) {
-                              onThemeChanged(value!, appThemes[value]!);
+                              widget.onThemeChanged(value!, appThemes[value]!);
                             },
                           ),
                           onTap: () {
-                            onThemeChanged(themeName, appThemes[themeName]!);
+                            widget.onThemeChanged(
+                                themeName, appThemes[themeName]!);
                           },
                         );
                       }).toList(),
@@ -198,19 +226,24 @@ class PrayerDrawer extends StatelessWidget {
                               const SizedBox(height: 15),
                               Row(
                                 children: [
-                                   Icon(Icons.label_outline,
-                                       color: primaryColor, size: 16),
+                                  Icon(Icons.label_outline,
+                                      color: widget.primaryColor, size: 16),
                                   const SizedBox(width: 8),
-                                  Text("وەشانى: $currentAppVersion",
-                                      style: const TextStyle(
-                                          color: Colors.white70, fontSize: 14)),
+                                  Text(
+                                    "وەشانى: $currentAppVersion",
+                                    style: const TextStyle(
+                                      // لێرە ئەگەر TextStyle تەواو جێگیر بێت const ئاساییە
+                                      color: Colors.white70,
+                                      fontSize: 14,
+                                    ),
+                                  ),
                                 ],
                               ),
                               const SizedBox(height: 8),
                               Row(
                                 children: [
                                   Icon(Icons.brush_outlined,
-                                      color: primaryColor, size: 16),
+                                      color: widget.primaryColor, size: 16),
                                   const SizedBox(width: 8),
                                   const Text("دیزاینەر: داریان مەزهەر",
                                       style: TextStyle(
@@ -238,65 +271,97 @@ class PrayerDrawer extends StatelessWidget {
           style: const TextStyle(color: Colors.white, fontSize: 13)),
       leading: Radio<String>(
         value: cityName,
-        groupValue: currentCity,
+        groupValue: widget.currentCity,
         activeColor: AppColors.primary,
         onChanged: (value) {
-          onCityChanged(value!);
+          widget.onCityChanged(value!);
         },
       ),
       onTap: () {
-        onCityChanged(cityName);
+        widget.onCityChanged(cityName);
       },
     );
   }
 
-  Widget _buildAthanOption(BuildContext context, String name, String fileName) {
-    bool isPlayingPreview = previewingSound == fileName;
+Widget _buildAthanOption(BuildContext context, String title, String fileName) {
+  bool isSelected = _localSelectedAthan == fileName;
+  bool isPlaying = _currentlyPlaying == fileName;
 
-    return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-      title:
-          Text(name, style: const TextStyle(color: Colors.white, fontSize: 13)),
-      leading: Radio<String>(
-        value: fileName,
-        groupValue: selectedAthanFile,
-        activeColor: AppColors.primary,
-        onChanged: (value) {
-          onAthanChanged(value!);
-        },
+  return ListTile(
+    title: Text(
+      title,
+      style: TextStyle(
+        color: isSelected ? widget.primaryColor : Colors.white,
+        fontSize: 13,
+        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
       ),
-      trailing: IconButton(
-        icon: Icon(
-          isPlayingPreview ? Icons.stop_circle : Icons.play_circle_fill,
-          color: isPlayingPreview ? Colors.red : AppColors.secondary,
-          size: 28,
-        ),
-        onPressed: () async {
-          if (isPlayingPreview) {
-            await audioPlayer.stop();
-            onPreviewChanged(null);
-          } else {
-            await audioPlayer.stop();
-            await audioPlayer.play(AssetSource('audio/$fileName'));
-            onPreviewChanged(fileName);
-
-            audioPlayer.onPlayerComplete.listen((event) {
-              onPreviewChanged(null);
+    ),
+    leading: IconButton(
+      icon: Icon(
+        isPlaying ? Icons.stop_circle : Icons.play_circle_fill,
+        color: isPlaying ? Colors.redAccent : Colors.lightBlueAccent,
+        size: 30,
+      ),
+      onPressed: () async {
+        if (isPlaying) {
+          await _testPlayer.stop();
+          if (mounted) setState(() => _currentlyPlaying = null);
+        } else {
+          try {
+            if (mounted) setState(() => _currentlyPlaying = fileName);
+            await _testPlayer.stop();
+            await _testPlayer.play(AssetSource('audio/$fileName.mp3'));
+            
+            _testPlayer.onPlayerComplete.listen((event) {
+              if (mounted) setState(() => _currentlyPlaying = null);
             });
+          } catch (e) {
+            debugPrint("Error: $e");
           }
-        },
-      ),
-    );
-  }
+        }
+      },
+    ),
+    trailing: Radio<String>(
+      value: fileName,
+      groupValue: _localSelectedAthan,
+      activeColor: widget.primaryColor,
+      onChanged: (value) async {
+        if (value != null) {
+          if (mounted) setState(() => _localSelectedAthan = value);
+          widget.onAthanChanged(value);
+          
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('selected_sound', value);
+          
+          if (widget.prayerTimes != null) {
+            await refreshAllAthanSchedules(widget.prayerTimes);
+          }
+        }
+      },
+    ), // لێرە داخراوەتەوە بە دروستی
+    onTap: () async {
+      // ئەگەر کلیکی لەسەر ناوەکە کرد، با هەمان کاری ڕادیۆکە بکات
+      if (mounted) setState(() => _localSelectedAthan = fileName);
+      widget.onAthanChanged(fileName);
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('selected_sound', fileName);
+      
+      if (widget.prayerTimes != null) {
+        await refreshAllAthanSchedules(widget.prayerTimes);
+      }
+    },
+  );
+}
 
   Widget _buildExpansionTile(BuildContext context, IconData icon, String title,
       List<Widget> children) {
     return ExpansionTile(
-      leading: Icon(icon, color: primaryColor, size: 22),
+      leading: Icon(icon, color: widget.primaryColor, size: 22),
       title: Text(title,
           style: const TextStyle(
               fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white)),
-      iconColor: primaryColor,
+      iconColor: widget.primaryColor,
       collapsedIconColor: Colors.white70,
       children: children,
     );

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:timezone/data/latest.dart' as tz;
+import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz; // ئەم دووانە وەک یەک ناویان لێنراوە، کێشە نییە
 import 'screens/home_screen.dart';
 
@@ -13,14 +13,11 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // ٢. کات و نۆتیفیکەیشن چەناڵ
-  tz
-  
-  
-  .initializeTimeZones();
+  tz.initializeTimeZones();
   tz.setLocalLocation(tz.getLocation('Asia/Baghdad'));
 
   const AndroidNotificationChannel channel = AndroidNotificationChannel(
-    'athan_channel_v2',
+    'athan_alerts_v2',
     'Athan Notifications',
     importance: Importance.max,
     sound: RawResourceAndroidNotificationSound('kamal_rauf'),
