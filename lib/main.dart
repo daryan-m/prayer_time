@@ -1,24 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
-import 'package:timezone/timezone.dart' as tz; // ئەم دووانە وەک یەک ناویان لێنراوە، کێشە نییە
+import 'package:timezone/timezone.dart' as tz;
 import 'screens/home_screen.dart';
 
-// ئەم دێڕە پێویستە لە دەرەوەی main بێت
+// ==================== MAIN ====================
+
+// گلۆبەل — بە home_screen.dart هاوبەشە
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
     FlutterLocalNotificationsPlugin();
 
 void main() async {
-  // ١. دڵنیابوونەوە لەوەی سێرڤسەکان ئامادەن
   WidgetsFlutterBinding.ensureInitialized();
 
-  // ٢. کات و نۆتیفیکەیشن چەناڵ
+  // ── کات و کەناڵ ──
   tz.initializeTimeZones();
   tz.setLocalLocation(tz.getLocation('Asia/Baghdad'));
 
+  // ── دروستکردنی کەناڵی سەرەتایی (kamal_rauf) ──
+  // ✅ ئەمە تەنها بۆ دەستپێک — کاتی هەڵبژاردنی دەنگی تر، کەناڵ دووبارە دروست دەکرێت
   const AndroidNotificationChannel channel = AndroidNotificationChannel(
     'athan_alerts_v2',
-    'Athan Notifications',
+    'بانگ',
+    description: 'کەناڵی نۆتیفیکەیشنی بانگ',
     importance: Importance.max,
     sound: RawResourceAndroidNotificationSound('kamal_rauf'),
     playSound: true,
@@ -32,15 +36,14 @@ void main() async {
     await androidPlugin.createNotificationChannel(channel);
   }
 
-  // ٣. ڕێکخستنی ئایکۆنی نۆتیفیکەیشن
-  const AndroidInitializationSettings initializationSettingsAndroid =
+  // ── ئامادەکردنی نۆتیفیکەیشن ──
+  const AndroidInitializationSettings initAndroid =
       AndroidInitializationSettings('@mipmap/launcher_icon');
 
-  const InitializationSettings initializationSettings = InitializationSettings(
-    android: initializationSettingsAndroid,
-  );
+  const InitializationSettings initSettings =
+      InitializationSettings(android: initAndroid);
 
-  await flutterLocalNotificationsPlugin.initialize(initializationSettings);
+  await flutterLocalNotificationsPlugin.initialize(initSettings);
 
   runApp(const PrayerTimesApp());
 }
@@ -54,7 +57,8 @@ class PrayerTimesApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData.dark().copyWith(
         scaffoldBackgroundColor: const Color(0xFF020617),
-        textTheme: ThemeData.dark().textTheme.apply(fontFamily: 'NotoNaskh'),
+        textTheme:
+            ThemeData.dark().textTheme.apply(fontFamily: 'NotoNaskh'),
       ),
       home: const PrayerHomePage(),
     );
