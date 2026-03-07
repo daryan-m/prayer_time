@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'dart:io';
 import 'dart:ui' as ui;
 import 'package:intl/intl.dart';
 import 'package:audioplayers/audioplayers.dart';
@@ -7,10 +8,10 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:ota_update/ota_update.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
+import 'package:ota_update/ota_update.dart';
 import '../services/prayer_service.dart';
 import '../widgets/prayer_widgets.dart';
 import '../widgets/drawer_widget.dart';
@@ -45,7 +46,8 @@ class _PrayerHomePageState extends State<PrayerHomePage>
   Set<String> activeAthans = {};
   String selectedAthanFile = "kamal_rauf.mp3";
   String selectedThemeName = "شین";
-  Color primaryColor = Colors.blue;
+  Color primaryColor = const Color(0xFF22D3EE);
+  ThemePalette _palette = getThemePalette("شین");
 
   List<String> todayTimes = List.filled(6, "--:--");
 
@@ -100,7 +102,8 @@ class _PrayerHomePageState extends State<PrayerHomePage>
       currentCity = prefs.getString('selectedCity') ?? 'پێنجوێن';
       selectedAthanFile = prefs.getString('selectedAthan') ?? 'kamal_rauf.mp3';
       selectedThemeName = prefs.getString('selectedTheme') ?? 'شین';
-      primaryColor = appThemes[selectedThemeName] ?? Colors.blue;
+      primaryColor = appThemes[selectedThemeName] ?? const Color(0xFF22D3EE);
+      _palette = getThemePalette(selectedThemeName);
       if (savedPrayers != null) {
         activeAthans = savedPrayers.toSet();
       }
@@ -294,152 +297,178 @@ class _PrayerHomePageState extends State<PrayerHomePage>
     await WakelockPlus.enable();
     if (!mounted) return;
 
+    // ── پشکنینی مۆڵەتی ئینستاڵ ──
+    final bool canInstall = await Permission.requestInstallPackages.isGranted;
+    if (!canInstall) {
+      await WakelockPlus.disable();
+      if (!mounted) return;
+      showDialog(
+        context: context,
+        builder: (ctx) => Directionality(
+          textDirection: ui.TextDirection.rtl,
+          child: AlertDialog(
+            backgroundColor: const Color(0xFF1E293B),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+            title: const Text("مۆڵەتی ئینستاڵ پێویستە",
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            content: const Text(
+              "بۆ ئەوەی بتوانیت نوێکردنەوە ئینستاڵ بکەیت، تکایە مۆڵەتی \"ئینستاڵکردنی ئەپی نەناسراو\" بدە بە ئەپەکە لە ڕێکخستن.",
+              style: TextStyle(color: Colors.white70),
+              textAlign: TextAlign.center,
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text("دواتر", style: TextStyle(color: Colors.grey)),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(backgroundColor: primaryColor),
+                onPressed: () async { Navigator.pop(ctx); await openAppSettings(); },
+                child: const Text("کردنەوەی ڕێکخستن"),
+              ),
+            ],
+          ),
+        ),
+      );
+      return;
+    }
+    if (!mounted) return;
+
+    // ── دیالۆگی پرۆگرێس ──
+    double dlProgress = 0;
+    String statusText  = "ئامادەکاری دەکرێت...";
+    bool   hasError    = false;
+    String errorText   = "";
+    StateSetter? setDlState;
+
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => Directionality(
+      builder: (ctx) => Directionality(
         textDirection: ui.TextDirection.rtl,
-        child: AlertDialog(
-          backgroundColor: const Color(0xFF1E293B),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-          title: const Text(
-            "داگرتنی نوێکردنەوە",
-            textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.white, fontSize: 18),
-          ),
-          content: StreamBuilder<OtaEvent>(
-            stream: OtaUpdate().execute(
-              url,
-              destinationFilename: 'update_v$version.apk',
-              usePackageInstaller: true,
-            ),
-            builder: (context, snapshot) {
-              if (snapshot.hasError) {
-                WakelockPlus.disable();
-                return _buildErrorUI("کێشەیەک لە پەیوەندی ڕوویدا");
-              }
-
-              if (snapshot.hasData) {
-                final status = snapshot.data!.status;
-                final value = snapshot.data!.value;
-
-                switch (status) {
-                  case OtaStatus.DOWNLOADING:
-                    final double progress =
-                        double.tryParse(value ?? "0") ?? 0;
-                    return _buildDownloadUI(progress);
-
-                  case OtaStatus.INSTALLING:
-                    WakelockPlus.disable();
-                    return _buildStatusUI(
-                        Icons.settings, "ئێستا دەست دەکات بە ئینستاڵ...");
-
-                  case OtaStatus.PERMISSION_NOT_GRANTED_ERROR:
-                    WakelockPlus.disable();
-                    return _buildErrorUI(
-                        "تکایە مۆڵەتی ئینستاڵ بدە بە ئەپەکە لە ڕێکخستن");
-
-                  case OtaStatus.DOWNLOAD_ERROR:
-                  case OtaStatus.INTERNAL_ERROR:
-                    WakelockPlus.disable();
-                    return _buildErrorUI("هەڵە لە داگرتنی فایلەکە");
-
-                  default:
-                    return _buildStatusUI(
-                        Icons.cloud_download, "ئامادەکاری دەکرێت...");
-                }
-              }
-
-              return const SizedBox(
-                height: 100,
-                child: Center(
-                    child: CircularProgressIndicator(color: Colors.blue)),
-              );
-            },
-          ),
+        child: StatefulBuilder(
+          builder: (ctx, setSt) {
+            setDlState = setSt;
+            return AlertDialog(
+              backgroundColor: const Color(0xFF1E293B),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+              title: const Text("داگرتنی نوێکردنەوە",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.white, fontSize: 18)),
+              content: hasError
+                  ? Column(mainAxisSize: MainAxisSize.min, children: [
+                      const Icon(Icons.error, color: Colors.red, size: 50),
+                      const SizedBox(height: 10),
+                      Text(errorText,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(color: Colors.white70)),
+                      const SizedBox(height: 15),
+                      ElevatedButton(
+                          onPressed: () => Navigator.pop(ctx),
+                          child: const Text("داخستن")),
+                    ])
+                  : Column(mainAxisSize: MainAxisSize.min, children: [
+                      LinearProgressIndicator(
+                        value: dlProgress / 100,
+                        color: Colors.blue,
+                        backgroundColor: Colors.white24,
+                        minHeight: 8,
+                      ),
+                      const SizedBox(height: 15),
+                      Text(
+                        dlProgress > 0 ? "${dlProgress.toStringAsFixed(0)}%" : "",
+                        style: const TextStyle(
+                            color: Colors.white, fontSize: 25, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(statusText,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(color: Colors.white70, fontSize: 13)),
+                    ]),
+            );
+          },
         ),
       ),
     );
+
+    try {
+      // ✅ ota_update: داگرتن + ئینستاڵ بە PackageInstaller
+      // پرۆگرێس ئۆتۆماتیکی لە stream دێتەوە
+      OtaUpdate()
+          .execute(url, destinationFilename: 'update_v$version.apk')
+          .listen(
+        (OtaEvent event) {
+          switch (event.status) {
+            case OtaStatus.DOWNLOADING:
+              setDlState?.call(() {
+                dlProgress = double.tryParse(event.value ?? '0') ?? 0;
+                statusText  = "تکایە چاوەڕوان بن...";
+              });
+              break;
+            case OtaStatus.INSTALLING:
+              setDlState?.call(() {
+                dlProgress = 100;
+                statusText  = "ئێستا دەست دەکات بە ئینستاڵ...";
+              });
+              WakelockPlus.disable();
+              if (mounted) Navigator.of(context, rootNavigator: true).pop();
+              break;
+            case OtaStatus.ALREADY_RUNNING_ERROR:
+            case OtaStatus.INTERNAL_ERROR:
+            case OtaStatus.DOWNLOAD_ERROR:
+            case OtaStatus.CHECKSUM_ERROR:
+              setDlState?.call(() {
+                hasError  = true;
+                errorText = "هەڵە لە داگرتن: ${event.value}";
+              });
+              WakelockPlus.disable();
+              break;
+            default:
+              break;
+          }
+        },
+        onError: (e) {
+          setDlState?.call(() {
+            hasError  = true;
+            errorText = "هەڵە: $e";
+          });
+          WakelockPlus.disable();
+        },
+      );
+    } catch (e) {
+      debugPrint("Update error: $e");
+      setDlState?.call(() {
+        hasError  = true;
+        errorText = "هەڵە لە داگرتنی فایلەکە:\n$e";
+      });
+      WakelockPlus.disable();
+    }
   }
 
-  // ── UI یارمەتیدەرەکانی ئەپدەیت ───────────────────
-  Widget _buildDownloadUI(double progress) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        LinearProgressIndicator(
-          value: progress / 100,
-          color: Colors.blue,
-          backgroundColor: Colors.white24,
-          minHeight: 8,
-        ),
-        const SizedBox(height: 15),
-        Text(
-          "${progress.toStringAsFixed(0)}%",
-          style: const TextStyle(
-              color: Colors.white, fontSize: 25, fontWeight: FontWeight.bold),
-        ),
-        const Text("تکایە چاوەڕوان بن...",
-            style: TextStyle(color: Colors.white70, fontSize: 13)),
-      ],
-    );
-  }
-
-  Widget _buildStatusUI(IconData icon, String text) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, color: Colors.green, size: 50),
-        const SizedBox(height: 10),
-        Text(text,
-            textAlign: TextAlign.center,
-            style: const TextStyle(color: Colors.white)),
-      ],
-    );
-  }
-
-  Widget _buildErrorUI(String errorText) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        const Icon(Icons.error, color: Colors.red, size: 50),
-        const SizedBox(height: 10),
-        Text(errorText,
-            textAlign: TextAlign.center,
-            style: const TextStyle(color: Colors.white70)),
-        const SizedBox(height: 15),
-        ElevatedButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text("داخستن"),
-        ),
-      ],
-    );
-  }
-
-  // ── خشتەکردنی نۆتیفیکەیشن ────────────────────────
+  // ── خشتەکردنی بانگ بە AlarmManager + Foreground Service ────
+  // AlarmManager exact alarm دادەنرێت، لە کاتی بانگ BroadcastReceiver
+  // AthanService دەستپێ دەکات کە MediaPlayer بە تەواوی لێ دەدات
   Future<void> _scheduleAthanNotification(
       int id, String prayerName, DateTime prayerTime) async {
 
-    // ✅ چارەسەری کێشەی دەنگ: ناوی فایل بەدروستی هاوشێوە دەکرێت بە ناوی res/raw
+    // ── نۆتیفیکەیشنی یادکردنەوە (١ دەقە پێش) — لە flutter_local_notifications ──
     final String soundFileName = selectedAthanFile
         .replaceAll('.mp3', '')
         .replaceAll(' ', '_')
         .toLowerCase();
 
-    const String channelId = 'athan_alerts_v2';
+    final String channelId   = 'athan_$soundFileName';
+    final String channelName = 'بانگ ($soundFileName)';
 
     final AndroidFlutterLocalNotificationsPlugin? androidPlugin =
         flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin>();
 
     if (androidPlugin != null) {
-      // ✅ کەناڵەکە دووبارە دروست دەکرێت بە دەنگە نوێیەکە
-      await androidPlugin.deleteNotificationChannel(channelId);
       await androidPlugin.createNotificationChannel(
         AndroidNotificationChannel(
-          channelId,
-          'بانگ',
+          channelId, channelName,
           description: 'کەناڵی نۆتیفیکەیشنی بانگ',
           importance: Importance.max,
           sound: RawResourceAndroidNotificationSound(soundFileName),
@@ -449,10 +478,10 @@ class _PrayerHomePageState extends State<PrayerHomePage>
       );
     }
 
-    final AndroidNotificationDetails androidDetails =
-        AndroidNotificationDetails(
-      channelId,
-      'بانگ',
+    // ── خشتەکردنی AthanService لە کاتی بانگ ──
+    // AthanService.kt بە MediaPlayer + WakeLock + AudioFocus دەنگ لێ دەدات
+    final AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+      channelId, channelName,
       channelDescription: 'کەناڵی نۆتیفیکەیشنی بانگ',
       importance: Importance.max,
       priority: Priority.high,
@@ -460,6 +489,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
       playSound: true,
       fullScreenIntent: true,
       category: AndroidNotificationCategory.alarm,
+      audioAttributesUsage: AudioAttributesUsage.alarm,
     );
 
     await flutterLocalNotificationsPlugin.zonedSchedule(
@@ -575,88 +605,67 @@ class _PrayerHomePageState extends State<PrayerHomePage>
   Future<void> _handlePrayerCardTap(String name, String time) async {
     if (name == "خۆرهەڵاتن") return;
 
-    // ✅ گۆڕینی دۆخ
+    // دیاریکردنی دۆخی نوێ پێش هەموو شتێک
+    final bool willBeActive = !activeAthans.contains(name);
+
+    // ١. UI دەستپێکەوە نوێ دەکرێت
     setState(() {
-      if (activeAthans.contains(name)) {
-        activeAthans.remove(name);
-      } else {
+      if (willBeActive) {
         activeAthans.add(name);
+      } else {
+        activeAthans.remove(name);
       }
     });
 
+    // ٢. Snackbar دەستپێکەوە نیشان دەدرێت — پێش هەر async کار
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          willBeActive ? "بانگی $name چالاک کرا" : "بانگی $name ناچالاک کرا",
+          textAlign: TextAlign.center,
+        ),
+        backgroundColor:
+            willBeActive ? const Color(0xFF10B981) : Colors.redAccent,
+        duration: const Duration(seconds: 2),
+      ),
+    );
+
+    // ٣. پاشەکەوتکردن
     await _saveSettings();
 
-    final bool isNowActive = activeAthans.contains(name);
+    if (willBeActive) {
+      // ── چالاک: کاتی 12h بگۆڕە بۆ 24h ──
+      final String cleanTime = time.replaceAllMapped(
+        RegExp(r'[٠-٩]'),
+        (m) => {'٠':'0','١':'1','٢':'2','٣':'3','٤':'4','٥':'5','٦':'6','٧':'7','٨':'8','٩':'9'}[m.group(0)]!,
+      ).replaceAllMapped(
+        RegExp(r'[۰-۹]'),
+        (m) => {'۰':'0','۱':'1','۲':'2','۳':'3','۴':'4','۵':'5','۶':'6','۷':'7','۸':'8','۹':'9'}[m.group(0)]!,
+      ).trim();
 
-    // ── گۆڕینی کاتی 12h بۆ 24h ──
-    String cleanTime = time.replaceAllMapped(RegExp(r'[٠-٩]'), (m) {
-      const map = {
-        '٠': '0', '١': '1', '٢': '2', '٣': '3', '٤': '4',
-        '٥': '5', '٦': '6', '٧': '7', '٨': '8', '٩': '9',
-      };
-      return map[m.group(0)]!;
-    }).replaceAllMapped(RegExp(r'[۰-۹]'), (m) {
-      const map = {
-        '۰': '0', '۱': '1', '۲': '2', '۳': '3', '۴': '4',
-        '۵': '5', '۶': '6', '۷': '7', '۸': '8', '۹': '9',
-      };
-      return map[m.group(0)]!;
-    }).trim();
+      final regMatch = RegExp(r'(\d+):(\d+)').firstMatch(cleanTime);
+      if (regMatch == null) return;
 
-    final regExp = RegExp(r'(\d+):(\d+)');
-    final match = regExp.firstMatch(cleanTime);
-    if (match == null) return;
+      int hour = int.parse(regMatch.group(1)!);
+      final int minute = int.parse(regMatch.group(2)!);
 
-    int hour = int.parse(match.group(1)!);
-    final int minute = int.parse(match.group(2)!);
+      if ((cleanTime.contains("د.ن") || cleanTime.toUpperCase().contains("PM")) && hour < 12) hour += 12;
+      if ((cleanTime.contains("پ.ن") || cleanTime.toUpperCase().contains("AM")) && hour == 12) hour = 0;
 
-    if ((cleanTime.contains("د.ن") || cleanTime.toUpperCase().contains("PM")) &&
-        hour < 12) {
-      hour += 12;
-    }
-    if ((cleanTime.contains("پ.ن") || cleanTime.toUpperCase().contains("AM")) &&
-        hour == 12) {
-      hour = 0;
-    }
+      final now = DateTime.now();
+      DateTime scheduledDate = DateTime(now.year, now.month, now.day, hour, minute);
+      if (scheduledDate.isBefore(now)) {
+        scheduledDate = scheduledDate.add(const Duration(days: 1));
+      }
 
-    final now = DateTime.now();
-    DateTime scheduledDate =
-        DateTime(now.year, now.month, now.day, hour, minute);
-    if (scheduledDate.isBefore(now)) {
-      scheduledDate = scheduledDate.add(const Duration(days: 1));
-    }
-
-    if (!mounted) return;
-
-    if (isNowActive) {
-      // ✅ چالاک کردن
       await flutterLocalNotificationsPlugin.cancel(name.hashCode);
       await _scheduleAthanNotification(name.hashCode, name, scheduledDate);
-
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          // ✅ چارەسەری کێشەی پەیام: پیشاندانی "ناچالاک کرا" کاتی چالاک بوون
-          content: Text("بانگی $name چالاک کرا",
-              textAlign: TextAlign.center),
-          backgroundColor: const Color(0xFF10B981),
-          duration: const Duration(seconds: 1),
-        ),
-      );
     } else {
-      // ✅ ناچالاک کردن
+      // ── ناچالاک: دەنگ و نۆتیفیکەیشن بسڕەوە ──
       await _athanPlayer.stop();
       await flutterLocalNotificationsPlugin.cancel(name.hashCode);
-
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("بانگی $name ناچالاک کرا",
-              textAlign: TextAlign.center),
-          backgroundColor: Colors.redAccent,
-          duration: const Duration(seconds: 1),
-        ),
-      );
     }
   }
 
@@ -732,6 +741,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
                 setState(() {
                   selectedThemeName = name;
                   primaryColor = color;
+                  _palette = getThemePalette(selectedThemeName);
                 });
                 _saveSettings();
               },
@@ -820,17 +830,19 @@ class _PrayerHomePageState extends State<PrayerHomePage>
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              ClockWidget(now: _now, timeService: _timeService),
+              ClockWidget(now: _now, timeService: _timeService, palette: _palette),
               const SizedBox(height: 30),
               DatesWidget(
                 timeService: _timeService,
                 now: _now,
                 gregorianDate: prayerTimes.gregorianDate,
+                palette: _palette,
               ),
               const SizedBox(height: 30),
               NextPrayerBar(
                 remainingTime: _getNextRemaining(prayerTimes),
                 nextPrayerName: _getNextPrayerName(prayerTimes),
+                palette: _palette,
               ),
             ],
           ),
@@ -850,15 +862,17 @@ class _PrayerHomePageState extends State<PrayerHomePage>
           child: Column(
             children: [
               const SizedBox(height: 3),
-              ClockWidget(now: _now, timeService: _timeService),
+              ClockWidget(now: _now, timeService: _timeService, palette: _palette),
               DatesWidget(
                 timeService: _timeService,
                 now: _now,
                 gregorianDate: prayerTimes.gregorianDate,
+                palette: _palette,
               ),
               NextPrayerBar(
                 remainingTime: _getNextRemaining(prayerTimes),
                 nextPrayerName: _getNextPrayerName(prayerTimes),
+                palette: _palette,
               ),
               const Divider(color: Colors.amber, height: 10),
               Padding(
@@ -889,6 +903,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
       onTap: () async =>
           await _handlePrayerCardTap(prayerNames[i], todayTimes[i]),
       timeService: _timeService,
+      palette: _palette,
     );
   }
 }

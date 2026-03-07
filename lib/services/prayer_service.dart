@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
-import 'package:intl/intl.dart';
 import 'package:hijri/hijri_calendar.dart';
+import '../utils/constants.dart';
 
 // ==================== HELPERS ====================
 
@@ -35,101 +35,71 @@ class PrayerTimes {
 // ==================== DATA SERVICE ====================
 
 class PrayerDataService {
-  Future<PrayerTimes> getPrayerTimes(String city, DateTime date) async {
-    try {
-      final bool leap = isLeapYear(date.year);
 
-      String fileName;
-      if (city == "پێنجوێن") {
-        fileName = leap ? "penjwen_time_leap.json" : "penjwen_time.json";
-      } else {
-        fileName = leap ? "prayer_time_leap.json" : "prayer_time.json";
+  Future<PrayerTimes> getPrayerTimes(String cityDisplayName, DateTime date) async {
+    try {
+      final CityConfig? config = getCityConfig(cityDisplayName);
+
+      // ئەگەر شار نەدۆزرایەوە یان فایلەکەی تازە نییە
+      if (config == null || !config.hasFile) {
+        debugPrint("City '$cityDisplayName' has no data file yet.");
+        return _fallback(date);
       }
 
-      debugPrint("Loading: $fileName for ${date.year} (Leap: $leap)");
+      final String fileName = '${config.jsonFile}.json';
+      debugPrint("Loading: $fileName");
 
       final String jsonString =
           await rootBundle.loadString('assets/data/$fileName');
-      final List<dynamic> prayerData = json.decode(jsonString);
+      final Map<String, dynamic> cityData = json.decode(jsonString);
 
-      Map<String, dynamic>? todayPrayer;
-      for (var prayer in prayerData) {
-        if (_compareDates(prayer['میلادى'], date)) {
-          todayPrayer = prayer;
+      // ── فۆرماتی JSON نوێ: {city, source, months:[{month, days:[{day,fajr,...}]}]} ──
+      final List<dynamic> months = cityData['months'];
+
+      // دۆزینەوەی مانگ و ڕۆژ
+      Map<String, dynamic>? todayEntry;
+      for (final monthData in months) {
+        if (monthData['month'] == date.month) {
+          final List<dynamic> days = monthData['days'];
+          for (final dayData in days) {
+            if (dayData['day'] == date.day) {
+              todayEntry = dayData;
+              break;
+            }
+          }
           break;
         }
       }
 
-      todayPrayer ??= prayerData[0];
+      // ئەگەر نەدۆزرایەوە، یەکەمی مانگ بەکاردەهێنرێت
+      todayEntry ??= (months[0]['days'] as List).first;
 
       return PrayerTimes(
-        fajr: _parseTime(date, todayPrayer!['بەیانی']),
-        sunrise: _parseTime(date, todayPrayer['خۆرهەڵاتن']),
-        dhuhr: _parseTime(date, todayPrayer['نیوەڕۆ'], isAfternoon: true),
-        asr: _parseTime(date, todayPrayer['عەسر'], isAfternoon: true),
-        maghrib: _parseTime(date, todayPrayer['ئێوارە'], isAfternoon: true),
-        isha: _parseTime(date, todayPrayer['خەوتنان'], isAfternoon: true),
-        gregorianDate: todayPrayer['میلادى'],
+        fajr:    _parseTime(date, todayEntry!['fajr']),
+        sunrise: _parseTime(date, todayEntry['sunrise']),
+        dhuhr:   _parseTime(date, todayEntry['dhuhr'],   isAfternoon: true),
+        asr:     _parseTime(date, todayEntry['asr'],     isAfternoon: true),
+        maghrib: _parseTime(date, todayEntry['maghrib'], isAfternoon: true),
+        isha:    _parseTime(date, todayEntry['isha'],    isAfternoon: true),
+        gregorianDate:
+            '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}',
       );
     } catch (e) {
       debugPrint("Error loading prayer times: $e");
-      return PrayerTimes(
-        fajr: DateTime(date.year, date.month, date.day, 5, 0),
-        sunrise: DateTime(date.year, date.month, date.day, 6, 30),
-        dhuhr: DateTime(date.year, date.month, date.day, 12, 0),
-        asr: DateTime(date.year, date.month, date.day, 15, 0),
-        maghrib: DateTime(date.year, date.month, date.day, 18, 0),
-        isha: DateTime(date.year, date.month, date.day, 19, 30),
-        gregorianDate: "01/01/2026",
-      );
+      return _fallback(date);
     }
   }
 
-  bool _compareDates(String jsonDate, DateTime targetDate) {
-    try {
-      final List<String> parts = jsonDate.split(' - ');
-      if (parts.length < 2) return false;
-
-      final int day = int.parse(parts[0].trim());
-
-      const Map<String, int> months = {
-        'کانونی دووەم': 1,
-        'شوبات': 2,
-        'ئادار': 3,
-        'نیسان': 4,
-        'ئایار': 5,
-        'حوزەیران': 6,
-        'تەمووز': 7,
-        'ئاب': 8,
-        'ئەیلوول': 9,
-        'تشرینی یەکەم': 10,
-        'تشرینی دووەم': 11,
-        'کانونی یەکەم': 12,
-      };
-
-      final String monthName = parts[1]
-          .trim()
-          .replaceAll('\u200f', '')
-          .replaceAll('\u200e', '')
-          .replaceAll(RegExp(r'\s+'), ' ')
-          .trim();
-
-      final int? month = months[monthName];
-      if (month == null) return false;
-
-      return day == targetDate.day && month == targetDate.month;
-    } catch (e) {
-      return false;
-    }
-  }
-
+  // ── پارسکردنی کات ──────────────────────────────────
+  // JSON کاتەکان وەک "05:41" یان "02:39" (12h بەبێ AM/PM)
+  // نیوەڕۆ، عەسر، ئێوارە، خەوتنان: ئەگەر < 12 بوو +12 دەکرێت
   DateTime _parseTime(DateTime date, String time, {bool isAfternoon = false}) {
     try {
       final List<String> parts = time.split(':');
       int hour = int.parse(parts[0]);
       final int minute = int.parse(parts[1]);
 
-      if (isAfternoon && hour < 12 && hour >= 1) {
+      if (isAfternoon && hour < 12) {
         hour += 12;
       }
 
@@ -137,6 +107,19 @@ class PrayerDataService {
     } catch (e) {
       return date;
     }
+  }
+
+  // ── کاتە سەرەتاییەکان کاتی هەڵە ──────────────────
+  PrayerTimes _fallback(DateTime date) {
+    return PrayerTimes(
+      fajr:    DateTime(date.year, date.month, date.day, 5, 0),
+      sunrise: DateTime(date.year, date.month, date.day, 6, 30),
+      dhuhr:   DateTime(date.year, date.month, date.day, 12, 0),
+      asr:     DateTime(date.year, date.month, date.day, 15, 0),
+      maghrib: DateTime(date.year, date.month, date.day, 18, 0),
+      isha:    DateTime(date.year, date.month, date.day, 19, 30),
+      gregorianDate: '01/01/2026',
+    );
   }
 }
 
@@ -149,15 +132,9 @@ class TimeService {
 
   String toKu(String n) {
     return n
-        .replaceAll('0', '٠')
-        .replaceAll('1', '١')
-        .replaceAll('2', '٢')
-        .replaceAll('3', '٣')
-        .replaceAll('4', '٤')
-        .replaceAll('5', '٥')
-        .replaceAll('6', '٦')
-        .replaceAll('7', '٧')
-        .replaceAll('8', '٨')
+        .replaceAll('0', '٠').replaceAll('1', '١').replaceAll('2', '٢')
+        .replaceAll('3', '٣').replaceAll('4', '٤').replaceAll('5', '٥')
+        .replaceAll('6', '٦').replaceAll('7', '٧').replaceAll('8', '٨')
         .replaceAll('9', '٩');
   }
 
@@ -177,9 +154,9 @@ class TimeService {
 
   String hijriDateString() {
     final hijriDate = HijriCalendar.now();
-    final day = toKu(hijriDate.hDay.toString());
+    final day   = toKu(hijriDate.hDay.toString());
     final month = hijriDate.toFormat("MMMM");
-    final year = toKu(hijriDate.hYear.toString());
+    final year  = toKu(hijriDate.hYear.toString());
     return "کۆچى: $dayـى $month $year";
   }
 
@@ -187,7 +164,7 @@ class TimeService {
     const List<String> months = [
       "نەورۆز", "گوڵان", "جۆزەردان", "پووشپەڕ",
       "گەلاوێژ", "خەرمانان", "ڕەزبەر", "گەڵاڕێزان",
-      "سەرماوەز", "بەفرانبار", "ڕێبەندان", "ڕەشەمە"
+      "سەرماوەز", "بەفرانبار", "ڕێبەندان", "ڕەشەمە",
     ];
 
     int kYear, kMonth, kDay;
@@ -197,31 +174,28 @@ class TimeService {
       kYear = dt.year + 700 - 1;
       final DateTime previousNoroz = DateTime(dt.year - 1, 3, 21);
       final int diff = dt.difference(previousNoroz).inDays;
-
       if (diff < 186) {
         kMonth = (diff ~/ 31) + 1;
-        kDay = (diff % 31) + 1;
+        kDay   = (diff % 31) + 1;
       } else {
-        final int remainingDays = diff - 186;
-        kMonth = (remainingDays ~/ 30) + 7;
-        kDay = (remainingDays % 30) + 1;
+        final int r = diff - 186;
+        kMonth = (r ~/ 30) + 7;
+        kDay   = (r % 30) + 1;
       }
     } else {
       kYear = dt.year + 700;
       final int diff = dt.difference(noroz).inDays;
-
       if (diff < 186) {
         kMonth = (diff ~/ 31) + 1;
-        kDay = (diff % 31) + 1;
+        kDay   = (diff % 31) + 1;
       } else {
-        final int remainingDays = diff - 186;
-        kMonth = (remainingDays ~/ 30) + 7;
-        kDay = (remainingDays % 30) + 1;
+        final int r = diff - 186;
+        kMonth = (r ~/ 30) + 7;
+        kDay   = (r % 30) + 1;
       }
     }
 
     if (kMonth > 12) kMonth = 12;
-
     return "${toKu(kDay.toString())}ـى ${months[kMonth - 1]} ${toKu(kYear.toString())}";
   }
 }

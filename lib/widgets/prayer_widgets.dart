@@ -8,11 +8,13 @@ import '../utils/constants.dart';
 class ClockWidget extends StatelessWidget {
   final DateTime now;
   final TimeService timeService;
+  final ThemePalette palette;
 
   const ClockWidget({
     super.key,
     required this.now,
     required this.timeService,
+    required this.palette,
   });
 
   @override
@@ -45,7 +47,7 @@ class ClockWidget extends StatelessWidget {
             ),
           ],
         ),
-        _buildGlowDivider(),
+        _buildGlowDivider(palette),
       ],
     );
   }
@@ -56,12 +58,14 @@ class DatesWidget extends StatelessWidget {
   final TimeService timeService;
   final DateTime now;
   final String gregorianDate;
+  final ThemePalette palette;
 
   const DatesWidget({
     super.key,
     required this.timeService,
     required this.now,
     required this.gregorianDate,
+    required this.palette,
   });
 
   @override
@@ -71,14 +75,14 @@ class DatesWidget extends StatelessWidget {
         const SizedBox(height: 10),
         Text(
           timeService.hijriDateString(),
-          style: const TextStyle(
-            color: Color(0xFF10B981),
+          style: TextStyle(
+            color: palette.secondary,
             fontWeight: FontWeight.bold,
             fontSize: 18,
           ),
         ),
         const SizedBox(height: 10),
-        _buildGlowDivider(),
+        _buildGlowDivider(palette),
         const SizedBox(height: 10),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -87,9 +91,9 @@ class DatesWidget extends StatelessWidget {
               "میلادی: ${timeService.toKu(timeService.gregorianDateString(now))}",
               style: const TextStyle(color: Color(0xFFCBD5E1), fontSize: 14),
             ),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 12),
-              child: Text("|", style: TextStyle(color: Color(0xFF22D3EE))),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Text("|", style: TextStyle(color: palette.primary)),
             ),
             Text(
               "کوردی: ${timeService.kurdishDateString(now)}",
@@ -107,11 +111,13 @@ class DatesWidget extends StatelessWidget {
 class NextPrayerBar extends StatelessWidget {
   final String remainingTime;
   final String nextPrayerName;
+  final ThemePalette palette;
 
   const NextPrayerBar({
     super.key,
     required this.remainingTime,
     required this.nextPrayerName,
+    required this.palette,
   });
 
   @override
@@ -121,10 +127,10 @@ class NextPrayerBar extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(35),
         border: Border(
-          top: BorderSide(color: Colors.teal.shade500, width: 1.0),
-          bottom: BorderSide(color: Colors.teal.shade500, width: 1.0),
-          left: BorderSide(color: Colors.teal.shade500, width: 8.0),
-          right: BorderSide(color: Colors.teal.shade500, width: 8.0),
+          top:    BorderSide(color: palette.primary.withOpacity(0.6), width: 1.0),
+          bottom: BorderSide(color: palette.primary.withOpacity(0.6), width: 1.0),
+          left:   BorderSide(color: palette.primary.withOpacity(0.6), width: 8.0),
+          right:  BorderSide(color: palette.primary.withOpacity(0.6), width: 8.0),
         ),
       ),
       child: Container(
@@ -133,8 +139,8 @@ class NextPrayerBar extends StatelessWidget {
           color: const Color(0xFF0F172A),
           borderRadius: BorderRadius.circular(15),
           border: Border(
-            left: BorderSide(color: Colors.teal.shade900, width: 8.0),
-            right: BorderSide(color: Colors.teal.shade900, width: 8.0),
+            left:  BorderSide(color: palette.border, width: 8.0),
+            right: BorderSide(color: palette.border, width: 8.0),
           ),
         ),
         child: Row(
@@ -142,8 +148,8 @@ class NextPrayerBar extends StatelessWidget {
           children: [
             Text(
               remainingTime,
-              style: const TextStyle(
-                color: Color(0xFF10B981),
+              style: TextStyle(
+                color: palette.secondary,
                 fontSize: 23,
                 fontWeight: FontWeight.bold,
               ),
@@ -171,6 +177,7 @@ class PrayerCard extends StatelessWidget {
   final Animation<double>? sunAnimation;
   final Future<void> Function() onTap;
   final TimeService timeService;
+  final ThemePalette palette;
 
   const PrayerCard({
     super.key,
@@ -181,6 +188,7 @@ class PrayerCard extends StatelessWidget {
     this.sunAnimation,
     required this.onTap,
     required this.timeService,
+    required this.palette,
   });
 
   @override
@@ -189,10 +197,7 @@ class PrayerCard extends StatelessWidget {
         ? null
         : const [
             Shadow(offset: Offset(1, 1), blurRadius: 2, color: Colors.black),
-            Shadow(
-                offset: Offset(-0.5, -0.5),
-                blurRadius: 1,
-                color: Colors.black),
+            Shadow(offset: Offset(-0.5, -0.5), blurRadius: 1, color: Colors.black),
           ];
 
     return GestureDetector(
@@ -206,8 +211,7 @@ class PrayerCard extends StatelessWidget {
           boxShadow: isActive
               ? [
                   BoxShadow(
-                    color: const Color.fromARGB(255, 5, 126, 95)
-                        .withOpacity(0.6),
+                    color: palette.glow.withOpacity(0.5),
                     blurRadius: 10,
                     spreadRadius: 2,
                   )
@@ -227,14 +231,13 @@ class PrayerCard extends StatelessWidget {
                 ],
           border: Border.all(
             color: isActive
-                ? const Color.fromARGB(255, 255, 255, 255).withOpacity(0.50)
+                ? Colors.white.withOpacity(0.50)
                 : Colors.white.withOpacity(0.09),
           ),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            // ── بەشی چەپ: ئایکۆن + ناو ──
             Row(
               children: [
                 _buildLeadingIcon(),
@@ -244,25 +247,20 @@ class PrayerCard extends StatelessWidget {
                   style: TextStyle(
                     color: isSun
                         ? Colors.orange
-                        : (isActive
-                            ? const Color(0xFF22D3EE)
-                            : Colors.white),
+                        : (isActive ? palette.primary : Colors.white),
                     fontSize: 16,
                     shadows: embossedShadow,
                   ),
                 ),
               ],
             ),
-            // ── بەشی ڕاست: کات ──
             Text(
               timeService.formatTo12Hr(time),
               style: TextStyle(
                 fontSize: 18,
                 color: isSun
                     ? Colors.orange
-                    : (isActive
-                        ? const Color(0xFF22D3EE)
-                        : Colors.white70),
+                    : (isActive ? palette.primary : Colors.white70),
                 shadows: embossedShadow,
               ),
             ),
@@ -296,24 +294,24 @@ class PrayerCard extends StatelessWidget {
 
     return Icon(
       isActive ? Icons.volume_up : Icons.volume_off,
-      color: isActive ? const Color(0xFF22D3EE) : Colors.blueGrey,
+      color: isActive ? palette.icon : Colors.blueGrey,
       size: 24,
     );
   }
 }
 
 // ── یارمەتیدەر: خەتی گلۆ ────────────────────────
-Widget _buildGlowDivider() {
+Widget _buildGlowDivider(ThemePalette palette) {
   return Container(
     width: 330,
     height: 2,
     decoration: BoxDecoration(
-      gradient: const LinearGradient(
-        colors: [Colors.transparent, Color(0xFF22D3EE), Colors.transparent],
+      gradient: LinearGradient(
+        colors: [Colors.transparent, palette.primary, Colors.transparent],
       ),
       boxShadow: [
         BoxShadow(
-          color: const Color(0xFF22D3EE).withOpacity(0.8),
+          color: palette.glow.withOpacity(0.8),
           blurRadius: 12,
         ),
       ],

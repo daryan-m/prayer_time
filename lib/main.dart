@@ -13,27 +13,54 @@ final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // ── کات و کەناڵ ──
+  // ── کات ──
   tz.initializeTimeZones();
   tz.setLocalLocation(tz.getLocation('Asia/Baghdad'));
 
-  // ── دروستکردنی کەناڵی سەرەتایی (kamal_rauf) ──
-  // ✅ ئەمە تەنها بۆ دەستپێک — کاتی هەڵبژاردنی دەنگی تر، کەناڵ دووبارە دروست دەکرێت
-  const AndroidNotificationChannel channel = AndroidNotificationChannel(
-    'athan_alerts_v2',
-    'بانگ',
-    description: 'کەناڵی نۆتیفیکەیشنی بانگ',
-    importance: Importance.max,
-    sound: RawResourceAndroidNotificationSound('kamal_rauf'),
-    playSound: true,
-  );
+  // ── سێ کەناڵی نۆتیفیکەیشن — یەکێک بۆ هەر دەنگێک ──
+  // bypassDnd: true — لە DND (سایلەنت مۆد) یش کار دەکات
+  const List<AndroidNotificationChannel> channels = [
+    AndroidNotificationChannel(
+      'athan_kamal_rauf',
+      'بانگ - kamal_rauf',
+      description: 'کەناڵی نۆتیفیکەیشنی بانگ',
+      importance: Importance.max,
+      sound: RawResourceAndroidNotificationSound('kamal_rauf'),
+      playSound: true,
+      enableVibration: true,
+      // لێرەدا چیتر bypassDnd نانووسین، لە جیاتی ئەو ئەمە زیاد دەکەین:
+      audioAttributesUsage: AudioAttributesUsage.alarm,
+    ),
+    AndroidNotificationChannel(
+      'athan_madina',
+      'بانگ - madina',
+      description: 'کەناڵی نۆتیفیکەیشنی بانگ',
+      importance: Importance.max,
+      sound: RawResourceAndroidNotificationSound('madina'),
+      playSound: true,
+      enableVibration: true,
+      audioAttributesUsage: AudioAttributesUsage.alarm,
+    ),
+    AndroidNotificationChannel(
+      'athan_kwait',
+      'بانگ - kwait',
+      description: 'کەناڵی نۆتیفیکەیشنی بانگ',
+      importance: Importance.max,
+      sound: RawResourceAndroidNotificationSound('kwait'),
+      playSound: true,
+      enableVibration: true,
+      audioAttributesUsage: AudioAttributesUsage.alarm,
+    ),
+  ];
 
   final AndroidFlutterLocalNotificationsPlugin? androidPlugin =
       flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<
           AndroidFlutterLocalNotificationsPlugin>();
 
   if (androidPlugin != null) {
-    await androidPlugin.createNotificationChannel(channel);
+    for (final ch in channels) {
+      await androidPlugin.createNotificationChannel(ch);
+    }
   }
 
   // ── ئامادەکردنی نۆتیفیکەیشن ──
@@ -57,8 +84,7 @@ class PrayerTimesApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData.dark().copyWith(
         scaffoldBackgroundColor: const Color(0xFF020617),
-        textTheme:
-            ThemeData.dark().textTheme.apply(fontFamily: 'NotoNaskh'),
+        textTheme: ThemeData.dark().textTheme.apply(fontFamily: 'NotoNaskh'),
       ),
       home: const PrayerHomePage(),
     );
