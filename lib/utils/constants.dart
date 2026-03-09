@@ -63,13 +63,24 @@ final List<String> prayerNames = [
 ];
 
 // ==================== THEME PALETTE ====================
-// هەر ڕووکار: primary (ڕەنگی سەرەکی) + secondary + glow + icon
+// هەر ڕووکار: هەموو رەنگەکانی پێویست بۆ گۆڕینی تەواوی ئەپ
 class ThemePalette {
-  final Color primary; // ڕەنگی سەرەکی — کاتژمێر، دیڤایدەر، ناوی بانگی چالاک
-  final Color secondary; // ڕەنگی دووەم — هیجری، NextPrayerBar کات
-  final Color glow; // گلۆی دیڤایدەر و کارت
-  final Color icon; // ئایکۆنی چالاک
-  final Color border; // بەردەری NextPrayerBar
+  final Color primary;       // ڕەنگی سەرەکی — کاتژمێر، دیڤایدەر، ناوی بانگی چالاک
+  final Color secondary;     // ڕەنگی دووەم — هیجری، NextPrayerBar کات
+  final Color glow;          // گلۆی دیڤایدەر و کارت
+  final Color icon;          // ئایکۆنی چالاک
+  final Color border;        // بەردەری NextPrayerBar
+
+  // ── رەنگەکانی نوێ — بۆ گۆڕینی تەواوی ئەپ ──
+  final Color background;    // باکگراوندی سەرەکی
+  final Color cardBg;        // باکگراوندی کارتەکانی بانگ
+  final Color cardBgActive;  // باکگراوندی کارتی چالاک
+  final Color drawerBg;      // باکگراوندی درا
+  final Color drawerBorder;  // بەردەری درا
+  final Color headerText;    // تێکستی هیدەر و ناوی شار
+  final Color listText;      // تێکستی لیستەکان
+  final Color clockText;     // تێکستی کاتژمێر
+  final Color divider;       // رەنگی خەتی دیڤایدەر
 
   const ThemePalette({
     required this.primary,
@@ -77,58 +88,144 @@ class ThemePalette {
     required this.glow,
     required this.icon,
     required this.border,
+    required this.background,
+    required this.cardBg,
+    required this.cardBgActive,
+    required this.drawerBg,
+    required this.drawerBorder,
+    required this.headerText,
+    required this.listText,
+    required this.clockText,
+    required this.divider,
   });
 }
 
 const Map<String, ThemePalette> appThemePalettes = {
+
+  // ── شین (ئەسڵی) ──────────────────────────────────
   "شین": ThemePalette(
-    primary: Color(0xFF22D3EE), // cyan
-    secondary: Color(0xFF10B981), // emerald
-    glow: Color(0xFF22D3EE),
-    icon: Color(0xFF22D3EE),
-    border: Color(0xFF0E7490), // teal dark
+    primary:       Color(0xFF22D3EE),
+    secondary:     Color(0xFF10B981),
+    glow:          Color(0xFF22D3EE),
+    icon:          Color(0xFF22D3EE),
+    border:        Color(0xFF0E7490),
+    background:    Color(0xFF020617),
+    cardBg:        Color(0xFF0F172A),
+    cardBgActive:  Color(0xFF080D1A),
+    drawerBg:      Color(0xFF020617),
+    drawerBorder:  Color(0xFF22D3EE),
+    headerText:    Color(0xFF22D3EE),
+    listText:      Colors.white,
+    clockText:     Color(0xFF22D3EE),
+    divider:       Color(0xFFFFAB00),
   ),
+
+  // ── سەوز ─────────────────────────────────────────
   "سەوز": ThemePalette(
-    primary: Color(0xFF4ADE80), // green-400
-    secondary: Color(0xFFA3E635), // lime-400
-    glow: Color(0xFF22C55E), // green-500
-    icon: Color(0xFF4ADE80),
-    border: Color(0xFF166534), // green-900
+    primary:       Color(0xFF4ADE80),
+    secondary:     Color(0xFFA3E635),
+    glow:          Color(0xFF22C55E),
+    icon:          Color(0xFF4ADE80),
+    border:        Color(0xFF166534),
+    background:    Color(0xFF021A0A),
+    cardBg:        Color(0xFF052E16),
+    cardBgActive:  Color(0xFF03200F),
+    drawerBg:      Color(0xFF021A0A),
+    drawerBorder:  Color(0xFF4ADE80),
+    headerText:    Color(0xFF4ADE80),
+    listText:      Color(0xFFDCFCE7),
+    clockText:     Color(0xFF4ADE80),
+    divider:       Color(0xFF4ADE80),
   ),
-  "مۆر": ThemePalette(
-    primary: Color(0xFFC084FC), // purple-400
-    secondary: Color(0xFFE879F9), // fuchsia-400
-    glow: Color(0xFFA855F7), // purple-500
-    icon: Color(0xFFC084FC),
-    border: Color(0xFF6B21A8), // purple-900
-  ),
+
+  // ── پرتەقاڵی ─────────────────────────────────────
   "پرتەقاڵی": ThemePalette(
-    primary: Color(0xFFFB923C), // orange-400
-    secondary: Color(0xFFFACC15), // yellow-400
-    glow: Color(0xFFF97316), // orange-500
-    icon: Color(0xFFFB923C),
-    border: Color(0xFF9A3412), // orange-900
+    primary:       Color(0xFFFB923C),
+    secondary:     Color(0xFFFACC15),
+    glow:          Color(0xFFF97316),
+    icon:          Color(0xFFFB923C),
+    border:        Color(0xFF9A3412),
+    background:    Color(0xFF1A0A02),
+    cardBg:        Color(0xFF2D1609),
+    cardBgActive:  Color(0xFF200F06),
+    drawerBg:      Color(0xFF1A0A02),
+    drawerBorder:  Color(0xFFFB923C),
+    headerText:    Color(0xFFFB923C),
+    listText:      Color(0xFFFFEDD5),
+    clockText:     Color(0xFFFB923C),
+    divider:       Color(0xFFFB923C),
   ),
-  "سوور": ThemePalette(
-    primary: Color(0xFFFFFFFF), // سپی — بۆ ڕووکاری سوور
-    secondary: Color(0xFFFFFFFF),
-    glow: Color(0xFFFFFFFF),
-    icon: Color(0xFFFFFFFF),
-    border: Color(0xFF7F1D1D), // red-900
-  ),
+
+  // ── ئاڵتونی ──────────────────────────────────────
   "ئاڵتونی": ThemePalette(
-    primary: Color(0xFFFFD700), // gold
-    secondary: Color(0xFFFBBF24), // amber-400
-    glow: Color(0xFFD97706), // amber-600
-    icon: Color(0xFFFFD700),
-    border: Color(0xFF78350F), // amber-900
+    primary:       Color(0xFFFFD700),
+    secondary:     Color(0xFFFBBF24),
+    glow:          Color(0xFFD97706),
+    icon:          Color(0xFFFFD700),
+    border:        Color(0xFF78350F),
+    background:    Color(0xFF12100A),
+    cardBg:        Color(0xFF1C1810),
+    cardBgActive:  Color(0xFF14120A),
+    drawerBg:      Color(0xFF12100A),
+    drawerBorder:  Color(0xFFFFD700),
+    headerText:    Color(0xFFFFD700),
+    listText:      Color(0xFFFEF9C3),
+    clockText:     Color(0xFFFFD700),
+    divider:       Color(0xFFFFD700),
   ),
+
+  // ── ڕەساسی ───────────────────────────────────────
   "ڕەساسی": ThemePalette(
-    primary: Color(0xFF94A3B8), // slate-400
-    secondary: Color(0xFFCBD5E1), // slate-300
-    glow: Color(0xFF64748B), // slate-500
-    icon: Color(0xFF94A3B8),
-    border: Color(0xFF1E293B), // slate-800
+    primary:       Color(0xFF94A3B8),
+    secondary:     Color(0xFFCBD5E1),
+    glow:          Color(0xFF64748B),
+    icon:          Color(0xFF94A3B8),
+    border:        Color(0xFF1E293B),
+    background:    Color(0xFF0A0F18),
+    cardBg:        Color(0xFF111827),
+    cardBgActive:  Color(0xFF0D1320),
+    drawerBg:      Color(0xFF0A0F18),
+    drawerBorder:  Color(0xFF94A3B8),
+    headerText:    Color(0xFF94A3B8),
+    listText:      Color(0xFFE2E8F0),
+    clockText:     Color(0xFF94A3B8),
+    divider:       Color(0xFF94A3B8),
+  ),
+
+  // ── شەمامەیی ─────────────────────────────────────
+  "شەمامەیی": ThemePalette(
+    primary:       Color(0xFF2DD4BF),
+    secondary:     Color(0xFF5EEAD4),
+    glow:          Color(0xFF0D9488),
+    icon:          Color(0xFF2DD4BF),
+    border:        Color(0xFF134E4A),
+    background:    Color(0xFF021A18),
+    cardBg:        Color(0xFF042F2E),
+    cardBgActive:  Color(0xFF032220),
+    drawerBg:      Color(0xFF021A18),
+    drawerBorder:  Color(0xFF2DD4BF),
+    headerText:    Color(0xFF2DD4BF),
+    listText:      Color(0xFFCCFBF1),
+    clockText:     Color(0xFF2DD4BF),
+    divider:       Color(0xFF2DD4BF),
+  ),
+
+  // ── ئەسمەری ──────────────────────────────────────
+  "ئەسمەری": ThemePalette(
+    primary:       Color(0xFFE879F9),
+    secondary:     Color(0xFFF0ABFC),
+    glow:          Color(0xFFD946EF),
+    icon:          Color(0xFFE879F9),
+    border:        Color(0xFF701A75),
+    background:    Color(0xFF120018),
+    cardBg:        Color(0xFF1E0026),
+    cardBgActive:  Color(0xFF17001E),
+    drawerBg:      Color(0xFF120018),
+    drawerBorder:  Color(0xFFE879F9),
+    headerText:    Color(0xFFE879F9),
+    listText:      Color(0xFFFAE8FF),
+    clockText:     Color(0xFFE879F9),
+    divider:       Color(0xFFE879F9),
   ),
 };
 
@@ -155,4 +252,4 @@ class AppColors {
 }
 
 // ── وەشان ──────────────────────────────────────────
-const String currentAppVersion = "1.0.0";
+const String currentAppVersion = "1.0.1";

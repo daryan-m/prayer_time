@@ -1,4 +1,4 @@
-package com.yourcompany.yourapp
+package com.daryan.prayer
 
 import android.app.*
 import android.content.Context
@@ -11,6 +11,7 @@ import android.os.Build
 import android.os.IBinder
 import android.os.PowerManager
 import android.util.Log
+import android.view.WindowManager
 import androidx.core.app.NotificationCompat
 
 class AthanService : Service() {
@@ -38,12 +39,19 @@ class AthanService : Service() {
         val soundFile  = intent?.getStringExtra(EXTRA_SOUND)  ?: "kamal_rauf"
         val prayerName = intent?.getStringExtra(EXTRA_PRAYER) ?: "بانگ"
 
-        // ── WakeLock: مۆبایل خەو نەبێت لە کاتی بانگ ──
+        // ── WakeLock: مۆبایل خەو نەبێت + شاشە روناک بێت ──
         val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
         wakeLock = pm.newWakeLock(
-            PowerManager.PARTIAL_WAKE_LOCK,
+            PowerManager.PARTIAL_WAKE_LOCK or
+            PowerManager.ACQUIRE_CAUSES_WAKEUP,
             "AthanApp::AthanWakeLock"
         ).also { it.acquire(10 * 60 * 1000L) }
+
+        // ── شاشە کردەوە + قفڵ لادەبرێت (وەک My Prayers) ──
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+            val activity = packageManager.getLaunchIntentForPackage(packageName)
+            // بۆ service: window flag بەکاردەهێنین
+        }
 
         // ── Foreground Notification ──
         val notif = buildNotification(prayerName)
@@ -60,7 +68,7 @@ class AthanService : Service() {
 
     private fun requestAudioFocus() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val focusRequest = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
+            val focusRequest = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
                 .setAudioAttributes(
                     AudioAttributes.Builder()
                         .setUsage(AudioAttributes.USAGE_ALARM)
@@ -68,6 +76,7 @@ class AthanService : Service() {
                         .build()
                 )
                 .setAcceptsDelayedFocusGain(false)
+                .setWillPauseWhenDucked(false)
                 .setOnAudioFocusChangeListener { }
                 .build()
             audioFocusRequest = focusRequest
@@ -77,6 +86,10 @@ class AthanService : Service() {
 
     private fun playSound(soundFile: String) {
         try {
+            // ── پلەی دەنگی alarm بە زۆرترین ئاستی خۆی دابنێ ──
+            val maxVol = audioManager.getStreamMaxVolume(AudioManager.STREAM_ALARM)
+            audioManager.setStreamVolume(AudioManager.STREAM_ALARM, maxVol, 0)
+
             // ناوی فایل بەبێ .mp3 — res/raw/ دا هەیە
             val resId = resources.getIdentifier(soundFile, "raw", packageName)
             if (resId == 0) {
@@ -132,8 +145,10 @@ class AthanService : Service() {
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
                 description = "کەناڵی سێرڤیسی دەنگی بانگ"
-                setSound(null, null) // دەنگ لە سێرڤیسەوەیە نەک کەناڵەوە
-                setBypassDnd(true)
+                setSound(null, null) // دەنگ لە MediaPlayer دێت نەک کەناڵەوە
+                setBypassDnd(true)   // Do Not Disturb bypass
+                enableVibration(true)
+                lockscreenVisibility = Notification.VISIBILITY_PUBLIC
             }
             val nm = getSystemService(NotificationManager::class.java)
             nm.createNotificationChannel(channel)
