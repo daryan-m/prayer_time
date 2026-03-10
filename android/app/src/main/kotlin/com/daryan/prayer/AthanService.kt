@@ -11,17 +11,17 @@ import android.os.Build
 import android.os.IBinder
 import android.os.PowerManager
 import android.util.Log
-import android.view.WindowManager
+import android.content.pm.ServiceInfo
 import androidx.core.app.NotificationCompat
 
 class AthanService : Service() {
 
     companion object {
-        const val CHANNEL_ID     = "athan_foreground_channel"
-        const val NOTIF_ID       = 9999
-        const val EXTRA_SOUND    = "sound_file"
-        const val EXTRA_PRAYER   = "prayer_name"
-        const val TAG            = "AthanService"
+        const val CHANNEL_ID   = "athan_foreground_channel"
+        const val NOTIF_ID     = 9999
+        const val EXTRA_SOUND  = "sound_file"
+        const val EXTRA_PRAYER = "prayer_name"
+        const val TAG          = "AthanService"
     }
 
     private var mediaPlayer: MediaPlayer? = null
@@ -39,26 +39,27 @@ class AthanService : Service() {
         val soundFile  = intent?.getStringExtra(EXTRA_SOUND)  ?: "kamal_rauf"
         val prayerName = intent?.getStringExtra(EXTRA_PRAYER) ?: "بانگ"
 
-        // ── WakeLock: مۆبایل خەو نەبێت + شاشە روناک بێت ──
+        // ── WakeLock: مۆبایل خەو نەبێت لە کاتی بانگ ──
         val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
         wakeLock = pm.newWakeLock(
-            PowerManager.PARTIAL_WAKE_LOCK or
-            PowerManager.ACQUIRE_CAUSES_WAKEUP,
+            PowerManager.PARTIAL_WAKE_LOCK or PowerManager.ACQUIRE_CAUSES_WAKEUP,
             "AthanApp::AthanWakeLock"
         ).also { it.acquire(10 * 60 * 1000L) }
 
-        // ── شاشە کردەوە + قفڵ لادەبرێت (وەک My Prayers) ──
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
-            val activity = packageManager.getLaunchIntentForPackage(packageName)
-            // بۆ service: window flag بەکاردەهێنین
+        // ── Foreground: پێویستە پێش هەموو شتێک بێت (Android 14+) ──
+        val notif = buildNotification(prayerName)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            startForeground(NOTIF_ID, notif, ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK)
+        } else {
+            startForeground(NOTIF_ID, notif)
         }
 
-        // ── Foreground Notification ──
-        val notif = buildNotification(prayerName)
-        startForeground(NOTIF_ID, notif)
-
-        // ── AudioFocus ──
+        // ── AudioFocus: AUDIOFOCUS_GAIN (نەک TRANSIENT) ──
         requestAudioFocus()
+
+        // ── Volume: alarm channel بە max ──
+        val maxVol = audioManager.getStreamMaxVolume(AudioManager.STREAM_ALARM)
+        audioManager.setStreamVolume(AudioManager.STREAM_ALARM, maxVol, 0)
 
         // ── پلەی دەنگ ──
         playSound(soundFile)
@@ -81,22 +82,28 @@ class AthanService : Service() {
                 .build()
             audioFocusRequest = focusRequest
             audioManager.requestAudioFocus(focusRequest)
+        } else {
+            @Suppress("DEPRECATION")
+            audioManager.requestAudioFocus(
+                null,
+                AudioManager.STREAM_ALARM,
+                AudioManager.AUDIOFOCUS_GAIN
+            )
         }
     }
 
     private fun playSound(soundFile: String) {
         try {
-            // ── پلەی دەنگی alarm بە زۆرترین ئاستی خۆی دابنێ ──
-            val maxVol = audioManager.getStreamMaxVolume(AudioManager.STREAM_ALARM)
-            audioManager.setStreamVolume(AudioManager.STREAM_ALARM, maxVol, 0)
-
-            // ناوی فایل بەبێ .mp3 — res/raw/ دا هەیە
-            val resId = resources.getIdentifier(soundFile, "raw", packageName)
+            // ناوی فایل بەبێ .mp3 — res/raw/ دا دانراوە
+            val cleanName = soundFile.replace(".mp3", "").lowercase().replace(" ", "_")
+            val resId = resources.getIdentifier(cleanName, "raw", packageName)
             if (resId == 0) {
-                Log.e(TAG, "Sound file not found: $soundFile")
+                Log.e(TAG, "Sound file not found in res/raw: '$cleanName'")
                 stopSelf()
                 return
             }
+
+            Log.d(TAG, "Playing sound: $cleanName (resId=$resId)")
 
             mediaPlayer = MediaPlayer().apply {
                 setAudioAttributes(
@@ -110,11 +117,18 @@ class AthanService : Service() {
                 afd.close()
                 prepare()
                 start()
-                setOnCompletionListener { stopSelf() }
-                setOnErrorListener { _, _, _ -> stopSelf(); false }
+                setOnCompletionListener {
+                    Log.d(TAG, "Playback complete — stopping service")
+                    stopSelf()
+                }
+                setOnErrorListener { _, what, extra ->
+                    Log.e(TAG, "MediaPlayer error: what=$what extra=$extra")
+                    stopSelf()
+                    false
+                }
             }
         } catch (e: Exception) {
-            Log.e(TAG, "MediaPlayer error: ${e.message}")
+            Log.e(TAG, "playSound exception: ${e.message}")
             stopSelf()
         }
     }
@@ -125,7 +139,6 @@ class AthanService : Service() {
             this, 0, intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
-
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.ic_lock_silent_mode_off)
             .setContentTitle("کاتی بانگی $prayerName")
@@ -133,6 +146,7 @@ class AthanService : Service() {
             .setContentIntent(pi)
             .setPriority(NotificationCompat.PRIORITY_MAX)
             .setCategory(NotificationCompat.CATEGORY_ALARM)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setOngoing(true)
             .build()
     }
@@ -145,18 +159,19 @@ class AthanService : Service() {
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
                 description = "کەناڵی سێرڤیسی دەنگی بانگ"
-                setSound(null, null) // دەنگ لە MediaPlayer دێت نەک کەناڵەوە
-                setBypassDnd(true)   // Do Not Disturb bypass
-                enableVibration(true)
+                setSound(null, null)      // دەنگ لە MediaPlayer دێت نەک کەناڵەوە
+                setBypassDnd(true)        // DND bypass
+                enableVibration(false)
                 lockscreenVisibility = Notification.VISIBILITY_PUBLIC
             }
-            val nm = getSystemService(NotificationManager::class.java)
-            nm.createNotificationChannel(channel)
+            getSystemService(NotificationManager::class.java)
+                .createNotificationChannel(channel)
         }
     }
 
     override fun onDestroy() {
-        mediaPlayer?.stop()
+        Log.d(TAG, "Service destroyed — releasing resources")
+        try { mediaPlayer?.stop() } catch (_: Exception) {}
         mediaPlayer?.release()
         mediaPlayer = null
         wakeLock?.release()

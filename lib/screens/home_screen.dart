@@ -95,7 +95,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
 
     setState(() {
       currentCity = prefs.getString('selectedCity') ?? 'پێنجوێن';
-      selectedAthanFile = prefs.getString('selectedAthan') ?? 'kamal_rauf.mp3';
+      selectedAthanFile = prefs.getString('selected_sound') ?? 'kamal_rauf.mp3';
       selectedThemeName = prefs.getString('selectedTheme') ?? 'شین';
       primaryColor = appThemes[selectedThemeName] ?? const Color(0xFF22D3EE);
       _palette = getThemePalette(selectedThemeName);
@@ -112,7 +112,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
   Future<void> _saveSettings() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('selectedCity', currentCity);
-    await prefs.setString('selectedAthan', selectedAthanFile);
+    await prefs.setString('selected_sound', selectedAthanFile);
     await prefs.setString('selectedTheme', selectedThemeName);
     await prefs.setStringList('activePrayers', activeAthans.toList());
   }
@@ -873,39 +873,28 @@ class _PrayerHomePageState extends State<PrayerHomePage>
 
   // ── لەیاوتی مۆبایل ────────────────────────────────
   Widget _buildPhoneLayout(PrayerTimes prayerTimes) {
-    return SingleChildScrollView(
-      child: ConstrainedBox(
-        constraints:
-            BoxConstraints(minHeight: MediaQuery.of(context).size.height),
-        child: IntrinsicHeight(
+    return Column(
+      children: [
+        const SizedBox(height: 3),
+        ClockWidget(now: _now, timeService: _timeService, palette: _palette),
+        DatesWidget(
+          timeService: _timeService,
+          now: _now,
+          gregorianDate: prayerTimes.gregorianDate,
+          palette: _palette,
+        ),
+        NextPrayerBar(
+          remainingTime: _getNextRemaining(prayerTimes),
+          nextPrayerName: _getNextPrayerName(prayerTimes),
+          palette: _palette,
+        ),
+        Divider(color: _palette.divider, height: 10),
+        Expanded(
           child: Column(
-            children: [
-              const SizedBox(height: 3),
-              ClockWidget(
-                  now: _now, timeService: _timeService, palette: _palette),
-              DatesWidget(
-                timeService: _timeService,
-                now: _now,
-                gregorianDate: prayerTimes.gregorianDate,
-                palette: _palette,
-              ),
-              NextPrayerBar(
-                remainingTime: _getNextRemaining(prayerTimes),
-                nextPrayerName: _getNextPrayerName(prayerTimes),
-                palette: _palette,
-              ),
-              Divider(color: _palette.divider, height: 10),
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                child: Column(
-                  children: List.generate(6, (i) => _buildPrayerCard(i)),
-                ),
-              ),
-            ],
+            children: List.generate(6, (i) => _buildPrayerCard(i)),
           ),
         ),
-      ),
+      ],
     );
   }
 

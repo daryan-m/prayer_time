@@ -127,19 +127,21 @@ class NextPrayerBar extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(35),
         border: Border(
-          top:    BorderSide(color: palette.primary.withOpacity(0.6), width: 1.0),
-          bottom: BorderSide(color: palette.primary.withOpacity(0.6), width: 1.0),
-          left:   BorderSide(color: palette.primary.withOpacity(0.6), width: 8.0),
-          right:  BorderSide(color: palette.primary.withOpacity(0.6), width: 8.0),
+          top: BorderSide(color: palette.primary.withOpacity(0.6), width: 1.0),
+          bottom:
+              BorderSide(color: palette.primary.withOpacity(0.6), width: 1.0),
+          left: BorderSide(color: palette.primary.withOpacity(0.6), width: 8.0),
+          right:
+              BorderSide(color: palette.primary.withOpacity(0.6), width: 8.0),
         ),
       ),
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 7, horizontal: 20),
         decoration: BoxDecoration(
-          color: const Color(0xFF0F172A),
+          color: palette.cardBg,
           borderRadius: BorderRadius.circular(15),
           border: Border(
-            left:  BorderSide(color: palette.border, width: 8.0),
+            left: BorderSide(color: palette.border, width: 8.0),
             right: BorderSide(color: palette.border, width: 8.0),
           ),
         ),
@@ -197,7 +199,8 @@ class PrayerCard extends StatelessWidget {
         ? null
         : const [
             Shadow(offset: Offset(1, 1), blurRadius: 2, color: Colors.black),
-            Shadow(offset: Offset(-0.5, -0.5), blurRadius: 1, color: Colors.black),
+            Shadow(
+                offset: Offset(-0.5, -0.5), blurRadius: 1, color: Colors.black),
           ];
 
     return GestureDetector(
@@ -206,7 +209,7 @@ class PrayerCard extends StatelessWidget {
         margin: const EdgeInsets.symmetric(vertical: 7),
         padding: const EdgeInsets.all(13),
         decoration: BoxDecoration(
-          color: const Color(0xFF0F172A),
+          color: isActive ? palette.cardBgActive : palette.cardBg,
           borderRadius: BorderRadius.circular(15),
           boxShadow: isActive
               ? [
