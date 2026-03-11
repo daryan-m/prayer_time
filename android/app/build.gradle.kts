@@ -18,11 +18,11 @@ android {
     }
 
     buildTypes {
-        release {
-    isMinifyEnabled = false
-    shrinkResources = false    // ✅ use "isShrinkResources" not "shrinkResources"
-    signingConfig = signingConfigs.getByName("debug")
-}
+    release {
+        isMinifyEnabled = false
+        isShrinkResources = false    // ✅ correct for Kotlin DSL
+        signingConfig = signingConfigs.getByName("debug")
+    }
     }
 
     compileOptions {
