@@ -10,7 +10,7 @@ android {
 
     defaultConfig {
         applicationId = "com.daryan.prayer"
-        minSdk = 21
+        minSdk = 21                     // use fixed minSdk
         targetSdk = 34
         versionCode = 3
         versionName = "1.0.3"
@@ -19,9 +19,10 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
-            signingConfig = signingConfigs.getByName("debug") // بۆ CI سەرکەوتووتر
-        }
+    isMinifyEnabled = false
+    shrinkResources = false
+    signingConfig = signingConfigs.getByName("debug")
+}
     }
 
     compileOptions {
