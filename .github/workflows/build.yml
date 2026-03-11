@@ -1,4 +1,4 @@
-name: Flutter Release APK
+name: Build APK
 
 on:
   push:
@@ -18,28 +18,20 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
-          java-version: '17'
+          java-version: '21'
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.41.2'
           channel: 'stable'
           cache: true
 
-      - name: Cache pub
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.pub-cache
-          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.yaml') }}
-
-      - name: Flutter pub get
+      - name: flutter pub get
         run: flutter pub get
 
-      - name: Clean Flutter
+      - name: flutter clean
         run: flutter clean
 
-      - name: Flutter pub get (after clean)
+      - name: flutter pub get (after clean)
         run: flutter pub get
 
       - name: Build release APK
