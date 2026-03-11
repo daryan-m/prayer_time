@@ -10,7 +10,7 @@ android {
 
     defaultConfig {
         applicationId = "com.daryan.prayer"
-        minSdk = 21                     // use fixed minSdk
+        minSdk = flutter.minSdkVersion                     // use fixed minSdk
         targetSdk = 34
         versionCode = 3
         versionName = "1.0.3"
@@ -20,7 +20,7 @@ android {
     buildTypes {
         release {
     isMinifyEnabled = false
-    shrinkResources = false
+    shrinkResources = false    // ✅ use "isShrinkResources" not "shrinkResources"
     signingConfig = signingConfigs.getByName("debug")
 }
     }
