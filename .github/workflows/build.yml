@@ -1,4 +1,4 @@
-name: Build APK
+name: Flutter Release APK
 
 on:
   push:
@@ -26,13 +26,20 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: flutter pub get
+      - name: Cache pub
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.pub-cache
+          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.yaml') }}
+
+      - name: Flutter pub get
         run: flutter pub get
 
-      - name: flutter clean
+      - name: Clean Flutter
         run: flutter clean
 
-      - name: flutter pub get (after clean)
+      - name: Flutter pub get (after clean)
         run: flutter pub get
 
       - name: Build release APK
