@@ -1579,7 +1579,7 @@ class _DateConverterDialogState extends State<_DateConverterDialog>
                         ),
                       ]),
                   const Divider(color: Colors.white10, height: 20),
-                  ...[
+                  ...List<Widget>.from([
                     [
                       "بەیانی",
                       _prayResult!.fajr,
@@ -1639,7 +1639,7 @@ class _DateConverterDialogState extends State<_DateConverterDialog>
                                 fontWeight: FontWeight.bold)),
                       ]),
                     );
-                  }).toList(),
+                  })),
                 ]),
           ),
         ],
@@ -1674,4 +1674,32 @@ class _DateConverterDialogState extends State<_DateConverterDialog>
       ),
     );
   }
+}
+
+Widget _numField(TextEditingController ctrl, String hint, Color pc,
+    {int maxLen = 2}) {
+  final border = OutlineInputBorder(
+      borderRadius: BorderRadius.circular(10),
+      borderSide: BorderSide(color: pc.withOpacity(0.35)));
+  return TextField(
+    controller: ctrl,
+    keyboardType: TextInputType.number,
+    textAlign: TextAlign.center,
+    maxLength: maxLen,
+    style: const TextStyle(
+        color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
+    decoration: InputDecoration(
+      counterText: "",
+      hintText: hint,
+      hintStyle: const TextStyle(color: Colors.white24, fontSize: 12),
+      filled: true,
+      fillColor: Colors.white.withOpacity(0.07),
+      border: border,
+      enabledBorder: border,
+      focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide(color: pc, width: 1.5)),
+      contentPadding: const EdgeInsets.symmetric(vertical: 12),
+    ),
+  );
 }
