@@ -6,12 +6,12 @@ plugins {
 
 android {
     namespace = "com.daryan.prayer"
-    compileSdk = 34
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.daryan.prayer"
         minSdk = flutter.minSdkVersion                     // use fixed minSdk
-        targetSdk = 34
+        targetSdk = 36
         versionCode = 3
         versionName = "1.0.3"
         multiDexEnabled = true
