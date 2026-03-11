@@ -61,9 +61,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
     )..repeat(reverse: true);
 
     _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (mounted) {
-        setState(() => _now = DateTime.now());
-      }
+      if (mounted) setState(() => _now = DateTime.now());
     });
 
     _prayerTimesFuture = _prayerDataService.getPrayerTimes(currentCity, _now);
@@ -87,6 +85,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
     super.dispose();
   }
 
+  // ── ڕێکخستنەکان بارکردن ──────────────────────────
   Future<void> _loadSavedSettings() async {
     final prefs = await SharedPreferences.getInstance();
     if (!mounted) return;
@@ -117,6 +116,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
     await prefs.setStringList('activePrayers', activeAthans.toList());
   }
 
+  // ── دووبارە خشتەکردنی بانگ ───────────────────────
   Future<void> _reSchedulePrayer(String prayerName) async {
     try {
       final times = await _prayerTimesFuture;
@@ -143,8 +143,12 @@ class _PrayerHomePageState extends State<PrayerHomePage>
     }
   }
 
+  // ── خشتەکردنی بانگ ───────────────────────────────
+  // ١. flutter_local_notifications: notification بەبێ دەنگ
+  // ٢. MethodChannel → AthanService (foreground + MediaPlayer)
   Future<void> _scheduleAthan(
       int id, String prayerName, DateTime prayerTime) async {
+    // ناوی فایلی دەنگ: پاک بکەرەوە
     final String soundFileName = selectedAthanFile
         .replaceAll('.mp3', '')
         .replaceAll(' ', '_')
@@ -153,6 +157,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
     const String channelId = 'athan_foreground_channel';
     const String channelName = 'بانگ';
 
+    // ── notification channel دروست بکە ──
     final AndroidFlutterLocalNotificationsPlugin? androidPlugin =
         flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin>();
@@ -182,6 +187,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
       category: AndroidNotificationCategory.alarm,
     );
 
+    // ── notification خشتە بکە ──
     await flutterLocalNotificationsPlugin.zonedSchedule(
       id,
       'کاتی بانگی $prayerName',
@@ -194,6 +200,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
       matchDateTimeComponents: DateTimeComponents.time,
     );
 
+    // ── AlarmManager بۆ AthanService ──
     try {
       await _athanChannel.invokeMethod('scheduleAthan', {
         'id': id,
@@ -201,8 +208,9 @@ class _PrayerHomePageState extends State<PrayerHomePage>
         'soundFile': soundFileName,
         'scheduledTime': _nextInstanceOfTime(prayerTime).millisecondsSinceEpoch,
       });
+      debugPrint("✅ scheduleAthan: $prayerName ($soundFileName) @ $prayerTime");
     } catch (e) {
-      debugPrint("scheduleAthan channel error: $e");
+      debugPrint("❌ scheduleAthan channel error: $e");
     }
   }
 
@@ -224,6 +232,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
     }
   }
 
+  // ── مۆڵەتەکان چێک بکە ────────────────────────────
   Future<void> _checkAndShowPermissions() async {
     await Future.delayed(const Duration(seconds: 2));
 
@@ -281,6 +290,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
     );
   }
 
+  // ── پشکنینی نوێکردنەوە ───────────────────────────
   Future<void> _checkForUpdate() async {
     try {
       final response = await http.get(Uri.parse(
@@ -313,44 +323,50 @@ class _PrayerHomePageState extends State<PrayerHomePage>
   }
 
   Future<void> _showUpdateDialog(String url, String version) async {
+    if (!mounted) return;
     await showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1E293B),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-        title: const Text("وەشانێکی نوێ بەردەستە",
-            textAlign: TextAlign.center, style: TextStyle(color: Colors.white)),
-        content: Text(
-          "وەشانی $version ئێستا بەردەستە، ئایا دەتەوێت نوێی بکەیتەوە؟",
-          textAlign: TextAlign.center,
-          style: const TextStyle(color: Colors.white70),
+      builder: (context) => Directionality(
+        textDirection: ui.TextDirection.rtl,
+        child: AlertDialog(
+          backgroundColor: const Color(0xFF1E293B),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+          title: const Text("وەشانێکی نوێ بەردەستە",
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.white)),
+          content: Text(
+            "وەشانی $version ئێستا بەردەستە، ئایا دەتەوێت نوێی بکەیتەوە؟",
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: Colors.white70),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("بۆ کاتێکی تر",
+                  style: TextStyle(color: Colors.grey)),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: primaryColor),
+              onPressed: () {
+                Navigator.pop(context);
+                _startUpdate(url, version);
+              },
+              child: const Text("نوێکردنەوە"),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("بۆ کاتێکی تر",
-                style: TextStyle(color: Colors.grey)),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: primaryColor),
-            onPressed: () {
-              Navigator.pop(context);
-              _startUpdate(url, version);
-            },
-            child: const Text("نوێکردنەوە"),
-          ),
-        ],
       ),
     );
   }
 
+  // ── داگرتن و ئینستاڵی نوێکردنەوە ────────────────
   void _startUpdate(String url, String version) async {
     await WakelockPlus.enable();
     if (!mounted) return;
 
-    // ── چێک کردنی مۆڵەت ──────────────────────────────────────────
-    // ئەگەر مۆڵەت نەبوو: داوا لێ بکە، چاوەڕێ بکە، دووبارە چێک بکە
+    // ── مۆڵەتی ئینستاڵ چێک بکە ──
     bool canInstall = await Permission.requestInstallPackages.isGranted;
     if (!canInstall) {
       final status = await Permission.requestInstallPackages.request();
@@ -360,7 +376,6 @@ class _PrayerHomePageState extends State<PrayerHomePage>
     if (!canInstall) {
       await WakelockPlus.disable();
       if (!mounted) return;
-      // ئەگەر هێشتا مۆڵەت نەدا: بردنی بۆ ڕێکخستن و چاوەڕێ کردن
       await showDialog(
         context: context,
         builder: (ctx) => Directionality(
@@ -389,7 +404,6 @@ class _PrayerHomePageState extends State<PrayerHomePage>
                 onPressed: () async {
                   Navigator.pop(ctx);
                   await openAppSettings();
-                  // کاتێک بگەڕێتەوە دووبارە هەوڵ بدەرەوە
                   if (mounted) _startUpdate(url, version);
                 },
                 child: const Text("کردنەوەی ڕێکخستن"),
@@ -409,6 +423,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
     bool dialogOpen = true;
     StateSetter? setDlState;
 
+    // ── دیالۆگی پرۆگرێس ──
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -439,7 +454,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
                   : Column(mainAxisSize: MainAxisSize.min, children: [
                       LinearProgressIndicator(
                         value: dlProgress / 100,
-                        color: Colors.blue,
+                        color: primaryColor,
                         backgroundColor: Colors.white24,
                         minHeight: 8,
                       ),
@@ -465,11 +480,13 @@ class _PrayerHomePageState extends State<PrayerHomePage>
       ),
     ).then((_) => dialogOpen = false);
 
+    // ── OTA داگرتن ──
     try {
       OtaUpdate()
           .execute(url, destinationFilename: 'update_v$version.apk')
           .listen(
         (OtaEvent event) {
+          if (!mounted) return;
           switch (event.status) {
             case OtaStatus.DOWNLOADING:
               setDlState?.call(() {
@@ -478,7 +495,6 @@ class _PrayerHomePageState extends State<PrayerHomePage>
               });
               break;
             case OtaStatus.INSTALLING:
-              // ── دیالۆگ داخە، ئینستاڵ بەرێوە دەچێت ──
               setDlState?.call(() {
                 dlProgress = 100;
                 statusText = "ئێستا ئینستاڵ دەست دەکات...";
@@ -489,6 +505,14 @@ class _PrayerHomePageState extends State<PrayerHomePage>
                   Navigator.of(context, rootNavigator: true).pop();
                 }
               });
+              break;
+            case OtaStatus.PERMISSION_NOT_GRANTED_ERROR:
+              // ئەگەر مۆڵەت لابرا لە ناوەندا
+              setDlState?.call(() {
+                hasError = true;
+                errorText = "مۆڵەتی ئینستاڵ نەدرا — تکایە لە ڕێکخستن چالاک بکە";
+              });
+              WakelockPlus.disable();
               break;
             case OtaStatus.ALREADY_RUNNING_ERROR:
             case OtaStatus.INTERNAL_ERROR:
@@ -505,6 +529,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
           }
         },
         onError: (e) {
+          if (!mounted) return;
           setDlState?.call(() {
             hasError = true;
             errorText = "هەڵە: $e";
@@ -522,6 +547,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
     }
   }
 
+  // ── دووبارە خشتەکردنی هەموو بانگەکان ────────────
   Future<void> _refreshAllAthanSchedules(PrayerTimes times) async {
     await _cancelAllAthans();
 
@@ -567,6 +593,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
     });
   }
 
+  // ── ماوەی بانگی داهاتوو ──────────────────────────
   String _getNextRemaining(PrayerTimes times) {
     final now = DateTime.now();
     final list = [
@@ -574,7 +601,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
       times.dhuhr,
       times.asr,
       times.maghrib,
-      times.isha
+      times.isha,
     ];
 
     DateTime? next;
@@ -605,6 +632,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
     return "بەیانی";
   }
 
+  // ── تاپ لەسەر کارتی بانگ ─────────────────────────
   Future<void> _handlePrayerCardTap(String name, String time) async {
     if (name == "خۆرهەڵاتن") return;
 
@@ -635,6 +663,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
     await _saveSettings();
 
     if (willBeActive) {
+      // ── کاتی بانگ لە تێکستی کارتەکە دەرهێنە ──
       final String cleanTime = time
           .replaceAllMapped(
               RegExp(r'[٠-٩]'),
@@ -648,7 +677,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
                     '٦': '6',
                     '٧': '7',
                     '٨': '8',
-                    '٩': '9'
+                    '٩': '9',
                   }[m.group(0)]!)
           .replaceAllMapped(
               RegExp(r'[۰-۹]'),
@@ -662,7 +691,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
                     '۶': '6',
                     '۷': '7',
                     '۸': '8',
-                    '۹': '9'
+                    '۹': '9',
                   }[m.group(0)]!)
           .trim();
 
@@ -698,7 +727,9 @@ class _PrayerHomePageState extends State<PrayerHomePage>
     }
   }
 
-  // ── BUILD ──────────────────────────────────────────
+  // ══════════════════════════════════════════════════
+  // BUILD
+  // ══════════════════════════════════════════════════
   @override
   Widget build(BuildContext context) {
     return Directionality(
@@ -706,6 +737,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
       child: FutureBuilder<PrayerTimes>(
         future: _prayerTimesFuture,
         builder: (context, snapshot) {
+          // ── چاوەڕێکردن ──
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Scaffold(
               backgroundColor: _palette.background,
@@ -715,6 +747,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
             );
           }
 
+          // ── هەڵە ──
           if (snapshot.hasError || !snapshot.hasData || snapshot.data == null) {
             return Scaffold(
               backgroundColor: _palette.background,
@@ -898,7 +931,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
     );
   }
 
-  // ── دروستکردنی کارت ───────────────────────────────
+  // ── دروستکردنی کارتی بانگ ─────────────────────────
   Widget _buildPrayerCard(int i) {
     return PrayerCard(
       name: prayerNames[i],

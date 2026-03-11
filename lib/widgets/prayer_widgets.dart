@@ -128,11 +128,9 @@ class NextPrayerBar extends StatelessWidget {
         borderRadius: BorderRadius.circular(35),
         border: Border(
           top: BorderSide(color: palette.primary.withOpacity(0.6), width: 1.0),
-          bottom:
-              BorderSide(color: palette.primary.withOpacity(0.6), width: 1.0),
+          bottom: BorderSide(color: palette.primary.withOpacity(0.6), width: 1.0),
           left: BorderSide(color: palette.primary.withOpacity(0.6), width: 8.0),
-          right:
-              BorderSide(color: palette.primary.withOpacity(0.6), width: 8.0),
+          right: BorderSide(color: palette.primary.withOpacity(0.6), width: 8.0),
         ),
       ),
       child: Container(
@@ -199,14 +197,14 @@ class PrayerCard extends StatelessWidget {
         ? null
         : const [
             Shadow(offset: Offset(1, 1), blurRadius: 2, color: Colors.black),
-            Shadow(
-                offset: Offset(-0.5, -0.5), blurRadius: 1, color: Colors.black),
+            Shadow(offset: Offset(-0.5, -0.5), blurRadius: 1, color: Colors.black),
           ];
 
     return GestureDetector(
       onTap: isSun ? null : () async => await onTap(),
       child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 7),
+        // ── کێشەی ئاسۆیی: margin ی ئاسۆیی زیادکرا ──
+        margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
         padding: const EdgeInsets.all(13),
         decoration: BoxDecoration(
           color: isActive ? palette.cardBgActive : palette.cardBg,

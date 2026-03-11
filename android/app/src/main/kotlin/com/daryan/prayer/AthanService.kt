@@ -13,6 +13,7 @@ import android.os.PowerManager
 import android.util.Log
 import android.content.pm.ServiceInfo
 import androidx.core.app.NotificationCompat
+import androidx.core.app.ServiceCompat
 
 class AthanService : Service() {
 
@@ -46,13 +47,14 @@ class AthanService : Service() {
             "AthanApp::AthanWakeLock"
         ).also { it.acquire(10 * 60 * 1000L) }
 
-        // ── Foreground: پێویستە پێش هەموو شتێک بێت (Android 14+) ──
+        // ── Foreground: ServiceCompat بۆ Android 14+ (پێویستترین ڕێگا) ──
         val notif = buildNotification(prayerName)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            startForeground(NOTIF_ID, notif, ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK)
-        } else {
-            startForeground(NOTIF_ID, notif)
-        }
+        ServiceCompat.startForeground(
+            this,
+            NOTIF_ID,
+            notif,
+            ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK
+        )
 
         // ── AudioFocus: AUDIOFOCUS_GAIN (نەک TRANSIENT) ──
         requestAudioFocus()
