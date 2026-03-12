@@ -27,10 +27,7 @@ const List<CityConfig> kurdistanCities = [
       displayName: "کەرکووک",
       jsonFile: "kirkuk_prayer_times_2026",
       hasFile: false),
-  CityConfig(
-      displayName: "هەڵەبجە",
-      jsonFile: "halabja_prayer_times_2026",
-      hasFile: false),
+  CityConfig(displayName: "هەڵەبجە", jsonFile: "halabja_prayer_times_2026"),
   CityConfig(
       displayName: "ڕانیە",
       jsonFile: "rania_prayer_times_2026",
@@ -251,4 +248,4 @@ class AppColors {
 }
 
 // ── وەشان ──────────────────────────────────────────
-const String currentAppVersion = "1.0.3";
+const String currentAppVersion = "1.0.4";
