@@ -67,10 +67,6 @@ class _PrayerHomePageState extends State<PrayerHomePage>
     _prayerTimesFuture = _prayerDataService.getPrayerTimes(currentCity, _now);
     _loadSavedSettings();
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _checkAndShowPermissions();
-    });
-
     Future.delayed(Duration.zero, _checkForUpdate);
     _updateCheckTimer =
         Timer.periodic(const Duration(hours: 24), (_) => _checkForUpdate());
@@ -91,6 +87,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
     if (!mounted) return;
 
     final savedPrayers = prefs.getStringList('activePrayers');
+    final bool isFirstRun = prefs.getBool('hasLaunched') != true;
 
     setState(() {
       currentCity = prefs.getString('selectedCity') ?? 'پێنجوێن';
@@ -105,6 +102,13 @@ class _PrayerHomePageState extends State<PrayerHomePage>
       for (final prayerName in savedPrayers) {
         await _reSchedulePrayer(prayerName);
       }
+    }
+
+    if (isFirstRun) {
+      await prefs.setBool('hasLaunched', true);
+      await Future.delayed(const Duration(seconds: 1));
+      if (!mounted) return;
+      await _requestPermissions();
     }
   }
 
@@ -144,63 +148,13 @@ class _PrayerHomePageState extends State<PrayerHomePage>
   }
 
   // ── خشتەکردنی بانگ ───────────────────────────────
-  // ١. flutter_local_notifications: notification بەبێ دەنگ
-  // ٢. MethodChannel → AthanService (foreground + MediaPlayer)
   Future<void> _scheduleAthan(
       int id, String prayerName, DateTime prayerTime) async {
-    // ناوی فایلی دەنگ: پاک بکەرەوە
     final String soundFileName = selectedAthanFile
         .replaceAll('.mp3', '')
         .replaceAll(' ', '_')
         .toLowerCase();
 
-    const String channelId = 'athan_foreground_channel';
-    const String channelName = 'بانگ';
-
-    // ── notification channel دروست بکە ──
-    final AndroidFlutterLocalNotificationsPlugin? androidPlugin =
-        flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>();
-
-    if (androidPlugin != null) {
-      await androidPlugin.createNotificationChannel(
-        const AndroidNotificationChannel(
-          channelId,
-          channelName,
-          description: 'کەناڵی بانگ',
-          importance: Importance.max,
-          playSound: false,
-          enableVibration: true,
-        ),
-      );
-    }
-
-    const AndroidNotificationDetails androidDetails =
-        AndroidNotificationDetails(
-      channelId,
-      channelName,
-      channelDescription: 'کەناڵی بانگ',
-      importance: Importance.max,
-      priority: Priority.high,
-      playSound: false,
-      fullScreenIntent: true,
-      category: AndroidNotificationCategory.alarm,
-    );
-
-    // ── notification خشتە بکە ──
-    await flutterLocalNotificationsPlugin.zonedSchedule(
-      id,
-      'کاتی بانگی $prayerName',
-      'ئێستا کاتی بانگی $prayerNameەیە',
-      _nextInstanceOfTime(prayerTime),
-      const NotificationDetails(android: androidDetails),
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
-      matchDateTimeComponents: DateTimeComponents.time,
-    );
-
-    // ── AlarmManager بۆ AthanService ──
     try {
       await _athanChannel.invokeMethod('scheduleAthan', {
         'id': id,
@@ -232,17 +186,18 @@ class _PrayerHomePageState extends State<PrayerHomePage>
     }
   }
 
-  // ── مۆڵەتەکان چێک بکە ────────────────────────────
-  Future<void> _checkAndShowPermissions() async {
-    await Future.delayed(const Duration(seconds: 2));
+  // ── داوای مۆڵەت ──────────────────────────────────
+  Future<bool> _requestPermissions() async {
+    if (!mounted) return false;
 
-    final bool isNotificationDenied = await Permission.notification.isDenied;
-    final bool isAlarmDenied = await Permission.scheduleExactAlarm.isDenied;
+    final bool notifOk = await Permission.notification.isGranted;
+    final bool batteryOk =
+        await Permission.ignoreBatteryOptimizations.isGranted;
 
-    if (!isNotificationDenied && !isAlarmDenied) return;
-    if (!mounted) return;
+    if (notifOk && batteryOk) return true;
 
-    showDialog(
+    if (!mounted) return false;
+    final bool? agreed = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
       builder: (context) => Directionality(
@@ -256,29 +211,18 @@ class _PrayerHomePageState extends State<PrayerHomePage>
                   TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
               textAlign: TextAlign.center),
           content: const Text(
-            "بۆ ئەوەی ئەپەکە بتوانێت لە کاتی بانگەکاندا ئاگادارت بکاتەوە و دەنگی بانگ لێ بدات، تکایە ڕێپێدانەکان چالاک بکە.",
+            "بۆ ئەوەی بانگەکان کار بکەن، پێویستە ڕێپێدانی ئاگادارکردنەوە و باکگراوند بدەیت.",
             style: TextStyle(color: Colors.white70),
             textAlign: TextAlign.center,
           ),
           actions: [
             TextButton(
-              onPressed: () async {
-                Navigator.pop(context);
-                try {
-                  final androidPlugin = flutterLocalNotificationsPlugin
-                      .resolvePlatformSpecificImplementation<
-                          AndroidFlutterLocalNotificationsPlugin>();
-                  await androidPlugin?.requestNotificationsPermission();
-                } catch (e) {
-                  debugPrint("Permission error: $e");
-                }
-                await [
-                  Permission.notification,
-                  Permission.scheduleExactAlarm,
-                  Permission.ignoreBatteryOptimizations,
-                ].request();
-              },
-              child: const Text('باشە',
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text("نەخێر", style: TextStyle(color: Colors.grey)),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text("باشە",
                   style: TextStyle(
                       color: Colors.blueAccent,
                       fontWeight: FontWeight.bold,
@@ -288,6 +232,15 @@ class _PrayerHomePageState extends State<PrayerHomePage>
         ),
       ),
     );
+
+    if (agreed != true) return false;
+
+    await [
+      Permission.notification,
+      Permission.ignoreBatteryOptimizations,
+    ].request();
+
+    return await Permission.notification.isGranted;
   }
 
   // ── پشکنینی نوێکردنەوە ───────────────────────────
@@ -366,7 +319,6 @@ class _PrayerHomePageState extends State<PrayerHomePage>
     await WakelockPlus.enable();
     if (!mounted) return;
 
-    // ── مۆڵەتی ئینستاڵ چێک بکە ──
     bool canInstall = await Permission.requestInstallPackages.isGranted;
     if (!canInstall) {
       final status = await Permission.requestInstallPackages.request();
@@ -423,7 +375,6 @@ class _PrayerHomePageState extends State<PrayerHomePage>
     bool dialogOpen = true;
     StateSetter? setDlState;
 
-    // ── دیالۆگی پرۆگرێس ──
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -480,7 +431,6 @@ class _PrayerHomePageState extends State<PrayerHomePage>
       ),
     ).then((_) => dialogOpen = false);
 
-    // ── OTA داگرتن ──
     try {
       OtaUpdate()
           .execute(url, destinationFilename: 'update_v$version.apk')
@@ -507,7 +457,6 @@ class _PrayerHomePageState extends State<PrayerHomePage>
               });
               break;
             case OtaStatus.PERMISSION_NOT_GRANTED_ERROR:
-              // ئەگەر مۆڵەت لابرا لە ناوەندا
               setDlState?.call(() {
                 hasError = true;
                 errorText = "مۆڵەتی ئینستاڵ نەدرا — تکایە لە ڕێکخستن چالاک بکە";
@@ -638,6 +587,13 @@ class _PrayerHomePageState extends State<PrayerHomePage>
 
     final bool willBeActive = !activeAthans.contains(name);
 
+    if (willBeActive) {
+      final bool hasPermission = await Permission.notification.isGranted;
+      if (!hasPermission) {
+        await _requestPermissions();
+      }
+    }
+
     setState(() {
       if (willBeActive) {
         activeAthans.add(name);
@@ -663,7 +619,6 @@ class _PrayerHomePageState extends State<PrayerHomePage>
     await _saveSettings();
 
     if (willBeActive) {
-      // ── کاتی بانگ لە تێکستی کارتەکە دەرهێنە ──
       final String cleanTime = time
           .replaceAllMapped(
               RegExp(r'[٠-٩]'),
@@ -737,7 +692,6 @@ class _PrayerHomePageState extends State<PrayerHomePage>
       child: FutureBuilder<PrayerTimes>(
         future: _prayerTimesFuture,
         builder: (context, snapshot) {
-          // ── چاوەڕێکردن ──
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Scaffold(
               backgroundColor: _palette.background,
@@ -747,7 +701,6 @@ class _PrayerHomePageState extends State<PrayerHomePage>
             );
           }
 
-          // ── هەڵە ──
           if (snapshot.hasError || !snapshot.hasData || snapshot.data == null) {
             return Scaffold(
               backgroundColor: _palette.background,

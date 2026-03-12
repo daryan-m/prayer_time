@@ -127,14 +127,18 @@ class NextPrayerBar extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(35),
         border: Border(
-          top: BorderSide(color: palette.primary.withOpacity(0.6), width: 1.0),
-          bottom: BorderSide(color: palette.primary.withOpacity(0.6), width: 1.0),
-          left: BorderSide(color: palette.primary.withOpacity(0.6), width: 8.0),
-          right: BorderSide(color: palette.primary.withOpacity(0.6), width: 8.0),
+          top:
+              BorderSide(color: palette.secondary.withOpacity(0.9), width: 1.0),
+          bottom:
+              BorderSide(color: palette.secondary.withOpacity(0.9), width: 1.0),
+          left:
+              BorderSide(color: palette.secondary.withOpacity(0.3), width: 8.0),
+          right:
+              BorderSide(color: palette.secondary.withOpacity(0.3), width: 8.0),
         ),
       ),
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 7, horizontal: 20),
+        padding: const EdgeInsets.symmetric(vertical: 7, horizontal: 16),
         decoration: BoxDecoration(
           color: palette.cardBg,
           borderRadius: BorderRadius.circular(15),
@@ -197,14 +201,15 @@ class PrayerCard extends StatelessWidget {
         ? null
         : const [
             Shadow(offset: Offset(1, 1), blurRadius: 2, color: Colors.black),
-            Shadow(offset: Offset(-0.5, -0.5), blurRadius: 1, color: Colors.black),
+            Shadow(
+                offset: Offset(-0.5, -0.5), blurRadius: 1, color: Colors.black),
           ];
 
     return GestureDetector(
       onTap: isSun ? null : () async => await onTap(),
       child: Container(
         // ── کێشەی ئاسۆیی: margin ی ئاسۆیی زیادکرا ──
-        margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+        margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 10),
         padding: const EdgeInsets.all(13),
         decoration: BoxDecoration(
           color: isActive ? palette.cardBgActive : palette.cardBg,
