@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:http_parser/src/scan.dart';
 import 'dart:async';
 import 'dart:ui' as ui;
 import 'package:intl/intl.dart';
@@ -39,7 +40,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
   late AnimationController _sunController;
 
   DateTime _now = DateTime.now();
-  String currentCity = "پێنجوێن";
+  String currentCity = "سلێمانی";
   Set<String> activeAthans = {};
   String selectedAthanFile = "kamal_rauf.mp3";
   String selectedThemeName = "شین";
@@ -90,7 +91,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
     final bool isFirstRun = prefs.getBool('hasLaunched') != true;
 
     setState(() {
-      currentCity = prefs.getString('selectedCity') ?? 'پێنجوێن';
+      currentCity = prefs.getString('selectedCity') ?? 'سلێمانی';
       selectedAthanFile = prefs.getString('selected_sound') ?? 'kamal_rauf.mp3';
       selectedThemeName = prefs.getString('selectedTheme') ?? 'شین';
       primaryColor = appThemes[selectedThemeName] ?? const Color(0xFF22D3EE);
@@ -218,7 +219,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text("نەخێر", style: TextStyle(color: Colors.grey)),
+              child: const Text("بۆ کاتێکى تر", style: TextStyle(color: Colors.grey)),
             ),
             TextButton(
               onPressed: () => Navigator.pop(context, true),
@@ -447,7 +448,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
             case OtaStatus.INSTALLING:
               setDlState?.call(() {
                 dlProgress = 100;
-                statusText = "ئێستا ئینستاڵ دەست دەکات...";
+                statusText = "ئێستا ئینستاڵ دەست پێ دەکات...";
               });
               WakelockPlus.disable();
               Future.delayed(const Duration(milliseconds: 500), () {
@@ -609,6 +610,8 @@ class _PrayerHomePageState extends State<PrayerHomePage>
         content: Text(
           willBeActive ? "بانگی $name چالاک کرا" : "بانگی $name ناچالاک کرا",
           textAlign: TextAlign.center,
+          style: const TextStyle(
+        color: Colors.white,),
         ),
         backgroundColor:
             willBeActive ? const Color(0xFF10B981) : Colors.redAccent,

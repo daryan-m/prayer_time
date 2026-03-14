@@ -124,48 +124,57 @@ class NextPrayerBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 10),
-      decoration: BoxDecoration(
+      // بەکارهێنانی ClipRRect بۆ ئەوەی گۆشەکان بە جوانی ببڕدرێن
+      child: ClipRRect(
         borderRadius: BorderRadius.circular(35),
-        border: Border(
-          top:
-              BorderSide(color: palette.secondary.withOpacity(0.9), width: 1.0),
-          bottom:
-              BorderSide(color: palette.secondary.withOpacity(0.9), width: 1.0),
-          left:
-              BorderSide(color: palette.secondary.withOpacity(0.3), width: 8.0),
-          right:
-              BorderSide(color: palette.secondary.withOpacity(0.3), width: 8.0),
-        ),
-      ),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 7, horizontal: 16),
-        decoration: BoxDecoration(
-          color: palette.cardBg,
-          borderRadius: BorderRadius.circular(15),
-          border: Border(
-            left: BorderSide(color: palette.border, width: 8.0),
-            right: BorderSide(color: palette.border, width: 8.0),
+        child: Container(
+          decoration: BoxDecoration(
+            // لێرە تەنها بۆردەرەکان دادەنێین بێ borderRadius بۆ ئەوەی Error نەدات
+            border: Border(
+              top: BorderSide(
+                  color: palette.secondary.withOpacity(0.7), width: 2.0),
+              bottom: BorderSide(
+                  color: palette.secondary.withOpacity(0.7), width: 2.0),
+              left: BorderSide(
+                  color: palette.secondary.withOpacity(0.3), width: 11),
+              right: BorderSide(
+                  color: palette.secondary.withOpacity(0.3), width: 11),
+            ),
           ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              remainingTime,
-              style: TextStyle(
-                color: palette.secondary,
-                fontSize: 23,
-                fontWeight: FontWeight.bold,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(7),
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 7, horizontal: 12),
+              decoration: BoxDecoration(
+                color: palette.cardBg,
+                // لێرەش بۆردەری لایەکان بە جیا دادەنێین
+                border: Border(
+                  left: BorderSide(color: palette.secondary, width: 8.0),
+                  right: BorderSide(color: palette.secondary, width: 8.0),
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    remainingTime,
+                    style: TextStyle(
+                      color: palette.secondary,
+                      fontSize: 23,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(width: 20),
+                  Text(
+                    nextPrayerName == "خۆرهەڵاتن"
+                        ? "ماوە بۆ خۆرهەڵاتن"
+                        : "ماوە بۆ بانگی $nextPrayerName",
+                    style: const TextStyle(color: Colors.white, fontSize: 16),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(width: 20),
-            Text(
-              nextPrayerName == "خۆرهەڵاتن"
-                  ? "ماوە بۆ خۆرهەڵاتن"
-                  : "ماوە بۆ بانگی $nextPrayerName",
-              style: const TextStyle(color: Colors.white, fontSize: 16),
-            ),
-          ],
+          ),
         ),
       ),
     );

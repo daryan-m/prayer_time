@@ -16,26 +16,15 @@ class CityConfig {
 }
 
 const List<CityConfig> kurdistanCities = [
-  CityConfig(displayName: "پێنجوێن", jsonFile: "penjwen_prayer_times_2026"),
-  CityConfig(
-      displayName: "سلێمانی", jsonFile: "sulaymaniyah_prayer_times_2026"),
-  CityConfig(
-      displayName: "سەید صادق", jsonFile: "said_sadiq_prayer_times_2026"),
   CityConfig(displayName: "هەولێر", jsonFile: "hawler_prayer_times_2026"),
+  CityConfig(displayName: "سلێمانی", jsonFile: "sulaymaniyah_prayer_times_2026"),
   CityConfig(displayName: "دهۆک", jsonFile: "duhok_prayer_times_2026"),
-  CityConfig(
-      displayName: "کەرکووک",
-      jsonFile: "kirkuk_prayer_times_2026",
-      hasFile: false),
+  CityConfig(displayName: "کەرکووک", jsonFile: "kirkuk_prayer_times_2026"),
   CityConfig(displayName: "هەڵەبجە", jsonFile: "halabja_prayer_times_2026"),
-  CityConfig(
-      displayName: "ڕانیە",
-      jsonFile: "rania_prayer_times_2026",
-      hasFile: false),
-  CityConfig(
-      displayName: "دەربەندیخان",
-      jsonFile: "darbandikhan_prayer_times_2026",
-      hasFile: false),
+  CityConfig(displayName: "پێنجوێن", jsonFile: "penjwen_prayer_times_2026"),
+  CityConfig(displayName: "سەید صادق", jsonFile: "said_sadiq_prayer_times_2026"),
+  CityConfig(displayName: "ڕانیە", jsonFile: "rania_prayer_times_2026"),
+  CityConfig(displayName: "دەربەندیخان", jsonFile: "darbandikhan_prayer_times_2026",hasFile: false),
 ];
 
 final List<String> kurdistanCitiesData =
@@ -189,7 +178,7 @@ const Map<String, ThemePalette> appThemePalettes = {
   ),
 
   // ── شەمامەیی ─────────────────────────────────────
-  "شەمامەیی": ThemePalette(
+  "پیرۆزەیى": ThemePalette(
     primary: Color(0xFF2DD4BF),
     secondary: Color(0xFF5EEAD4),
     glow: Color(0xFF0D9488),
@@ -207,7 +196,7 @@ const Map<String, ThemePalette> appThemePalettes = {
   ),
 
   // ── ئەسمەری ──────────────────────────────────────
-  "ئەسمەری": ThemePalette(
+  "مۆر": ThemePalette(
     primary: Color(0xFFE879F9),
     secondary: Color(0xFFF0ABFC),
     glow: Color(0xFFD946EF),
@@ -248,4 +237,4 @@ class AppColors {
 }
 
 // ── وەشان ──────────────────────────────────────────
-const String currentAppVersion = "1.0.4";
+const String currentAppVersion = "1.0.5";
