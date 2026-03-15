@@ -26,6 +26,7 @@ android {
     signingConfigs {
         create("release") {
             if (useEnvSigning) {
+                // بەکارهێنانی رێگەی ڕاستەوخۆ بۆ خوێندنەوەی گۆڕدراوەکانی سیستەم
                 storeFile = file("${System.getenv("RUNNER_TEMP")}/bang-release.jks")
                 storePassword = System.getenv("KEYSTORE_PASSWORD")
                 keyAlias = System.getenv("KEY_ALIAS")
