@@ -24,7 +24,8 @@ const List<CityConfig> kurdistanCities = [
   CityConfig(displayName: "پێنجوێن", jsonFile: "penjwen_prayer_times_2026"),
   CityConfig(displayName: "سەید صادق", jsonFile: "said_sadiq_prayer_times_2026"),
   CityConfig(displayName: "ڕانیە", jsonFile: "rania_prayer_times_2026"),
-  CityConfig(displayName: "دەربەندیخان", jsonFile: "darbandikhan_prayer_times_2026",hasFile: false),
+  CityConfig(displayName: "دەربەندیخان", jsonFile: "darbandikhan_prayer_times_2026"),
+  CityConfig(displayName: "کەلار", jsonFile: "kalar_prayer_times_2026"),
 ];
 
 final List<String> kurdistanCitiesData =
