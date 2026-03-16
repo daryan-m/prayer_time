@@ -389,9 +389,6 @@ class _TasbihDialogState extends State<_TasbihDialog>
   final AudioPlayer _tickPlayer = AudioPlayer();
   static const String _prefsKey = 'tasbih_feedback';
 
-  static final Uint8List _tickWav = base64Decode(
-      'UklGRuwNAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YcgNAAAAAGgglT6PWKlsmXmLfjZ72G83XZJEiScGCBvo3MlCrweaiIuxhO2FIo+sn3G279FV8KQP0S3lSB1fC2+pd3B4WHHgYgJOHjTrFlX4W9ryvuKnqJZfjKyJto4hmxauU8Y+4gAAph1COQdRa2NBb8hzu3BVZkpVvT4sJFcHI+p3ziC2s6JwlS6PT5C7mN2ns7za1arxTw7sKbJCBleZZXxtMW60Z3haX0evL/gU/PiP3XrEYK+dnzSWvJNYmLWjDrU7y8bkAAAhG2M0I0r3Wstl72klZ6FdCU5nORghtwb/663SabyjqoCexpjPmYShXK9swnDZ4vIYDVsmBj2fT/VcLGTSZOJexlJNQaErMBOV+X3gisk8ttCnNJ/ynCmhj6tuu7jPF+cAANIY7y/UQzpTIl3sYF9eqlVmR4U0SB4lBrPtiNYpwuWxy6aOoYCijak4tqnHt9wA9PsLGCPVN9lIDVWnWz9c0Fa7S7876yeOESH6K+MszoK8UK9wp1+lOqm9skPB09M16QAAthbbKw8+Jkw2Va5YWFZhTlNBDTC0G58FQe8P2mrHirhhrpapdKrnsH+8dMy43wX19gocIBUzp0LRTdtTZlRuT0pFqjaGJA8Qofqf5WnSQMIttviuFK2csE+5mcaV1ybrAADHFCAoyDisRfdNI1EAT7ZHxTv3K1kZJQWu8EndO8yevlK18LC7saK3PcLW0Hbi9PUHCmAdvS78PDJHuUw4TaxIZj8EMmohsg4W+93nStaAx3W83LUhtFy3U797ywXb7OwAAAMTtiT0M78/VUc8SkhInUGvNjooMRe1BPzxPeCi0C7Erbupt2O4yb19x9nU+uTP9i0J4RrDKsw3JEEzRqdGfkIBOsMtkx5yDYH76+nW2U7MM8IrvJW6ir3TxPLPK96L7gAAZRGXIYkvUzpEQexDIkIIPAgyziQ4FU4ELfPx4qrURMl8wdC9er5rw0zMhdhG55f3ZQiYGCAnDTOaOzpApUDWPBI13in5G00M4/vM6xXdtNB1x/DBfcAxw9vJCdQL4QfwAADqD7sefitdNbc7JT6CPO02xy2sIWoT8ANE9GrlWdjszc3GcsMNxJLIstDg22HpTviuB4AWzCO2Log2xDolO6k3jzBPJpgZQQs8/ITtDeC61ETMN8fkxV3Ids7G163jY/EAAI8OHhzLJ9MwozbcOFw3QTLiKc8ewxGbA0T1ree52y7Sq8uYyCbJSc241PPeTev2+AcHlhTBILwq5THENR027TJtLA0jaxdMCo78Fu/F4mjYq9ALzNXKGc2t0jLbFuah8gAAUg26GWgkrCz9MQY0pzL7LVImMBxAEEwDLfa+6c/eFNYe0E/N0c2Z0WbYw+EQ7Y/5bgbWEvcdGiemLTExgzGZLqYoESBtFWwJ2fyG8ELlxtuz1HfQW89t0YjWU97K6MAAAzDIaEwyBj1yBFe6aEP2Z62A8i4C2FXHbO6BTSD0FHjCn/X5F3Ov5m3qPhNLYOixJqiU1y6AwZMVjFbvOPm7cVkNFAkBTBbhCifmHiAAA=');
-
   @override
   void initState() {
     super.initState();
@@ -434,14 +431,26 @@ class _TasbihDialogState extends State<_TasbihDialog>
     switch (_feedbackType) {
       case _FeedbackType.haptic:
         if (await Vibration.hasVibrator() ?? false) {
-          Vibration.vibrate(duration: 40, amplitude: 128);
+          Vibration.vibrate(duration: 70, amplitude: 255);
         }
         break;
       case _FeedbackType.tick:
-        await _tickPlayer.stop();
-        await _tickPlayer.play(BytesSource(_tickWav));
+        // بۆ ئەوەی دەنگەکە خێرا لێ بدات و نەوەستێت
+        try {
+          // پێویست ناکات stop بکەیت ئەگەر فایلەکە زۆر کورت بێت،
+          // بەڵام ئەگەر ویستت یەکسەر دەنگەکە بپچڕێنێت و دەستپێبکاتەوە:
+          await _tickPlayer.stop();
+
+          // تەنها ناوی فایلەکە بنووسە بێ ئەوەی بنووسیت 'assets/'
+          // چونکە AssetSource خۆی دەزانێت لەو فۆڵدەرەیە
+          await _tickPlayer.play(AssetSource('audio/tick.mp3'));
+        } catch (e) {
+          debugPrint("Error playing tick: $e");
+        }
+
+        // لەگەڵ دەنگەکەدا لەرەیەکی زۆر کورت و بەهێزیشمان داناوە
         if (await Vibration.hasVibrator() ?? false) {
-          Vibration.vibrate(duration: 10, amplitude: 255);
+          Vibration.vibrate(duration: 20, amplitude: 255);
         }
         break;
       case _FeedbackType.silent:
@@ -751,22 +760,26 @@ class _DateConverterDialogState extends State<_DateConverterDialog>
   final _gregDayCtrl = TextEditingController();
   final _gregMonthCtrl = TextEditingController();
   final _gregYearCtrl = TextEditingController();
-  // کۆچی و کوردی: تەنها خوێندنەوە — خانەکان هەمیشە بەتاڵ
+
+  // کۆچی — خوێندنەوەتەنها، ئێستا ڕۆژ/مانگ/ساڵ دەنووسرێت
   final _hijriDayCtrl = TextEditingController();
   final _hijriMonthCtrl = TextEditingController();
   final _hijriYearCtrl = TextEditingController();
+
+  // کوردی — خوێندنەوەتەنها، ئێستا ڕۆژ/مانگ/ساڵ دەنووسرێت
   final _kurdDayCtrl = TextEditingController();
   final _kurdMonthCtrl = TextEditingController();
   final _kurdYearCtrl = TextEditingController();
-  // هەتاوی: ڕۆژ بە controller جیا بۆ چاككردنی کێشەی بەتاڵ بوون
+
+  // هەتاوی — خوێندنەوەتەنها، ئێستا ڕۆژ/مانگ/ساڵ دەنووسرێت
   final _shamsiDayCtrl = TextEditingController();
+  final _shamsiMonthCtrl = TextEditingController(); // ← نوێ
+  final _shamsiYearCtrl = TextEditingController(); // ← نوێ
 
   String _weekdayResult = "";
   String _hijriResult = "";
   String _kurdResult = "";
   String _shamsiResult = "";
-  String _shamsiMonth = "";
-  String _shamsiYear = "";
 
   final _prayDayCtrl = TextEditingController();
   final _prayMonthCtrl = TextEditingController();
@@ -776,18 +789,15 @@ class _DateConverterDialogState extends State<_DateConverterDialog>
   bool _prayLoading = false;
   String _prayError = "";
 
-  static const int _minYear = 1900;
-  static const int _maxYear = 2126;
+  // ← گۆڕانکاری ١: ڕەنجی کتێبخانەی hijri_calendar
+  static const int _minYear = 1938;
+  static const int _maxYear = 2076;
 
   @override
   void initState() {
     super.initState();
     _tabCtrl = TabController(length: 2, vsync: this);
     _selectedCity = widget.currentCity;
-    // خانەی ڕۆژی بانگ هەرگیز بەتاڵ نابێت — بە ئەمڕۆ پڕ دەکرێت
-    _prayDayCtrl.text = DateTime.now().day.toString();
-    _prayMonthCtrl.text = DateTime.now().month.toString();
-    _prayYearCtrl.text = DateTime.now().year.toString();
   }
 
   @override
@@ -804,6 +814,8 @@ class _DateConverterDialogState extends State<_DateConverterDialog>
       _kurdMonthCtrl,
       _kurdYearCtrl,
       _shamsiDayCtrl,
+      _shamsiMonthCtrl, // ← نوێ
+      _shamsiYearCtrl, // ← نوێ
       _prayDayCtrl,
       _prayMonthCtrl,
       _prayYearCtrl,
@@ -817,7 +829,7 @@ class _DateConverterDialogState extends State<_DateConverterDialog>
     final d = int.tryParse(_gregDayCtrl.text.trim());
     final m = int.tryParse(_gregMonthCtrl.text.trim());
     final y = int.tryParse(_gregYearCtrl.text.trim());
-    // نادروست یان بەتاڵ: هیچ نیشان نەدە، بەبێ پەیام
+
     if (d == null ||
         m == null ||
         y == null ||
@@ -829,29 +841,39 @@ class _DateConverterDialogState extends State<_DateConverterDialog>
         _hijriResult = "";
         _kurdResult = "";
         _shamsiResult = "";
-        _shamsiDayCtrl.text = "";
-        _shamsiMonth = "";
-        _shamsiYear = "";
         _weekdayResult = "";
       });
+      _clearReadonlyFields();
       return;
     }
-    // دەرەوەی ڕەنجی ساڵ: هیچ نیشان نەدە، بەبێ پەیام
+
     if (y < _minYear || y > _maxYear) {
       setState(() {
         _hijriResult = "";
         _kurdResult = "";
         _shamsiResult = "";
-        _shamsiDayCtrl.text = "";
-        _shamsiMonth = "";
-        _shamsiYear = "";
         _weekdayResult = "";
       });
+      _clearReadonlyFields();
       return;
     }
+
     try {
       _computeAll(DateTime(y, m, d));
     } catch (_) {}
+  }
+
+  // ← نوێ: یارمەتیدەر بۆ پاككردنی هەموو خانەی خوێندنەوەتەنها
+  void _clearReadonlyFields() {
+    _hijriDayCtrl.text = "";
+    _hijriMonthCtrl.text = "";
+    _hijriYearCtrl.text = "";
+    _kurdDayCtrl.text = "";
+    _kurdMonthCtrl.text = "";
+    _kurdYearCtrl.text = "";
+    _shamsiDayCtrl.text = "";
+    _shamsiMonthCtrl.text = "";
+    _shamsiYearCtrl.text = "";
   }
 
   void _computeAll(DateTime dt) {
@@ -865,22 +887,25 @@ class _DateConverterDialogState extends State<_DateConverterDialog>
       "شەممە"
     ];
     final weekday = weekdays[dt.weekday % 7];
+
     final hijri = HijriCalendar.fromDate(dt);
     final hijriStr =
         "${widget.timeService.toKu(hijri.hDay.toString())}ـى ${hijri.toFormat("MMMM")} ${widget.timeService.toKu(hijri.hYear.toString())}";
+
     final kurdStr = widget.timeService.kurdishDateString(dt);
+
     final shamsi = _toShamsi(dt);
     const List<String> shamsiMonths = [
       "فەروەردین",
-      "ئوردیبەهەشت",
-      "خوردات",
+      "ئوردیبهیشت",
+      "خورداد",
       "تیر",
       "مورداد",
       "شەهریوەر",
-      "مەهر",
+      "میهر",
       "ئابان",
       "ئازەر",
-      "دی",
+      "دەی",
       "بەهمەن",
       "ئیسفەند"
     ];
@@ -894,20 +919,23 @@ class _DateConverterDialogState extends State<_DateConverterDialog>
       _hijriResult = hijriStr;
       _kurdResult = kurdStr;
       _shamsiResult = shamsiStr;
-      _shamsiDayCtrl.text =
-          shamsi[2].toString(); // ✅ ڕۆژی هەتاوی ئێستا هەمیشە پڕ دەبێت
-      _shamsiMonth = shamsi[1].toString();
-      _shamsiYear = shamsi[0].toString();
       _weekdayResult = weekday;
     });
 
-    // کۆچی و کوردی خانەکانیان بەتاڵ دەمێننەوە
-    _hijriDayCtrl.text = "";
-    _hijriMonthCtrl.text = "";
-    _hijriYearCtrl.text = "";
-    _kurdDayCtrl.text = "";
-    _kurdMonthCtrl.text = "";
-    _kurdYearCtrl.text = "";
+    // ← گۆڕانکاری ٢: خانەکانی کۆچی پڕ بکە
+    _hijriDayCtrl.text = hijri.hDay.toString();
+    _hijriMonthCtrl.text = hijri.hMonth.toString();
+    _hijriYearCtrl.text = hijri.hYear.toString();
+
+    // ← گۆڕانکاری ٣: خانەکانی کوردی پڕ بکە
+    _kurdDayCtrl.text = _kDay(dt).toString();
+    _kurdMonthCtrl.text = _kMonth(dt).toString();
+    _kurdYearCtrl.text = _kYear(dt).toString();
+
+    // ← گۆڕانکاری ٤: خانەکانی هەتاوی پڕ بکە
+    _shamsiDayCtrl.text = shamsi[2].toString();
+    _shamsiMonthCtrl.text = shamsi[1].toString();
+    _shamsiYearCtrl.text = shamsi[0].toString();
   }
 
   int _kDay(DateTime dt) {
@@ -976,19 +1004,11 @@ class _DateConverterDialogState extends State<_DateConverterDialog>
     _gregDayCtrl.clear();
     _gregMonthCtrl.clear();
     _gregYearCtrl.clear();
-    _hijriDayCtrl.clear();
-    _hijriMonthCtrl.clear();
-    _hijriYearCtrl.clear();
-    _kurdDayCtrl.clear();
-    _kurdMonthCtrl.clear();
-    _kurdYearCtrl.clear();
-    _shamsiDayCtrl.clear();
+    _clearReadonlyFields(); // ← ئێستا یەک فراوانکراو بەکاردێت
     setState(() {
       _hijriResult = "";
       _kurdResult = "";
       _shamsiResult = "";
-      _shamsiMonth = "";
-      _shamsiYear = "";
       _weekdayResult = "";
     });
   }
@@ -1012,7 +1032,6 @@ class _DateConverterDialogState extends State<_DateConverterDialog>
       return;
     }
     final int year = y ?? DateTime.now().year;
-    // دەرەوەی ڕەنج: هیچ نیشان نەدە، بەبێ پەیام
     if (year < _minYear || year > _maxYear) {
       setState(() {
         _prayError = "";
@@ -1041,9 +1060,9 @@ class _DateConverterDialogState extends State<_DateConverterDialog>
   }
 
   void _clearPrayer() {
-    _prayDayCtrl.text = DateTime.now().day.toString();
-    _prayMonthCtrl.text = DateTime.now().month.toString();
-    _prayYearCtrl.text = DateTime.now().year.toString();
+    _prayDayCtrl.clear();
+    _prayMonthCtrl.clear();
+    _prayYearCtrl.clear();
     setState(() {
       _prayResult = null;
       _prayError = "";
@@ -1134,7 +1153,6 @@ class _DateConverterDialogState extends State<_DateConverterDialog>
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        // ── تێبینی ڕەنجی ساڵ ──
         Container(
           padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 12),
           margin: const EdgeInsets.only(bottom: 8),
@@ -1146,14 +1164,13 @@ class _DateConverterDialogState extends State<_DateConverterDialog>
           child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
             Icon(Icons.info_outline, color: pc.withOpacity(0.7), size: 12),
             const SizedBox(width: 6),
-            Text("لە $_minYear تا $_maxYear ئەتوانیت داخل بکەیت",
+            Text("لەساڵى $_minYear تا $_maxYear ئەتوانیت داخل بکەیت",
                 style: TextStyle(
                     color: pc.withOpacity(0.85),
                     fontSize: 11,
                     fontWeight: FontWeight.bold)),
           ]),
         ),
-
         if (_weekdayResult.isNotEmpty) ...[
           Container(
             padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 12),
@@ -1175,8 +1192,6 @@ class _DateConverterDialogState extends State<_DateConverterDialog>
           const SizedBox(height: 7),
         ] else
           const SizedBox(height: 2),
-
-        // ══ میلادی ══ label گەورەتر (13)
         Row(children: [
           Text("میلادی",
               style: TextStyle(
@@ -1190,8 +1205,6 @@ class _DateConverterDialogState extends State<_DateConverterDialog>
             topLabel: "میلادی"),
         Divider(
             color: Colors.white.withOpacity(0.15), height: 14, thickness: 0.5),
-
-        // ══ کۆچی ══ label بچووکتر (11) — خوێندنەوەتەنها
         _rowLabel("کۆچی", const Color(0xFFF59E0B), readOnly: true),
         const SizedBox(height: 3),
         _row3(_hijriDayCtrl, _hijriMonthCtrl, _hijriYearCtrl, pc, null,
@@ -1202,8 +1215,6 @@ class _DateConverterDialogState extends State<_DateConverterDialog>
         ],
         Divider(
             color: Colors.white.withOpacity(0.15), height: 12, thickness: 0.5),
-
-        // ══ کوردی ══ label بچووکتر (11) — خوێندنەوەتەنها
         _rowLabel("کوردی", const Color(0xFF4ADE80), readOnly: true),
         const SizedBox(height: 3),
         _row3(_kurdDayCtrl, _kurdMonthCtrl, _kurdYearCtrl, pc, null,
@@ -1214,8 +1225,6 @@ class _DateConverterDialogState extends State<_DateConverterDialog>
         ],
         Divider(
             color: Colors.white.withOpacity(0.15), height: 12, thickness: 0.5),
-
-        // ══ هەتاوی ══ label بچووکتر (11) — خوێندنەوەتەنها
         _rowLabel("هەتاوی", const Color(0xFFF97316), readOnly: true),
         const SizedBox(height: 3),
         _rowShamsi(pc),
@@ -1223,7 +1232,6 @@ class _DateConverterDialogState extends State<_DateConverterDialog>
           const SizedBox(height: 4),
           _resultLine(_shamsiResult, const Color(0xFFF97316)),
         ],
-
         const SizedBox(height: 10),
         Row(mainAxisAlignment: MainAxisAlignment.center, children: [
           ElevatedButton.icon(
@@ -1277,7 +1285,7 @@ class _DateConverterDialogState extends State<_DateConverterDialog>
     );
   }
 
-  // هەتاوی row — ڕۆژ لە _shamsiDayCtrl دێت
+  // ← گۆڕانکاری ٥: controllerەکانی نوێ بەکاردێنێت
   Widget _rowShamsi(Color pc) {
     return Row(children: [
       Expanded(
@@ -1292,7 +1300,7 @@ class _DateConverterDialogState extends State<_DateConverterDialog>
         Text("مانگ",
             style: TextStyle(color: pc.withOpacity(0.25), fontSize: 9)),
         const SizedBox(height: 2),
-        _readonlyBox(_shamsiMonth, pc),
+        _readonlyBox(_shamsiMonthCtrl.text, pc),
       ])),
       const SizedBox(width: 5),
       Expanded(
@@ -1301,7 +1309,7 @@ class _DateConverterDialogState extends State<_DateConverterDialog>
             Text("ساڵ",
                 style: TextStyle(color: pc.withOpacity(0.25), fontSize: 9)),
             const SizedBox(height: 2),
-            _readonlyBox(_shamsiYear, pc),
+            _readonlyBox(_shamsiYearCtrl.text, pc),
           ])),
     ]);
   }
@@ -1323,7 +1331,6 @@ class _DateConverterDialogState extends State<_DateConverterDialog>
     );
   }
 
-  // لەیبڵی کۆچی/کوردی/هەتاوی — fontSize: 11 (بچووکتر لە میلادی)
   Widget _rowLabel(String label, Color pc, {bool readOnly = false}) {
     return Row(mainAxisAlignment: MainAxisAlignment.center, children: [
       Text(label,
@@ -1383,7 +1390,6 @@ class _DateConverterDialogState extends State<_DateConverterDialog>
     return Row(children: [
       Expanded(
           child: Column(children: [
-        // لەیبڵی "میلادی" تەنها لەسەری خانەی ڕۆژی میلادی
         Text(topLabel ?? "ڕۆژ",
             style: TextStyle(
               color: topLabel != null
@@ -1406,9 +1412,7 @@ class _DateConverterDialogState extends State<_DateConverterDialog>
             onSubmitted: readOnly
                 ? null
                 : (_) {
-                    if (onSubmit != null) {
-                      onSubmit();
-                    }
+                    if (onSubmit != null) onSubmit();
                   }),
       ])),
       const SizedBox(width: 5),
@@ -1430,9 +1434,7 @@ class _DateConverterDialogState extends State<_DateConverterDialog>
             onSubmitted: readOnly
                 ? null
                 : (_) {
-                    if (onSubmit != null) {
-                      onSubmit();
-                    }
+                    if (onSubmit != null) onSubmit();
                   }),
       ])),
       const SizedBox(width: 5),
@@ -1454,9 +1456,7 @@ class _DateConverterDialogState extends State<_DateConverterDialog>
                 onSubmitted: readOnly
                     ? null
                     : (_) {
-                        if (onSubmit != null) {
-                          onSubmit();
-                        }
+                        if (onSubmit != null) onSubmit();
                       }),
           ])),
     ]);

@@ -65,8 +65,15 @@ class _PrayerHomePageState extends State<PrayerHomePage>
       if (mounted) setState(() => _now = DateTime.now());
     });
 
-    _prayerTimesFuture = _prayerDataService.getPrayerTimes(currentCity, _now);
-    _loadSavedSettings();
+    // ١. لێرەدا سەرەتا بانگی ناکەین بە سلێمانی
+    // ٢. یەکەمجار ڕێکخستنەکان بار دەکەین
+    _loadSavedSettings().then((_) {
+      // ٣. دوای ئەوەی دڵنیا بووینەوە کە شارەکە لە میمۆری هاتەوە، کاتەکان نوێ دەکەینەوە
+      setState(() {
+        _prayerTimesFuture =
+            _prayerDataService.getPrayerTimes(currentCity, _now);
+      });
+    });
 
     Future.delayed(Duration.zero, _checkForUpdate);
     _updateCheckTimer =
@@ -97,6 +104,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
       primaryColor = appThemes[selectedThemeName] ?? const Color(0xFF22D3EE);
       _palette = getThemePalette(selectedThemeName);
       if (savedPrayers != null) activeAthans = savedPrayers.toSet();
+      _prayerTimesFuture = _prayerDataService.getPrayerTimes(currentCity, _now);
     });
 
     if (savedPrayers != null) {
@@ -219,7 +227,8 @@ class _PrayerHomePageState extends State<PrayerHomePage>
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text("بۆ کاتێکى تر", style: TextStyle(color: Colors.grey)),
+              child: const Text("بۆ کاتێکى تر",
+                  style: TextStyle(color: Colors.grey)),
             ),
             TextButton(
               onPressed: () => Navigator.pop(context, true),
@@ -236,11 +245,17 @@ class _PrayerHomePageState extends State<PrayerHomePage>
 
     if (agreed != true) return false;
 
-    await [
-      Permission.notification,
-      Permission.ignoreBatteryOptimizations,
-    ].request();
+    // --- لێرەدا گۆڕانکارییەکەمان کردووە بۆ ئەوەی یەک یەک دەربکەون ---
 
+    // سەرەتا داوای نۆتیفیکەیشن دەکەین
+    final notificationStatus = await Permission.notification.request();
+
+    // تەنها ئەگەر نۆتیفیکەیشنی قبوڵ کرد، ئینجا داوای Battery Optimization دەکەین
+    if (notificationStatus.isGranted) {
+      await Permission.ignoreBatteryOptimizations.request();
+    }
+
+    // لە کۆتاییدا ئەنجامی نۆتیفیکەیشنەکە دەگەڕێنینەوە بۆ ئەوەی بزانین کارتەکە چالاک بکەین یان نا
     return await Permission.notification.isGranted;
   }
 
@@ -589,10 +604,9 @@ class _PrayerHomePageState extends State<PrayerHomePage>
     final bool willBeActive = !activeAthans.contains(name);
 
     if (willBeActive) {
-      final bool hasPermission = await Permission.notification.isGranted;
-      if (!hasPermission) {
-        await _requestPermissions();
-      }
+      // لێرەدا هەم پشکنین دەکات هەم داوای ڕێپێدان، ئەگەر "بۆ کاتێکی تر" دابگرێت لێرەدا دەوەستێت
+      final bool hasPermission = await _requestPermissions();
+      if (!hasPermission) return;
     }
 
     setState(() {
@@ -611,7 +625,8 @@ class _PrayerHomePageState extends State<PrayerHomePage>
           willBeActive ? "بانگی $name چالاک کرا" : "بانگی $name ناچالاک کرا",
           textAlign: TextAlign.center,
           style: const TextStyle(
-        color: Colors.white,),
+            color: Colors.white,
+          ),
         ),
         backgroundColor:
             willBeActive ? const Color(0xFF10B981) : Colors.redAccent,
