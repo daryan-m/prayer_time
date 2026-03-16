@@ -142,7 +142,7 @@ class NextPrayerBar extends StatelessWidget {
             ),
           ),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(7),
+            borderRadius: BorderRadius.circular(15),
             child: Container(
               padding: const EdgeInsets.symmetric(vertical: 7, horizontal: 12),
               decoration: BoxDecoration(

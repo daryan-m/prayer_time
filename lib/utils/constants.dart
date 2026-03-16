@@ -17,15 +17,21 @@ class CityConfig {
 
 const List<CityConfig> kurdistanCities = [
   CityConfig(displayName: "هەولێر", jsonFile: "hawler_prayer_times_2026"),
-  CityConfig(displayName: "سلێمانی", jsonFile: "sulaymaniyah_prayer_times_2026"),
+  CityConfig(
+      displayName: "سلێمانی", jsonFile: "sulaymaniyah_prayer_times_2026"),
   CityConfig(displayName: "دهۆک", jsonFile: "duhok_prayer_times_2026"),
   CityConfig(displayName: "کەرکووک", jsonFile: "kirkuk_prayer_times_2026"),
   CityConfig(displayName: "هەڵەبجە", jsonFile: "halabja_prayer_times_2026"),
   CityConfig(displayName: "پێنجوێن", jsonFile: "penjwen_prayer_times_2026"),
-  CityConfig(displayName: "سەید صادق", jsonFile: "said_sadiq_prayer_times_2026"),
+  CityConfig(
+      displayName: "سەید صادق", jsonFile: "said_sadiq_prayer_times_2026"),
   CityConfig(displayName: "ڕانیە", jsonFile: "rania_prayer_times_2026"),
-  CityConfig(displayName: "دەربەندیخان", jsonFile: "darbandikhan_prayer_times_2026"),
+  CityConfig(
+      displayName: "دەربەندیخان", jsonFile: "darbandikhan_prayer_times_2026"),
   CityConfig(displayName: "کەلار", jsonFile: "kalar_prayer_times_2026"),
+  CityConfig(displayName: "کفرى", jsonFile: "kfri_prayer_times_2026"),
+  CityConfig(displayName: "کۆیە", jsonFile: "koya_prayer_times_2026"),
+  CityConfig(displayName: "قەڵادزێ", jsonFile: "qaladze_prayer_times_2026"),
 ];
 
 final List<String> kurdistanCitiesData =
@@ -238,4 +244,4 @@ class AppColors {
 }
 
 // ── وەشان ──────────────────────────────────────────
-const String currentAppVersion = "1.0.5";
+const String currentAppVersion = "1.0.6";
