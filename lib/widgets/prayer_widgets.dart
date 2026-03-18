@@ -93,7 +93,7 @@ class DatesWidget extends StatelessWidget {
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: Text("|", style: TextStyle(color: palette.primary)),
+              child: Text("|", style: TextStyle(color: palette.secondary)),
             ),
             Text(
               "کوردی: ${timeService.kurdishDateString(now)}",
@@ -132,25 +132,27 @@ class NextPrayerBar extends StatelessWidget {
             // لێرە تەنها بۆردەرەکان دادەنێین بێ borderRadius بۆ ئەوەی Error نەدات
             border: Border(
               top: BorderSide(
-                  color: palette.secondary.withOpacity(0.7), width: 2.0),
+                  color: palette.secondary.withOpacity(0.3), width: 2.0),
               bottom: BorderSide(
-                  color: palette.secondary.withOpacity(0.7), width: 2.0),
+                  color: palette.secondary.withOpacity(0.3), width: 2.0),
               left: BorderSide(
-                  color: palette.secondary.withOpacity(0.3), width: 11),
+                  color: palette.secondary.withOpacity(0.7), width: 15),
               right: BorderSide(
-                  color: palette.secondary.withOpacity(0.3), width: 11),
+                  color: palette.secondary.withOpacity(0.7), width: 15),
             ),
           ),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(15),
+            borderRadius: BorderRadius.circular(0),
             child: Container(
               padding: const EdgeInsets.symmetric(vertical: 7, horizontal: 12),
               decoration: BoxDecoration(
                 color: palette.cardBg,
                 // لێرەش بۆردەری لایەکان بە جیا دادەنێین
                 border: Border(
-                  left: BorderSide(color: palette.secondary, width: 8.0),
-                  right: BorderSide(color: palette.secondary, width: 8.0),
+                  left: BorderSide(
+                  color: palette.secondary.withOpacity(0.3), width: 15),
+              right: BorderSide(
+                  color: palette.secondary.withOpacity(0.3), width: 15),
                 ),
               ),
               child: Row(
@@ -261,7 +263,7 @@ class PrayerCard extends StatelessWidget {
                   isSun ? name : "بانگی $name",
                   style: TextStyle(
                     color: isSun
-                        ? Colors.orange
+                        ? Colors.yellow
                         : (isActive ? palette.primary : Colors.white),
                     fontSize: 16,
                     shadows: embossedShadow,
@@ -274,7 +276,7 @@ class PrayerCard extends StatelessWidget {
               style: TextStyle(
                 fontSize: 18,
                 color: isSun
-                    ? Colors.orange
+                    ? Colors.yellow
                     : (isActive ? palette.primary : Colors.white70),
                 shadows: embossedShadow,
               ),
@@ -295,13 +297,13 @@ class PrayerCard extends StatelessWidget {
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.orange.withOpacity(sunAnimation!.value * 0.7),
+                  color: Colors.yellow.withOpacity(sunAnimation!.value * 0.7),
                   blurRadius: 10,
                   spreadRadius: sunAnimation!.value * 8,
                 ),
               ],
             ),
-            child: const Icon(Icons.wb_sunny, color: Colors.orange, size: 28),
+            child: const Icon(Icons.wb_sunny, color: Colors.yellow, size: 28),
           ),
         ),
       );
@@ -322,7 +324,7 @@ Widget _buildGlowDivider(ThemePalette palette) {
     height: 2,
     decoration: BoxDecoration(
       gradient: LinearGradient(
-        colors: [Colors.transparent, palette.primary, Colors.transparent],
+        colors: [Colors.transparent, palette.secondary, Colors.transparent],
       ),
       boxShadow: [
         BoxShadow(
