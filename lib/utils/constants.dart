@@ -98,8 +98,8 @@ const Map<String, ThemePalette> appThemePalettes = {
   "شین": ThemePalette(
     primary: Color(0xFF22D3EE),
     secondary: Color(0xFF10B981),
-    glow: Color(0xFF22D3EE),
-    icon: Color(0xFF22D3EE),
+    glow: Color(0xFF22EED3),
+    icon: Color(0xFF10B981),
     border: Color(0xFF0E7490),
     background: Color(0xFF020617),
     cardBg: Color(0xFF0F172A),
@@ -244,4 +244,4 @@ class AppColors {
 }
 
 // ── وەشان ──────────────────────────────────────────
-const String currentAppVersion = "1.0.6";
+const String currentAppVersion = "1.0.7";

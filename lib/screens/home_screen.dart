@@ -53,27 +53,39 @@ class _PrayerHomePageState extends State<PrayerHomePage>
   Timer? _updateCheckTimer;
 
   @override
-  void initState() {
-    super.initState();
+void initState() {
+  super.initState();
 
-    _sunController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 2),
-    )..repeat(reverse: true);
+  // جار ١ — placeholder بۆ یەکەم ئاینستال (شاری دیفۆڵت)
+  // _initAppData تەواو بووین دووبارە نوێ دەکرێتەوە
+  _prayerTimesFuture = _prayerDataService.getPrayerTimes(
+    currentCity, // "سلێمانی" — دیفۆڵت
+    DateTime.now(),
+  );
 
-    _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (mounted) setState(() => _now = DateTime.now());
+  _sunController = AnimationController(
+    vsync: this,
+    duration: const Duration(seconds: 2),
+  )..repeat(reverse: true);
+
+  _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
+    if (mounted) setState(() => _now = DateTime.now());
+  });
+
+  _initAppData(); // ← ئەگەر شار ذخیرەکراو بوو، دووبارە نوێ دەکاتەوە
+}
+
+Future<void> _initAppData() async {
+  // یەکەم: چاوەڕێ دەکەین تا سێتینگ لۆد دەبێت (شارەکە دیاری دەکرێت)
+  await _loadSavedSettings();
+  
+  // دووەم: کاتێک دڵنیا بووینەوە شارەکە (یان سەیڤکراوە یان دیفۆڵتە)، ئینجا کاتەکان دەهێنین
+  if (mounted) {
+    setState(() {
+      _prayerTimesFuture = _prayerDataService.getPrayerTimes(currentCity, _now);
     });
+  }
 
-    // ١. لێرەدا سەرەتا بانگی ناکەین بە سلێمانی
-    // ٢. یەکەمجار ڕێکخستنەکان بار دەکەین
-    _loadSavedSettings().then((_) {
-      // ٣. دوای ئەوەی دڵنیا بووینەوە کە شارەکە لە میمۆری هاتەوە، کاتەکان نوێ دەکەینەوە
-      setState(() {
-        _prayerTimesFuture =
-            _prayerDataService.getPrayerTimes(currentCity, _now);
-      });
-    });
 
     Future.delayed(Duration.zero, _checkForUpdate);
     _updateCheckTimer =
