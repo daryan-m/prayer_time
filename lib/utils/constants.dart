@@ -207,11 +207,11 @@ const Map<String, ThemePalette> appThemePalettes = {
     primary: Color(0xFFE879F9),
     secondary: Color(0xFFF0ABFC),
     glow: Color(0xFFD946EF),
-    icon: Color(0xFFE879F9),
+    icon: Color(0xFF820B94),
     border: Color(0xFF701A75),
-    background: Color(0xFF120018),
-    cardBg: Color(0xFF1E0026),
-    cardBgActive: Color(0xFF17001E),
+    background: Color(0xFF8F36AD),
+    cardBg: Color(0xFFAB5AC2),
+    cardBgActive: Color(0xFF9900FF),
     drawerBg: Color(0xFF120018),
     drawerBorder: Color(0xFFE879F9),
     headerText: Color(0xFFE879F9),
@@ -244,4 +244,4 @@ class AppColors {
 }
 
 // ── وەشان ──────────────────────────────────────────
-const String currentAppVersion = "1.0.7";
+const String currentAppVersion = "1.0.0";
