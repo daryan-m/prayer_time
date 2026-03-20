@@ -269,14 +269,14 @@ class _AllahNamesDialogState extends State<AllahNamesDialog> {
 
     return Dialog(
       backgroundColor: Colors.transparent,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 20),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 26),
       child: Container(
         constraints: BoxConstraints(
             maxHeight: MediaQuery.of(context).size.height * 0.82),
         decoration: BoxDecoration(
-          color: const Color(0xFF080D1C),
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: pc.withOpacity(0.2)),
+          color: const Color(0xFF101A38),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: pc.withOpacity(0.7)),
           boxShadow: [
             BoxShadow(
                 color: pc.withOpacity(0.12), blurRadius: 30, spreadRadius: 2),
@@ -294,14 +294,14 @@ class _AllahNamesDialogState extends State<AllahNamesDialog> {
                 const Text("٩٩ ناوی خوای گەورە",
                     style: TextStyle(
                         color: Colors.white,
-                        fontSize: 13,
+                        fontSize: 14,
                         fontWeight: FontWeight.bold)),
                 const Spacer(),
                 IconButton(
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
                   icon:
-                      const Icon(Icons.close, color: Colors.white38, size: 18),
+                      const Icon(Icons.close, color: Colors.white30, size: 20),
                   onPressed: () {
                     _autoTimer?.cancel();
                     _audioPlayer.stop();
@@ -313,7 +313,7 @@ class _AllahNamesDialogState extends State<AllahNamesDialog> {
 
             // ── لیستی ئاسۆیی ──
             SizedBox(
-              height: 148,
+              height: 138,
               child: ListView.builder(
                 controller: _scrollCtrl,
                 scrollDirection: Axis.horizontal,
@@ -416,7 +416,7 @@ class _AllahNamesDialogState extends State<AllahNamesDialog> {
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
                                 color:
-                                    isActive ? Colors.white70 : Colors.white38,
+                                    isActive ? Colors.white70 : Colors.white54,
                                 fontSize: 9.5,
                               ),
                             ),
@@ -433,7 +433,7 @@ class _AllahNamesDialogState extends State<AllahNamesDialog> {
             Container(
               height: 1,
               margin: const EdgeInsets.symmetric(horizontal: 16),
-              color: Colors.white.withOpacity(0.08),
+              color: Colors.white.withOpacity(0.09),
             ),
 
             // ── پەنجەی ئەکتیڤ — سپی سادە ──
@@ -446,7 +446,7 @@ class _AllahNamesDialogState extends State<AllahNamesDialog> {
                       padding: const EdgeInsets.symmetric(
                           vertical: 12, horizontal: 16),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFFFFB00),
+                        color: const Color(0xFFFCFBC1),
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
                             color: const Color(0xFF0026FF), width: 0.8),
@@ -475,7 +475,8 @@ class _AllahNamesDialogState extends State<AllahNamesDialog> {
                           const SizedBox(width: 12),
                           Expanded(
                             child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Text(
                                   active.name,
@@ -492,8 +493,8 @@ class _AllahNamesDialogState extends State<AllahNamesDialog> {
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                     color: const Color(0xFF5C80F8)
-                                        .withOpacity(0.55),
-                                    fontSize: 12,
+                                        .withOpacity(0.70),
+                                    fontSize: 13,
                                   ),
                                 ),
                               ],
@@ -503,7 +504,7 @@ class _AllahNamesDialogState extends State<AllahNamesDialog> {
                             _isPlaying
                                 ? Icons.volume_up_rounded
                                 : Icons.volume_off_rounded,
-                            color: const Color.fromARGB(137, 4, 0, 255),
+                            color: const Color(0x880400FF),
                             size: 18,
                           ),
                         ],

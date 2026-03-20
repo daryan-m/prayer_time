@@ -547,7 +547,7 @@ class _TasbihDialogState extends State<_TasbihDialog>
         constraints: BoxConstraints(
             maxHeight: MediaQuery.of(context).size.height * 0.92),
         decoration: BoxDecoration(
-          color: const Color(0xFF0A0F1E),
+          color: const Color(0xFF101A38),
           borderRadius: BorderRadius.circular(24),
           border: Border.all(color: pc.withOpacity(0.3)),
           boxShadow: [
@@ -1081,9 +1081,9 @@ class _DateConverterDialogState extends State<_DateConverterDialog>
         constraints: BoxConstraints(
             maxHeight: MediaQuery.of(context).size.height * 0.88),
         decoration: BoxDecoration(
-          color: const Color(0xFF0A0F1E),
+          color: const Color(0xFF101A38),
           borderRadius: BorderRadius.circular(22),
-          border: Border.all(color: pc.withOpacity(0.3)),
+          border: Border.all(color: pc.withOpacity(0.5)),
           boxShadow: [
             BoxShadow(
                 color: pc.withOpacity(0.15), blurRadius: 25, spreadRadius: 2)
@@ -1192,8 +1192,10 @@ class _DateConverterDialogState extends State<_DateConverterDialog>
           const SizedBox(height: 7),
         ] else
           const SizedBox(height: 2),
-        Row(children: [
-          Text("میلادی",
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+          Text("میلادی", 
               style: TextStyle(
                   color: pc,
                   fontSize: 13,
@@ -1204,17 +1206,17 @@ class _DateConverterDialogState extends State<_DateConverterDialog>
         _row3(_gregDayCtrl, _gregMonthCtrl, _gregYearCtrl, pc, _convertFromGreg,
             topLabel: "میلادی"),
         Divider(
-            color: Colors.white.withOpacity(0.15), height: 14, thickness: 0.5),
+            color: Colors.white.withOpacity(0.5), height: 14, thickness: 1.5),
         _rowLabel("کۆچی", const Color(0xFFF59E0B), readOnly: true),
         const SizedBox(height: 3),
-        _row3(_hijriDayCtrl, _hijriMonthCtrl, _hijriYearCtrl, pc, null,
+        _row3(_hijriDayCtrl, _hijriMonthCtrl, _hijriYearCtrl, const Color(0xFFF59E0B), null,
             readOnly: true),
         if (_hijriResult.isNotEmpty) ...[
           const SizedBox(height: 4),
           _resultLine(_hijriResult, const Color(0xFFF59E0B)),
         ],
         Divider(
-            color: Colors.white.withOpacity(0.15), height: 12, thickness: 0.5),
+            color: Colors.white.withOpacity(0.5), height: 14, thickness: 1.5),
         _rowLabel("کوردی", const Color(0xFF4ADE80), readOnly: true),
         const SizedBox(height: 3),
         _row3(_kurdDayCtrl, _kurdMonthCtrl, _kurdYearCtrl, pc, null,
@@ -1224,7 +1226,7 @@ class _DateConverterDialogState extends State<_DateConverterDialog>
           _resultLine(_kurdResult, const Color(0xFF4ADE80)),
         ],
         Divider(
-            color: Colors.white.withOpacity(0.15), height: 12, thickness: 0.5),
+            color: Colors.white.withOpacity(0.5), height: 14, thickness: 1.5),
         _rowLabel("هەتاوی", const Color(0xFFF97316), readOnly: true),
         const SizedBox(height: 3),
         _rowShamsi(pc),
