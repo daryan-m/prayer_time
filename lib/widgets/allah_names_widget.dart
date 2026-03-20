@@ -138,32 +138,57 @@ class AllahNamesDialog extends StatefulWidget {
 
 class _AllahNamesDialogState extends State<AllahNamesDialog> {
   final ScrollController _scrollCtrl = ScrollController();
+  final AudioPlayer _audioPlayer = AudioPlayer();
 
   bool _isPlaying = false;
   int _currentIndex = -1;
-
   Timer? _autoTimer;
 
-  static const double _cardWidth = 160.0;
-  static const double _cardSpacing = 12.0;
+  static const double _cardWidth = 150.0;
+  static const double _cardSpacing = 10.0;
   static const double _secondsPerName = 2.5;
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _autoTimer?.cancel();
+    _scrollCtrl.dispose();
+    _audioPlayer.dispose();
+    super.dispose();
+  }
+
+  // ==================== دەنگ ====================
+
+  Future<void> _playSound(int index) async {
+    final fileName = '${index + 1}.mp3';
+    await _audioPlayer.stop();
+    await _audioPlayer.play(AssetSource('audio/allah_names/$fileName'));
+  }
 
   // ==================== AUTO PLAY ====================
 
   void _startAutoPlay() {
     _autoTimer?.cancel();
-
     _autoTimer = Timer.periodic(
       Duration(milliseconds: (_secondsPerName * 1000).toInt()),
       (timer) {
+        if (!mounted) {
+          timer.cancel();
+          return;
+        }
         if (_currentIndex < allahNames.length - 1) {
           setState(() => _currentIndex++);
-          _scrollToIndex(_currentIndex);
+          _scrollToCenter(_currentIndex);
+          _playSound(_currentIndex);
         } else {
           timer.cancel();
           setState(() {
             _isPlaying = false;
-            _currentIndex = -1;
+            _currentIndex = allahNames.length - 1;
           });
         }
       },
@@ -173,150 +198,228 @@ class _AllahNamesDialogState extends State<AllahNamesDialog> {
   Future<void> _togglePlay() async {
     if (_isPlaying) {
       _autoTimer?.cancel();
+      await _audioPlayer.stop();
       setState(() => _isPlaying = false);
     } else {
-      if (_currentIndex == -1) {
-        setState(() => _currentIndex = 0);
-        _scrollToIndex(0);
-      }
-      setState(() => _isPlaying = true);
+      final startIdx =
+          (_currentIndex < 0 || _currentIndex >= allahNames.length - 1)
+              ? 0
+              : _currentIndex;
+      setState(() {
+        _currentIndex = startIdx;
+        _isPlaying = true;
+      });
+      _scrollToCenter(startIdx);
+      await _playSound(startIdx);
       _startAutoPlay();
     }
   }
 
-  void _scrollToIndex(int index) {
+  // ── ستۆپ: گەرانەوە بۆ سەرەوەتا ──
+  Future<void> _stopAndReset() async {
+    _autoTimer?.cancel();
+    await _audioPlayer.stop();
+    setState(() {
+      _isPlaying = false;
+      _currentIndex = -1;
+    });
+    if (_scrollCtrl.hasClients) {
+      _scrollCtrl.animateTo(
+        0,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeOutCubic,
+      );
+    }
+  }
+
+  // ==================== سکرۆل ====================
+
+  void _scrollToCenter(int index) {
     if (!_scrollCtrl.hasClients) return;
-
-    final double offset = (index * (_cardWidth + _cardSpacing)) -
-        (_scrollCtrl.position.viewportDimension / 2) +
-        (_cardWidth / 2);
-
+    final double viewportWidth = _scrollCtrl.position.viewportDimension;
+    final double itemOffset = index * (_cardWidth + _cardSpacing);
+    final double targetOffset =
+        itemOffset - (viewportWidth / 2) + (_cardWidth / 2);
     _scrollCtrl.animateTo(
-      offset.clamp(0.0, _scrollCtrl.position.maxScrollExtent),
-      duration: const Duration(milliseconds: 800),
+      targetOffset.clamp(0.0, _scrollCtrl.position.maxScrollExtent),
+      duration: const Duration(milliseconds: 500),
       curve: Curves.easeOutCubic,
     );
   }
 
   void _jumpBySeconds(int seconds) {
-    int step = (seconds / _secondsPerName).floor();
-    int newIndex = (_currentIndex + step).clamp(0, allahNames.length - 1);
-
+    if (_currentIndex < 0) return;
+    final int step = (seconds / _secondsPerName).round();
+    final int newIndex = (_currentIndex + step).clamp(0, allahNames.length - 1);
     _autoTimer?.cancel();
     setState(() => _currentIndex = newIndex);
-    _scrollToIndex(newIndex);
-    _startAutoPlay();
+    _scrollToCenter(newIndex);
+    _playSound(newIndex);
+    if (_isPlaying) _startAutoPlay();
   }
 
-  @override
-  void dispose() {
-    _autoTimer?.cancel();
-    _scrollCtrl.dispose();
-    super.dispose();
-  }
+  // ==================== BUILD ====================
 
   @override
   Widget build(BuildContext context) {
     final Color pc = widget.primaryColor;
+    final bool hasActive =
+        _currentIndex >= 0 && _currentIndex < allahNames.length;
+    final AllahName? active = hasActive ? allahNames[_currentIndex] : null;
 
     return Dialog(
       backgroundColor: Colors.transparent,
-      insetPadding: const EdgeInsets.all(12),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 20),
       child: Container(
         constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height * 0.85),
+            maxHeight: MediaQuery.of(context).size.height * 0.82),
         decoration: BoxDecoration(
-          color: const Color(0xFF0A0F1E),
-          borderRadius: BorderRadius.circular(22),
+          color: const Color(0xFF080D1C),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: pc.withOpacity(0.2)),
+          boxShadow: [
+            BoxShadow(
+                color: pc.withOpacity(0.12), blurRadius: 30, spreadRadius: 2),
+          ],
         ),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            const SizedBox(height: 10),
+            // ── سەرەوە ──
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
+              child: Row(children: [
+                Icon(Icons.auto_awesome, color: pc, size: 16),
+                const SizedBox(width: 8),
+                const Text("٩٩ ناوی خوای گەورە",
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold)),
+                const Spacer(),
+                IconButton(
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  icon:
+                      const Icon(Icons.close, color: Colors.white38, size: 18),
+                  onPressed: () {
+                    _autoTimer?.cancel();
+                    _audioPlayer.stop();
+                    Navigator.pop(context);
+                  },
+                ),
+              ]),
+            ),
 
-            // ==================== LIST ====================
+            // ── لیستی ئاسۆیی ──
             SizedBox(
-              height: 130,
+              height: 148,
               child: ListView.builder(
                 controller: _scrollCtrl,
                 scrollDirection: Axis.horizontal,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 itemCount: allahNames.length,
                 itemBuilder: (ctx, i) {
                   final item = allahNames[i];
-                  final isActive = _currentIndex == i;
+                  final bool isActive = _currentIndex == i;
 
                   return GestureDetector(
-                    onTap: () {
+                    onTap: () async {
                       _autoTimer?.cancel();
                       setState(() {
                         _currentIndex = i;
                         _isPlaying = true;
                       });
-                      _scrollToIndex(i);
+                      _scrollToCenter(i);
+                      await _playSound(i);
                       _startAutoPlay();
                     },
                     child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 300),
+                      duration: const Duration(milliseconds: 280),
                       width: _cardWidth,
-                      margin: const EdgeInsets.only(left: _cardSpacing),
-
-                      // 🔥🔥 ئەمە highlight ـەکەیە
+                      margin: EdgeInsets.only(
+                        right: _cardSpacing,
+                        top: isActive ? 0 : 6,
+                        bottom: isActive ? 0 : 6,
+                      ),
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(14),
+                        borderRadius: BorderRadius.circular(16),
                         gradient: LinearGradient(
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
-                          colors: [
-                            item.color.withOpacity(isActive ? 0.45 : 0.2),
-                            item.color.withOpacity(isActive ? 0.15 : 0.06),
-                          ],
+                          colors: isActive
+                              ? [
+                                  item.color.withOpacity(0.55),
+                                  item.color.withOpacity(0.18),
+                                ]
+                              : [
+                                  item.color.withOpacity(0.12),
+                                  item.color.withOpacity(0.04),
+                                ],
                         ),
                         border: Border.all(
-                          color: item.color.withOpacity(isActive ? 0.9 : 0.35),
-                          width: isActive ? 2 : 1,
+                          color: item.color.withOpacity(isActive ? 1.0 : 0.3),
+                          width: isActive ? 1.8 : 1,
                         ),
                         boxShadow: isActive
                             ? [
                                 BoxShadow(
-                                  color: item.color.withOpacity(0.5),
-                                  blurRadius: 16,
-                                  spreadRadius: 1,
+                                  color: item.color.withOpacity(0.45),
+                                  blurRadius: 18,
+                                  spreadRadius: 0,
                                 )
                               ]
                             : [],
                       ),
-
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text(
-                            "${i + 1}",
-                            style:
-                                TextStyle(color: item.color.withOpacity(0.6)),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: item.color
+                                  .withOpacity(isActive ? 0.35 : 0.12),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              "${i + 1}",
+                              style: TextStyle(
+                                color: isActive
+                                    ? Colors.white
+                                    : item.color.withOpacity(0.7),
+                                fontSize: 9,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ),
-                          const SizedBox(height: 4),
-
-                          // 🔥 ناوی Active سپی تۆخ
+                          const SizedBox(height: 6),
                           Text(
                             item.name,
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               color: isActive
                                   ? Colors.white
-                                  : item.color.withOpacity(0.85),
+                                  : item.color.withOpacity(0.88),
                               fontWeight: FontWeight.bold,
-                              fontSize: 15,
+                              fontSize: isActive ? 16 : 14,
                             ),
                           ),
-
-                          const SizedBox(height: 4),
-
-                          Text(
-                            item.meaning,
-                            textAlign: TextAlign.center,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                                color: Colors.white54, fontSize: 10),
+                          const SizedBox(height: 5),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 6),
+                            child: Text(
+                              item.meaning,
+                              textAlign: TextAlign.center,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color:
+                                    isActive ? Colors.white70 : Colors.white38,
+                                fontSize: 9.5,
+                              ),
+                            ),
                           ),
                         ],
                       ),
@@ -326,50 +429,180 @@ class _AllahNamesDialogState extends State<AllahNamesDialog> {
               ),
             ),
 
-            const Divider(),
+            // ── دیواری جیاکەر ──
+            Container(
+              height: 1,
+              margin: const EdgeInsets.symmetric(horizontal: 16),
+              color: Colors.white.withOpacity(0.08),
+            ),
 
-            // ==================== CURRENT ====================
-            if (_currentIndex >= 0)
-              Column(
+            // ── پەنجەی ئەکتیڤ — سپی سادە ──
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 350),
+              child: active != null
+                  ? Container(
+                      key: ValueKey(_currentIndex),
+                      margin: const EdgeInsets.fromLTRB(14, 12, 14, 6),
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 12, horizontal: 16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFFB00),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                            color: const Color(0xFF0026FF), width: 0.8),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 38,
+                            height: 38,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: const Color(0x1F0051FF),
+                              border:
+                                  Border.all(color: const Color(0x5F0026FF)),
+                            ),
+                            alignment: Alignment.center,
+                            child: Text(
+                              "${_currentIndex + 1}",
+                              style: const TextStyle(
+                                color: Colors.black,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  active.name,
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                    color: Color(0xFF002FFF),
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 3),
+                                Text(
+                                  active.meaning,
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: const Color(0xFF5C80F8)
+                                        .withOpacity(0.55),
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Icon(
+                            _isPlaying
+                                ? Icons.volume_up_rounded
+                                : Icons.volume_off_rounded,
+                            color: const Color.fromARGB(137, 4, 0, 255),
+                            size: 18,
+                          ),
+                        ],
+                      ),
+                    )
+                  : Padding(
+                      key: const ValueKey(-1),
+                      padding: const EdgeInsets.symmetric(vertical: 18),
+                      child: Text(
+                        "دوگمەی پلەی بکە یان ناوێک هەڵبژێرە",
+                        style:
+                            TextStyle(color: pc.withOpacity(0.4), fontSize: 12),
+                      ),
+                    ),
+            ),
+
+            const SizedBox(height: 4),
+
+            // ── دوگمەکانی کۆنترۆل ──
+            Container(
+              margin: const EdgeInsets.fromLTRB(14, 4, 14, 14),
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.04),
+                borderRadius: BorderRadius.circular(40),
+                border: Border.all(color: Colors.white.withOpacity(0.08)),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  Text(
-                    allahNames[_currentIndex].name,
-                    style: TextStyle(
-                        color: pc, fontSize: 18, fontWeight: FontWeight.bold),
+                  _ctrlBtn(
+                    icon: Icons.replay_10_rounded,
+                    color: pc,
+                    onTap: () => _jumpBySeconds(-10),
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    allahNames[_currentIndex].meaning,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(color: Colors.white70),
+                  _ctrlBtn(
+                    icon: Icons.stop_rounded,
+                    color: pc,
+                    onTap: _stopAndReset,
+                  ),
+                  GestureDetector(
+                    onTap: _togglePlay,
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      width: 52,
+                      height: 52,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: RadialGradient(colors: [
+                          pc.withOpacity(0.5),
+                          pc.withOpacity(0.18),
+                        ]),
+                        border: Border.all(color: pc.withOpacity(0.7)),
+                        boxShadow: [
+                          BoxShadow(
+                              color: pc.withOpacity(0.3),
+                              blurRadius: 12,
+                              spreadRadius: 1)
+                        ],
+                      ),
+                      child: Icon(
+                        _isPlaying
+                            ? Icons.pause_rounded
+                            : Icons.play_arrow_rounded,
+                        color: Colors.white,
+                        size: 28,
+                      ),
+                    ),
+                  ),
+                  _ctrlBtn(
+                    icon: Icons.forward_10_rounded,
+                    color: pc,
+                    onTap: () => _jumpBySeconds(10),
                   ),
                 ],
               ),
-
-            const SizedBox(height: 10),
-
-            // ==================== CONTROLS ====================
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.replay_10),
-                  onPressed: () => _jumpBySeconds(-10),
-                ),
-                IconButton(
-                  icon: Icon(_isPlaying ? Icons.pause : Icons.play_arrow),
-                  onPressed: _togglePlay,
-                ),
-                IconButton(
-                  icon: const Icon(Icons.forward_10),
-                  onPressed: () => _jumpBySeconds(10),
-                ),
-              ],
             ),
-
-            const SizedBox(height: 10),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _ctrlBtn({
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 42,
+        height: 42,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: color.withOpacity(0.1),
+          border: Border.all(color: color.withOpacity(0.3)),
+        ),
+        child: Icon(icon, color: color, size: 22),
       ),
     );
   }
