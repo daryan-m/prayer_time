@@ -53,39 +53,39 @@ class _PrayerHomePageState extends State<PrayerHomePage>
   Timer? _updateCheckTimer;
 
   @override
-void initState() {
-  super.initState();
+  void initState() {
+    super.initState();
 
-  // جار ١ — placeholder بۆ یەکەم ئاینستال (شاری دیفۆڵت)
-  // _initAppData تەواو بووین دووبارە نوێ دەکرێتەوە
-  _prayerTimesFuture = _prayerDataService.getPrayerTimes(
-    currentCity, // "سلێمانی" — دیفۆڵت
-    DateTime.now(),
-  );
+    // جار ١ — placeholder بۆ یەکەم ئاینستال (شاری دیفۆڵت)
+    // _initAppData تەواو بووین دووبارە نوێ دەکرێتەوە
+    _prayerTimesFuture = _prayerDataService.getPrayerTimes(
+      currentCity, // "سلێمانی" — دیفۆڵت
+      DateTime.now(),
+    );
 
-  _sunController = AnimationController(
-    vsync: this,
-    duration: const Duration(seconds: 2),
-  )..repeat(reverse: true);
+    _sunController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    )..repeat(reverse: true);
 
-  _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
-    if (mounted) setState(() => _now = DateTime.now());
-  });
-
-  _initAppData(); // ← ئەگەر شار ذخیرەکراو بوو، دووبارە نوێ دەکاتەوە
-}
-
-Future<void> _initAppData() async {
-  // یەکەم: چاوەڕێ دەکەین تا سێتینگ لۆد دەبێت (شارەکە دیاری دەکرێت)
-  await _loadSavedSettings();
-  
-  // دووەم: کاتێک دڵنیا بووینەوە شارەکە (یان سەیڤکراوە یان دیفۆڵتە)، ئینجا کاتەکان دەهێنین
-  if (mounted) {
-    setState(() {
-      _prayerTimesFuture = _prayerDataService.getPrayerTimes(currentCity, _now);
+    _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) setState(() => _now = DateTime.now());
     });
+
+    _initAppData(); // ← ئەگەر شار ذخیرەکراو بوو، دووبارە نوێ دەکاتەوە
   }
 
+  Future<void> _initAppData() async {
+    // یەکەم: چاوەڕێ دەکەین تا سێتینگ لۆد دەبێت (شارەکە دیاری دەکرێت)
+    await _loadSavedSettings();
+
+    // دووەم: کاتێک دڵنیا بووینەوە شارەکە (یان سەیڤکراوە یان دیفۆڵتە)، ئینجا کاتەکان دەهێنین
+    if (mounted) {
+      setState(() {
+        _prayerTimesFuture =
+            _prayerDataService.getPrayerTimes(currentCity, _now);
+      });
+    }
 
     Future.delayed(Duration.zero, _checkForUpdate);
     _updateCheckTimer =
@@ -329,7 +329,8 @@ Future<void> _initAppData() async {
                   style: TextStyle(color: Colors.grey)),
             ),
             ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: primaryColor),
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF0062FF)),
               onPressed: () {
                 Navigator.pop(context);
                 _startUpdate(url, version);
@@ -380,7 +381,8 @@ Future<void> _initAppData() async {
                     const Text("دواتر", style: TextStyle(color: Colors.grey)),
               ),
               ElevatedButton(
-                style: ElevatedButton.styleFrom(backgroundColor: primaryColor),
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF0062FF)),
                 onPressed: () async {
                   Navigator.pop(ctx);
                   await openAppSettings();
@@ -487,7 +489,8 @@ Future<void> _initAppData() async {
             case OtaStatus.PERMISSION_NOT_GRANTED_ERROR:
               setDlState?.call(() {
                 hasError = true;
-                errorText = "مۆڵەتی ئینستاڵ نەدرا — تکایە لە ڕێکخستن چالاک بکە";
+                errorText =
+                    "مۆڵەتی ئینستاڵ نەدرا — تکایە لە ڕێکخستن چالاکى بکە";
               });
               WakelockPlus.disable();
               break;
@@ -831,8 +834,8 @@ Future<void> _initAppData() async {
         ],
       ),
       bottom: PreferredSize(
-        preferredSize: const Size.fromHeight(2),
-        child: Container(height: 2.0, color: _palette.divider),
+        preferredSize: const Size.fromHeight(1.5),
+        child: Container(height: 1.5, color: const Color(0xFFFFFFFF)),
       ),
       actions: [
         Builder(
