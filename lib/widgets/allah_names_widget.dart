@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'dart:async';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 // ==================== داتای ٩٩ ناوی خوای گەورە ====================
 
@@ -155,6 +156,7 @@ class _AllahNamesDialogState extends State<AllahNamesDialog> {
 
   @override
   void dispose() {
+    WakelockPlus.disable();
     _autoTimer?.cancel();
     _scrollCtrl.dispose();
     _audioPlayer.dispose();
@@ -172,6 +174,7 @@ class _AllahNamesDialogState extends State<AllahNamesDialog> {
   // ==================== AUTO PLAY ====================
 
   void _startAutoPlay() {
+    WakelockPlus.enable();
     _autoTimer?.cancel();
     _autoTimer = Timer.periodic(
       Duration(milliseconds: (_secondsPerName * 1000).toInt()),
@@ -197,6 +200,7 @@ class _AllahNamesDialogState extends State<AllahNamesDialog> {
 
   Future<void> _togglePlay() async {
     if (_isPlaying) {
+      WakelockPlus.disable();
       _autoTimer?.cancel();
       await _audioPlayer.stop();
       setState(() => _isPlaying = false);
@@ -217,6 +221,7 @@ class _AllahNamesDialogState extends State<AllahNamesDialog> {
 
   // ── ستۆپ: گەرانەوە بۆ سەرەوەتا ──
   Future<void> _stopAndReset() async {
+    WakelockPlus.disable();
     _autoTimer?.cancel();
     await _audioPlayer.stop();
     setState(() {

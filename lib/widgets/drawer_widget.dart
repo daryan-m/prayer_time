@@ -114,26 +114,27 @@ class _PrayerDrawerState extends State<PrayerDrawer> {
   Widget build(BuildContext context) {
     final pal = _pal;
     return SizedBox(
-      width: MediaQuery.of(context).size.width * 0.75,
+      width: MediaQuery.of(context).size.width * 0.84,
       child: Drawer(
         backgroundColor: pal.drawerBg,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(20),
+            topLeft: Radius.circular(52),
             bottomLeft: Radius.circular(20),
           ),
         ),
         child: Container(
           decoration: BoxDecoration(
             border:
-                Border(left: BorderSide(color: pal.drawerBorder, width: 3.0)),
+                Border(left: BorderSide(color: pal.drawerBorder, width: 2.0)),
           ),
           child: Column(
             children: [
               _buildHeader(context, pal),
-              Divider(color: pal.primary, thickness: 1),
+              Divider(color: pal.primary, thickness: 1.5),
               Expanded(
                 child: ListView(
+                  padding: EdgeInsets.zero,
                   children: [
                     _buildExpansionTile(
                         Icons.record_voice_over, "دەنگی بانگبێژ", pal, [
@@ -226,7 +227,7 @@ class _PrayerDrawerState extends State<PrayerDrawer> {
                                 currentCity: widget.currentCity,
                               )),
                     ),
-                    Divider(color: pal.primary.withOpacity(0.15), thickness: 2),
+                    _divider(pal),
                     ListTile(
                       leading: const Icon(Icons.play_circle_fill,
                           color: Colors.red, size: 28),
@@ -247,6 +248,19 @@ class _PrayerDrawerState extends State<PrayerDrawer> {
                     _divider(pal),
                     _buildExpansionTile(Icons.info_outline, "دەربارە", pal,
                         [_buildAboutContent(pal)]),
+                    _divider(pal),
+                    ListTile(
+                      leading: Icon(Icons.feedback_outlined,
+                          color: pal.primary, size: 22),
+                      title: Text("پەیوەندی و راوبۆچوون",
+                          style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: pal.listText)),
+                      trailing: Icon(Icons.arrow_forward_ios,
+                          color: pal.listText.withOpacity(0.4), size: 14),
+                      onTap: () => _showFeedbackSheet(context, pal),
+                    ),
                   ],
                 ),
               ),
@@ -265,7 +279,7 @@ class _PrayerDrawerState extends State<PrayerDrawer> {
 
   Widget _buildHeader(BuildContext context, ThemePalette pal) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 25, 8, 10),
+      padding: const EdgeInsets.fromLTRB(10, 40, 10, 2),
       child: Row(children: [
         Icon(Icons.mosque, size: 30, color: pal.secondary),
         const SizedBox(width: 12),
@@ -365,6 +379,79 @@ class _PrayerDrawerState extends State<PrayerDrawer> {
       children: children,
     );
   }
+}
+
+void _showFeedbackSheet(BuildContext context, ThemePalette pal) {
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: Colors.transparent,
+    isScrollControlled: true,
+    builder: (_) => Container(
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
+      decoration: BoxDecoration(
+        color: pal.drawerBg,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        border: Border(
+            top: BorderSide(color: pal.primary.withOpacity(0.3), width: 1.5)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: Colors.white24,
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Icon(Icons.feedback_outlined, color: pal.primary, size: 28),
+          const SizedBox(height: 8),
+          Text("پەیوەندی و راوبۆچوون",
+              style: TextStyle(
+                  color: pal.listText,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold)),
+          const SizedBox(height: 8),
+          Text(
+            "بۆچوون و پێشنیاری خۆت بنووسە",
+            style:
+                TextStyle(color: pal.listText.withOpacity(0.5), fontSize: 13),
+          ),
+          const SizedBox(height: 20),
+          GestureDetector(
+            onTap: () async {
+              final Uri url = Uri.parse('https://forms.gle/T85wnBQHsJ13jp4VA');
+              await launchUrl(url, mode: LaunchMode.inAppWebView);
+            },
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+              decoration: BoxDecoration(
+                color: pal.primary.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: pal.primary.withOpacity(0.4)),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.edit_note_rounded, color: pal.primary, size: 20),
+                  const SizedBox(width: 10),
+                  Text("بۆچوون و پێشنیاری خۆت بنووسە",
+                      style: TextStyle(
+                          color: pal.primary,
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold)),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+        ],
+      ),
+    ),
+  );
 }
 
 // ==================== ویدجەتی تەسبیح ====================
@@ -761,20 +848,17 @@ class _DateConverterDialogState extends State<_DateConverterDialog>
   final _gregMonthCtrl = TextEditingController();
   final _gregYearCtrl = TextEditingController();
 
-  // کۆچی — خوێندنەوەتەنها، ئێستا ڕۆژ/مانگ/ساڵ دەنووسرێت
   final _hijriDayCtrl = TextEditingController();
   final _hijriMonthCtrl = TextEditingController();
   final _hijriYearCtrl = TextEditingController();
 
-  // کوردی — خوێندنەوەتەنها، ئێستا ڕۆژ/مانگ/ساڵ دەنووسرێت
   final _kurdDayCtrl = TextEditingController();
   final _kurdMonthCtrl = TextEditingController();
   final _kurdYearCtrl = TextEditingController();
 
-  // هەتاوی — خوێندنەوەتەنها، ئێستا ڕۆژ/مانگ/ساڵ دەنووسرێت
   final _shamsiDayCtrl = TextEditingController();
-  final _shamsiMonthCtrl = TextEditingController(); // ← نوێ
-  final _shamsiYearCtrl = TextEditingController(); // ← نوێ
+  final _shamsiMonthCtrl = TextEditingController();
+  final _shamsiYearCtrl = TextEditingController();
 
   String _weekdayResult = "";
   String _hijriResult = "";
@@ -789,7 +873,6 @@ class _DateConverterDialogState extends State<_DateConverterDialog>
   bool _prayLoading = false;
   String _prayError = "";
 
-  // ← گۆڕانکاری ١: ڕەنجی کتێبخانەی hijri_calendar
   static const int _minYear = 1938;
   static const int _maxYear = 2076;
 
@@ -814,8 +897,8 @@ class _DateConverterDialogState extends State<_DateConverterDialog>
       _kurdMonthCtrl,
       _kurdYearCtrl,
       _shamsiDayCtrl,
-      _shamsiMonthCtrl, // ← نوێ
-      _shamsiYearCtrl, // ← نوێ
+      _shamsiMonthCtrl,
+      _shamsiYearCtrl,
       _prayDayCtrl,
       _prayMonthCtrl,
       _prayYearCtrl,
@@ -846,7 +929,6 @@ class _DateConverterDialogState extends State<_DateConverterDialog>
       _clearReadonlyFields();
       return;
     }
-
     if (y < _minYear || y > _maxYear) {
       setState(() {
         _hijriResult = "";
@@ -857,13 +939,11 @@ class _DateConverterDialogState extends State<_DateConverterDialog>
       _clearReadonlyFields();
       return;
     }
-
     try {
       _computeAll(DateTime(y, m, d));
     } catch (_) {}
   }
 
-  // ← نوێ: یارمەتیدەر بۆ پاككردنی هەموو خانەی خوێندنەوەتەنها
   void _clearReadonlyFields() {
     _hijriDayCtrl.text = "";
     _hijriMonthCtrl.text = "";
@@ -891,9 +971,7 @@ class _DateConverterDialogState extends State<_DateConverterDialog>
     final hijri = HijriCalendar.fromDate(dt);
     final hijriStr =
         "${widget.timeService.toKu(hijri.hDay.toString())}ـى ${hijri.toFormat("MMMM")} ${widget.timeService.toKu(hijri.hYear.toString())}";
-
     final kurdStr = widget.timeService.kurdishDateString(dt);
-
     final shamsi = _toShamsi(dt);
     const List<String> shamsiMonths = [
       "فەروەردین",
@@ -913,7 +991,7 @@ class _DateConverterDialogState extends State<_DateConverterDialog>
         ? shamsiMonths[shamsi[1] - 1]
         : shamsi[1].toString();
     final String shamsiStr =
-        "${widget.timeService.toKu(shamsi[2].toString())}ـى $mNameـى ${widget.timeService.toKu(shamsi[0].toString())}";
+        "${widget.timeService.toKu(shamsi[2].toString())} $mNameـى ${widget.timeService.toKu(shamsi[0].toString())}";
 
     setState(() {
       _hijriResult = hijriStr;
@@ -922,17 +1000,14 @@ class _DateConverterDialogState extends State<_DateConverterDialog>
       _weekdayResult = weekday;
     });
 
-    // ← گۆڕانکاری ٢: خانەکانی کۆچی پڕ بکە
     _hijriDayCtrl.text = hijri.hDay.toString();
     _hijriMonthCtrl.text = hijri.hMonth.toString();
     _hijriYearCtrl.text = hijri.hYear.toString();
 
-    // ← گۆڕانکاری ٣: خانەکانی کوردی پڕ بکە
     _kurdDayCtrl.text = _kDay(dt).toString();
     _kurdMonthCtrl.text = _kMonth(dt).toString();
     _kurdYearCtrl.text = _kYear(dt).toString();
 
-    // ← گۆڕانکاری ٤: خانەکانی هەتاوی پڕ بکە
     _shamsiDayCtrl.text = shamsi[2].toString();
     _shamsiMonthCtrl.text = shamsi[1].toString();
     _shamsiYearCtrl.text = shamsi[0].toString();
@@ -1004,13 +1079,31 @@ class _DateConverterDialogState extends State<_DateConverterDialog>
     _gregDayCtrl.clear();
     _gregMonthCtrl.clear();
     _gregYearCtrl.clear();
-    _clearReadonlyFields(); // ← ئێستا یەک فراوانکراو بەکاردێت
+    _clearReadonlyFields();
     setState(() {
       _hijriResult = "";
       _kurdResult = "";
       _shamsiResult = "";
       _weekdayResult = "";
     });
+  }
+
+  // ── کیبۆرد دادەخرێت کاتێک هەر سێ خانە پڕ بن ──
+  void _checkAndDismissKeyboard(BuildContext context) {
+    if (_prayDayCtrl.text.length == 2 &&
+        _prayMonthCtrl.text.length == 2 &&
+        _prayYearCtrl.text.length == 4) {
+      FocusScope.of(context).unfocus();
+    }
+  }
+
+  void _checkAndDismissConverterKeyboard(BuildContext context) {
+    if (_gregDayCtrl.text.length == 2 &&
+        _gregMonthCtrl.text.length == 2 &&
+        _gregYearCtrl.text.length == 4) {
+      FocusScope.of(context).unfocus();
+      _convertFromGreg();
+    }
   }
 
   Future<void> _lookupPrayer() async {
@@ -1150,126 +1243,151 @@ class _DateConverterDialogState extends State<_DateConverterDialog>
   }
 
   Widget _buildConverterTab(Color pc) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Container(
-          padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 12),
-          margin: const EdgeInsets.only(bottom: 8),
-          decoration: BoxDecoration(
-            color: pc.withOpacity(0.07),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: pc.withOpacity(0.2)),
-          ),
-          child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-            Icon(Icons.info_outline, color: pc.withOpacity(0.7), size: 12),
-            const SizedBox(width: 6),
-            Text("لەساڵى $_minYear تا $_maxYear ئەتوانیت داخل بکەیت",
-                style: TextStyle(
-                    color: pc.withOpacity(0.85),
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold)),
-          ]),
-        ),
-        if (_weekdayResult.isNotEmpty) ...[
+    return Builder(builder: (context) {
+      return SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+        child:
+            Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           Container(
             padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 12),
+            margin: const EdgeInsets.only(bottom: 8),
             decoration: BoxDecoration(
-              color: pc.withOpacity(0.1),
+              color: pc.withOpacity(0.07),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: pc.withOpacity(0.3)),
+              border: Border.all(color: pc.withOpacity(0.2)),
             ),
             child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              Icon(Icons.today, color: pc, size: 13),
-              const SizedBox(width: 5),
-              const Text("ڕۆژی هەفتە: ",
-                  style: TextStyle(color: Colors.white38, fontSize: 11)),
-              Text(_weekdayResult,
+              Icon(Icons.info_outline, color: pc.withOpacity(0.7), size: 12),
+              const SizedBox(width: 6),
+              Text("لەساڵى $_minYear تا $_maxYear ئەتوانیت داخل بکەیت",
                   style: TextStyle(
-                      color: pc, fontSize: 12, fontWeight: FontWeight.bold)),
+                      color: pc.withOpacity(0.85),
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold)),
             ]),
           ),
-          const SizedBox(height: 7),
-        ] else
-          const SizedBox(height: 2),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-          Text("میلادی", 
-              style: TextStyle(
-                  color: pc,
-                  fontSize: 13,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 1.0)),
-        ]),
-        const SizedBox(height: 3),
-        _row3(_gregDayCtrl, _gregMonthCtrl, _gregYearCtrl, pc, _convertFromGreg,
-            topLabel: "میلادی"),
-        Divider(
-            color: Colors.white.withOpacity(0.5), height: 14, thickness: 1.5),
-        _rowLabel("کۆچی", const Color(0xFFF59E0B), readOnly: true),
-        const SizedBox(height: 3),
-        _row3(_hijriDayCtrl, _hijriMonthCtrl, _hijriYearCtrl, const Color(0xFFF59E0B), null,
-            readOnly: true),
-        if (_hijriResult.isNotEmpty) ...[
-          const SizedBox(height: 4),
-          _resultLine(_hijriResult, const Color(0xFFF59E0B)),
-        ],
-        Divider(
-            color: Colors.white.withOpacity(0.5), height: 14, thickness: 1.5),
-        _rowLabel("کوردی", const Color(0xFF4ADE80), readOnly: true),
-        const SizedBox(height: 3),
-        _row3(_kurdDayCtrl, _kurdMonthCtrl, _kurdYearCtrl, pc, null,
-            readOnly: true),
-        if (_kurdResult.isNotEmpty) ...[
-          const SizedBox(height: 4),
-          _resultLine(_kurdResult, const Color(0xFF4ADE80)),
-        ],
-        Divider(
-            color: Colors.white.withOpacity(0.5), height: 14, thickness: 1.5),
-        _rowLabel("هەتاوی", const Color(0xFFF97316), readOnly: true),
-        const SizedBox(height: 3),
-        _rowShamsi(pc),
-        if (_shamsiResult.isNotEmpty) ...[
-          const SizedBox(height: 4),
-          _resultLine(_shamsiResult, const Color(0xFFF97316)),
-        ],
-        const SizedBox(height: 10),
-        Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-          ElevatedButton.icon(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: pc.withOpacity(0.18),
-              foregroundColor: pc,
-              side: BorderSide(color: pc.withOpacity(0.45)),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20)),
-              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 18),
-              minimumSize: Size.zero,
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          if (_weekdayResult.isNotEmpty) ...[
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 12),
+              decoration: BoxDecoration(
+                color: pc.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: pc.withOpacity(0.3)),
+              ),
+              child:
+                  Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                Icon(Icons.today, color: pc, size: 13),
+                const SizedBox(width: 5),
+                const Text("ڕۆژی هەفتە: ",
+                    style: TextStyle(color: Colors.white38, fontSize: 11)),
+                Text(_weekdayResult,
+                    style: TextStyle(
+                        color: pc, fontSize: 12, fontWeight: FontWeight.bold)),
+              ]),
             ),
-            icon: const Icon(Icons.swap_horiz, size: 15),
-            label: const Text("بیگۆڕە",
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-            onPressed: _convertFromGreg,
-          ),
-          const SizedBox(width: 8),
-          OutlinedButton.icon(
-            style: OutlinedButton.styleFrom(
-              foregroundColor: Colors.white38,
-              side: const BorderSide(color: Colors.white12),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20)),
-              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 14),
-              minimumSize: Size.zero,
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            const SizedBox(height: 7),
+          ] else
+            const SizedBox(height: 2),
+
+          // ── میلادی ──
+          Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+            Text("میلادی",
+                style: TextStyle(
+                    color: pc,
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1.0)),
+          ]),
+          const SizedBox(height: 3),
+          _row3(
+              _gregDayCtrl, _gregMonthCtrl, _gregYearCtrl, pc, _convertFromGreg,
+              topLabel: "میلادی",
+              onAnyChange: () => _checkAndDismissConverterKeyboard(context)),
+
+          Divider(
+              color: Colors.white.withOpacity(0.5), height: 14, thickness: 1.5),
+
+          // ── کۆچی ──
+          _rowLabel("کۆچی", const Color(0xFFF59E0B)),
+          const SizedBox(height: 3),
+          _rowDates(const Color(0xFFF59E0B),
+              dayCtrl: _hijriDayCtrl,
+              monthCtrl: _hijriMonthCtrl,
+              yearCtrl: _hijriYearCtrl),
+          if (_hijriResult.isNotEmpty) ...[
+            const SizedBox(height: 4),
+            _resultLine(_hijriResult, const Color(0xFFF59E0B)),
+          ],
+
+          Divider(
+              color: Colors.white.withOpacity(0.5), height: 14, thickness: 1.5),
+
+          // ── کوردی ──
+          _rowLabel("کوردی", const Color(0xFF4ADE80)),
+          const SizedBox(height: 3),
+          _rowDates(const Color(0xFF4ADE80),
+              dayCtrl: _kurdDayCtrl,
+              monthCtrl: _kurdMonthCtrl,
+              yearCtrl: _kurdYearCtrl),
+          if (_kurdResult.isNotEmpty) ...[
+            const SizedBox(height: 4),
+            _resultLine(_kurdResult, const Color(0xFF4ADE80)),
+          ],
+
+          Divider(
+              color: Colors.white.withOpacity(0.5), height: 14, thickness: 1.5),
+
+          // ── هەتاوی ──
+          _rowLabel("هەتاوی", const Color(0xFFF97316)),
+          const SizedBox(height: 3),
+          _rowDates(const Color(0xFFF97316),
+              dayCtrl: _shamsiDayCtrl,
+              monthCtrl: _shamsiMonthCtrl,
+              yearCtrl: _shamsiYearCtrl),
+          if (_shamsiResult.isNotEmpty) ...[
+            const SizedBox(height: 4),
+            _resultLine(_shamsiResult, const Color(0xFFF97316)),
+          ],
+
+          const SizedBox(height: 10),
+          Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+            ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: pc.withOpacity(0.18),
+                foregroundColor: pc,
+                side: BorderSide(color: pc.withOpacity(0.45)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20)),
+                padding:
+                    const EdgeInsets.symmetric(vertical: 8, horizontal: 18),
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              icon: const Icon(Icons.swap_horiz, size: 15),
+              label: const Text("بیگۆڕە",
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+              onPressed: _convertFromGreg,
             ),
-            icon: const Icon(Icons.delete_outline, size: 14),
-            label: const Text("سڕینەوە", style: TextStyle(fontSize: 12)),
-            onPressed: _clearConverter,
-          ),
+            const SizedBox(width: 8),
+            OutlinedButton.icon(
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Colors.white38,
+                side: const BorderSide(color: Colors.white12),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20)),
+                padding:
+                    const EdgeInsets.symmetric(vertical: 8, horizontal: 14),
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              icon: const Icon(Icons.delete_outline, size: 14),
+              label: const Text("سڕینەوە", style: TextStyle(fontSize: 12)),
+              onPressed: _clearConverter,
+            ),
+          ]),
         ]),
-      ]),
-    );
+      );
+    });
   }
 
   Widget _resultLine(String value, Color color) {
@@ -1287,31 +1405,35 @@ class _DateConverterDialogState extends State<_DateConverterDialog>
     );
   }
 
-  // ← گۆڕانکاری ٥: controllerەکانی نوێ بەکاردێنێت
-  Widget _rowShamsi(Color pc) {
+  // ── خانەی خوێندنەوەتەنها بۆ کۆچی، کوردی، هەتاوی ──
+  Widget _rowDates(
+    Color pc, {
+    required TextEditingController dayCtrl,
+    required TextEditingController monthCtrl,
+    required TextEditingController yearCtrl,
+  }) {
     return Row(children: [
       Expanded(
           child: Column(children: [
-        Text("ڕۆژ", style: TextStyle(color: pc.withOpacity(0.25), fontSize: 9)),
+        Text("ڕۆژ", style: TextStyle(color: pc.withOpacity(0.4), fontSize: 9)),
         const SizedBox(height: 2),
-        _readonlyBox(_shamsiDayCtrl.text, pc),
+        _readonlyBox(dayCtrl.text, pc),
       ])),
       const SizedBox(width: 5),
       Expanded(
           child: Column(children: [
-        Text("مانگ",
-            style: TextStyle(color: pc.withOpacity(0.25), fontSize: 9)),
+        Text("مانگ", style: TextStyle(color: pc.withOpacity(0.4), fontSize: 9)),
         const SizedBox(height: 2),
-        _readonlyBox(_shamsiMonthCtrl.text, pc),
+        _readonlyBox(monthCtrl.text, pc),
       ])),
       const SizedBox(width: 5),
       Expanded(
           flex: 2,
           child: Column(children: [
             Text("ساڵ",
-                style: TextStyle(color: pc.withOpacity(0.25), fontSize: 9)),
+                style: TextStyle(color: pc.withOpacity(0.4), fontSize: 9)),
             const SizedBox(height: 2),
-            _readonlyBox(_shamsiYearCtrl.text, pc),
+            _readonlyBox(yearCtrl.text, pc),
           ])),
     ]);
   }
@@ -1321,27 +1443,26 @@ class _DateConverterDialogState extends State<_DateConverterDialog>
       height: 34,
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.03),
+        color: pc.withOpacity(0.05),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.white12),
+        border: Border.all(color: pc.withOpacity(0.3)),
       ),
       child: Text(val.isEmpty ? "—" : val,
-          style: const TextStyle(
-              color: Colors.white38,
+          style: TextStyle(
+              color: pc.withOpacity(0.8),
               fontSize: 13,
               fontWeight: FontWeight.bold)),
     );
   }
 
-  Widget _rowLabel(String label, Color pc, {bool readOnly = false}) {
+  Widget _rowLabel(String label, Color pc) {
     return Row(mainAxisAlignment: MainAxisAlignment.center, children: [
       Text(label,
           style: TextStyle(
-            color: readOnly ? pc.withOpacity(0.4) : pc,
-            fontSize: 11,
-            fontWeight: FontWeight.bold,
-            letterSpacing: 1.0,
-          )),
+              color: pc,
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1.0)),
     ]);
   }
 
@@ -1354,6 +1475,7 @@ class _DateConverterDialogState extends State<_DateConverterDialog>
     bool readOnly = false,
     int maxDay = 31,
     String? topLabel,
+    VoidCallback? onAnyChange,
   }) {
     final style = TextStyle(
         color: readOnly ? Colors.white12 : Colors.white,
@@ -1410,7 +1532,12 @@ class _DateConverterDialogState extends State<_DateConverterDialog>
             maxLength: 2,
             style: style,
             decoration: dec("ڕۆژ"),
-            onChanged: readOnly ? null : (_) => clamp(d, maxDay),
+            onChanged: readOnly
+                ? null
+                : (_) {
+                    clamp(d, maxDay);
+                    if (onAnyChange != null) onAnyChange();
+                  },
             onSubmitted: readOnly
                 ? null
                 : (_) {
@@ -1432,7 +1559,12 @@ class _DateConverterDialogState extends State<_DateConverterDialog>
             maxLength: 2,
             style: style,
             decoration: dec("مانگ"),
-            onChanged: readOnly ? null : (_) => clamp(m, 12),
+            onChanged: readOnly
+                ? null
+                : (_) {
+                    clamp(m, 12);
+                    if (onAnyChange != null) onAnyChange();
+                  },
             onSubmitted: readOnly
                 ? null
                 : (_) {
@@ -1455,6 +1587,11 @@ class _DateConverterDialogState extends State<_DateConverterDialog>
                 maxLength: 4,
                 style: style,
                 decoration: dec("ساڵ"),
+                onChanged: readOnly
+                    ? null
+                    : (_) {
+                        if (onAnyChange != null) onAnyChange();
+                      },
                 onSubmitted: readOnly
                     ? null
                     : (_) {
@@ -1465,207 +1602,229 @@ class _DateConverterDialogState extends State<_DateConverterDialog>
   }
 
   Widget _buildPrayerLookupTab(Color pc) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        // ── تێبینی ڕەنجی ساڵ ──
-        Container(
-          padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 12),
-          margin: const EdgeInsets.only(bottom: 12),
-          decoration: BoxDecoration(
-            color: pc.withOpacity(0.07),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: pc.withOpacity(0.2)),
-          ),
-          child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-            Icon(Icons.info_outline, color: pc.withOpacity(0.7), size: 12),
-            const SizedBox(width: 6),
-            Text("لە $_minYear تا $_maxYear ئەتوانیت داخل بکەیت",
-                style: TextStyle(
-                    color: pc.withOpacity(0.85),
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold)),
-          ]),
-        ),
-
-        Row(children: [
-          Expanded(child: _numField(_prayDayCtrl, "ڕۆژ", pc)),
-          Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 5),
-              child: Text("/",
-                  style: TextStyle(
-                      color: pc, fontSize: 20, fontWeight: FontWeight.bold))),
-          Expanded(child: _numField(_prayMonthCtrl, "مانگ", pc)),
-          Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 5),
-              child: Text("/",
-                  style: TextStyle(
-                      color: pc, fontSize: 20, fontWeight: FontWeight.bold))),
-          Expanded(
-              flex: 2, child: _numField(_prayYearCtrl, "ساڵ", pc, maxLen: 4)),
-        ]),
-        const SizedBox(height: 14),
-        Row(children: [
-          Expanded(
-              child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.07),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: pc.withOpacity(0.35)),
-            ),
-            child: DropdownButtonHideUnderline(
-                child: DropdownButton<String>(
-              value: _selectedCity,
-              dropdownColor: const Color(0xFF0F172A),
-              style: const TextStyle(color: Colors.white, fontSize: 13),
-              iconEnabledColor: Colors.white54,
-              isExpanded: true,
-              hint: const Text("شار", style: TextStyle(color: Colors.white38)),
-              items: kurdistanCitiesData
-                  .map((c) => DropdownMenuItem(value: c, child: Text(c)))
-                  .toList(),
-              onChanged: (v) => setState(() => _selectedCity = v),
-            )),
-          )),
-          const SizedBox(width: 10),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: pc.withOpacity(0.2),
-              foregroundColor: pc,
-              side: BorderSide(color: pc.withOpacity(0.5)),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
-              padding: const EdgeInsets.symmetric(vertical: 13, horizontal: 16),
-            ),
-            onPressed: _lookupPrayer,
-            child: const Text("بدۆزەرەوە",
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-          ),
-          const SizedBox(width: 6),
-          IconButton(
-              onPressed: _clearPrayer,
-              icon: const Icon(Icons.clear_all, color: Colors.white38)),
-        ]),
-        const SizedBox(height: 16),
-        if (_prayLoading)
-          Center(child: CircularProgressIndicator(color: pc))
-        else if (_prayError.isNotEmpty)
+    return Builder(builder: (context) {
+      return SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child:
+            Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: Colors.red.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.red.withOpacity(0.3)),
-            ),
-            child: Row(children: [
-              const Icon(Icons.error_outline, color: Colors.red, size: 18),
-              const SizedBox(width: 8),
-              Expanded(
-                  child: Text(_prayError,
-                      style: const TextStyle(color: Colors.red, fontSize: 13))),
-            ]),
-          )
-        else if (_prayResult != null) ...[
-          Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 12),
+            margin: const EdgeInsets.only(bottom: 12),
             decoration: BoxDecoration(
               color: pc.withOpacity(0.07),
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: pc.withOpacity(0.25)),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: pc.withOpacity(0.2)),
             ),
-            child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(children: [
-                          Icon(Icons.location_city, color: pc, size: 16),
-                          const SizedBox(width: 6),
-                          Text(_selectedCity ?? "",
-                              style: TextStyle(
-                                  color: pc,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 14)),
-                        ]),
-                        Text(
-                          "${_prayDayCtrl.text.padLeft(2, '0')}/${_prayMonthCtrl.text.padLeft(2, '0')}/${_prayYearCtrl.text.isNotEmpty ? _prayYearCtrl.text : DateTime.now().year}",
-                          style: const TextStyle(
-                              color: Colors.white54, fontSize: 12),
-                        ),
-                      ]),
-                  const Divider(color: Colors.white10, height: 20),
-                  ...List<Widget>.from([
-                    [
-                      "بەیانی",
-                      _prayResult!.fajr,
-                      Icons.wb_twilight,
-                      const Color(0xFF818CF8)
-                    ],
-                    [
-                      "خۆرهەڵاتن",
-                      _prayResult!.sunrise,
-                      Icons.wb_sunny,
-                      Colors.orange
-                    ],
-                    [
-                      "نیوەڕۆ",
-                      _prayResult!.dhuhr,
-                      Icons.light_mode,
-                      const Color(0xFFFBBF24)
-                    ],
-                    [
-                      "عەسر",
-                      _prayResult!.asr,
-                      Icons.wb_cloudy,
-                      const Color(0xFF34D399)
-                    ],
-                    [
-                      "ئێوارە",
-                      _prayResult!.maghrib,
-                      Icons.nights_stay,
-                      const Color(0xFFF97316)
-                    ],
-                    [
-                      "خەوتنان",
-                      _prayResult!.isha,
-                      Icons.dark_mode,
-                      const Color(0xFF818CF8)
-                    ],
-                  ].map((row) {
-                    final name = row[0] as String;
-                    final dt = row[1] as DateTime;
-                    final icon = row[2] as IconData;
-                    final color = row[3] as Color;
-                    final ts =
-                        "${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}";
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 5),
-                      child: Row(children: [
-                        Icon(icon, color: color, size: 18),
-                        const SizedBox(width: 10),
-                        Text(name,
-                            style: const TextStyle(
-                                color: Colors.white70, fontSize: 14)),
-                        const Spacer(),
-                        Text(widget.timeService.formatTo12Hr(ts),
-                            style: TextStyle(
-                                color: color,
-                                fontSize: 15,
-                                fontWeight: FontWeight.bold)),
-                      ]),
-                    );
-                  })),
-                ]),
+            child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              Icon(Icons.info_outline, color: pc.withOpacity(0.7), size: 12),
+              const SizedBox(width: 6),
+              Text("لە $_minYear تا $_maxYear ئەتوانیت داخل بکەیت",
+                  style: TextStyle(
+                      color: pc.withOpacity(0.85),
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold)),
+            ]),
           ),
-        ],
-      ]),
-    );
+          Row(children: [
+            Expanded(
+                child: _numField(_prayDayCtrl, "ڕۆژ", pc,
+                    onChanged: (_) => _checkAndDismissKeyboard(context))),
+            const SizedBox(width: 6),
+            Expanded(
+                child: _numField(_prayMonthCtrl, "مانگ", pc,
+                    onChanged: (_) => _checkAndDismissKeyboard(context))),
+            const SizedBox(width: 6),
+            Expanded(
+                flex: 2,
+                child: _numField(_prayYearCtrl, "ساڵ", pc,
+                    maxLen: 4,
+                    onChanged: (_) => _checkAndDismissKeyboard(context))),
+          ]),
+          const SizedBox(height: 14),
+          Row(children: [
+            Expanded(
+                child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.07),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: pc.withOpacity(0.35)),
+              ),
+              child: DropdownButtonHideUnderline(
+                  child: DropdownButton<String>(
+                value: _selectedCity,
+                dropdownColor: const Color(0xFF0F172A),
+                style: const TextStyle(color: Colors.white, fontSize: 13),
+                iconEnabledColor: Colors.white54,
+                isExpanded: true,
+                hint:
+                    const Text("شار", style: TextStyle(color: Colors.white38)),
+                items: kurdistanCitiesData
+                    .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+                    .toList(),
+                onChanged: (v) => setState(() => _selectedCity = v),
+              )),
+            )),
+            const SizedBox(width: 10),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: pc.withOpacity(0.2),
+                foregroundColor: pc,
+                side: BorderSide(color: pc.withOpacity(0.5)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
+                padding:
+                    const EdgeInsets.symmetric(vertical: 13, horizontal: 16),
+              ),
+              onPressed: _lookupPrayer,
+              child: const Text("بدۆزەرەوە",
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+            ),
+            const SizedBox(width: 6),
+            IconButton(
+                onPressed: _clearPrayer,
+                icon: const Icon(Icons.clear_all, color: Colors.white38)),
+          ]),
+          const SizedBox(height: 16),
+          if (_prayLoading)
+            Center(child: CircularProgressIndicator(color: pc))
+          else if (_prayError.isNotEmpty)
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: Colors.red.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.red.withOpacity(0.3)),
+              ),
+              child: Row(children: [
+                const Icon(Icons.error_outline, color: Colors.red, size: 18),
+                const SizedBox(width: 8),
+                Expanded(
+                    child: Text(_prayError,
+                        style:
+                            const TextStyle(color: Colors.red, fontSize: 13))),
+              ]),
+            )
+          else if (_prayResult != null) ...[
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: pc.withOpacity(0.07),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: pc.withOpacity(0.25)),
+              ),
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(children: [
+                            Icon(Icons.location_city, color: pc, size: 16),
+                            const SizedBox(width: 6),
+                            Text(_selectedCity ?? "",
+                                style: TextStyle(
+                                    color: pc,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14)),
+                          ]),
+                          Text(
+                            "${_prayDayCtrl.text.padLeft(2, '0')}/${_prayMonthCtrl.text.padLeft(2, '0')}/${_prayYearCtrl.text.isNotEmpty ? _prayYearCtrl.text : DateTime.now().year}",
+                            style: const TextStyle(
+                                color: Colors.white54, fontSize: 12),
+                          ),
+                        ]),
+                    const Divider(color: Colors.white10, height: 20),
+                    ...List<Widget>.from([
+                      [
+                        "بەیانی",
+                        _prayResult!.fajr,
+                        Icons.wb_twilight,
+                        const Color(0xFF818CF8)
+                      ],
+                      [
+                        "خۆرهەڵاتن",
+                        _prayResult!.sunrise,
+                        Icons.wb_sunny,
+                        Colors.orange
+                      ],
+                      [
+                        "نیوەڕۆ",
+                        _prayResult!.dhuhr,
+                        Icons.light_mode,
+                        const Color(0xFFFBBF24)
+                      ],
+                      [
+                        "عەسر",
+                        _prayResult!.asr,
+                        Icons.wb_cloudy,
+                        const Color(0xFF34D399)
+                      ],
+                      [
+                        "ئێوارە",
+                        _prayResult!.maghrib,
+                        Icons.nights_stay,
+                        const Color(0xFFF97316)
+                      ],
+                      [
+                        "خەوتنان",
+                        _prayResult!.isha,
+                        Icons.dark_mode,
+                        const Color(0xFF818CF8)
+                      ],
+                    ].map((row) {
+                      final name = row[0] as String;
+                      final dt = row[1] as DateTime;
+                      final icon = row[2] as IconData;
+                      final color = row[3] as Color;
+                      final ts =
+                          "${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}";
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 5),
+                        child: Row(children: [
+                          Icon(icon, color: color, size: 18),
+                          const SizedBox(width: 10),
+                          Text(name,
+                              style: const TextStyle(
+                                  color: Colors.white70, fontSize: 14)),
+                          const Spacer(),
+                          Text(widget.timeService.formatTo12Hr(ts),
+                              style: TextStyle(
+                                  color: color,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold)),
+                        ]),
+                      );
+                    })),
+                  ]),
+            ),
+            const SizedBox(height: 10),
+            // ── دوگمەی سڕینەوەی ئەنجام ──
+            Center(
+              child: OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.white38,
+                  side: const BorderSide(color: Colors.white12),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20)),
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 8, horizontal: 14),
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                icon: const Icon(Icons.delete_outline, size: 14),
+                label: const Text("سڕینەوە", style: TextStyle(fontSize: 12)),
+                onPressed: _clearPrayer,
+              ),
+            ),
+          ],
+        ]),
+      );
+    });
   }
 
   Widget _numField(TextEditingController ctrl, String hint, Color pc,
-      {int maxLen = 2}) {
+      {int maxLen = 2, void Function(String)? onChanged}) {
     final border = OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
         borderSide: BorderSide(color: pc.withOpacity(0.35)));
@@ -1674,6 +1833,7 @@ class _DateConverterDialogState extends State<_DateConverterDialog>
       keyboardType: TextInputType.number,
       textAlign: TextAlign.center,
       maxLength: maxLen,
+      onChanged: onChanged,
       style: const TextStyle(
           color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
       decoration: InputDecoration(

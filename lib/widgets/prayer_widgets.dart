@@ -220,7 +220,7 @@ class PrayerCard extends StatelessWidget {
       onTap: isSun ? null : () async => await onTap(),
       child: Container(
         // ── کێشەی ئاسۆیی: margin ی ئاسۆیی زیادکرا ──
-        margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 10),
+        margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 12),
         padding: const EdgeInsets.all(13),
         decoration: BoxDecoration(
           color: isActive ? palette.cardBgActive : palette.cardBg,
