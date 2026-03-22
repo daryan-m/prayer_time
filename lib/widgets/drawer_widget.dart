@@ -9,6 +9,7 @@ import '../services/prayer_service.dart';
 import 'allah_names_widget.dart';
 import 'dart:convert';
 import 'dart:typed_data';
+import 'package:http/http.dart' as http;
 
 // ==================== داتای تەسبیح ====================
 
@@ -379,79 +380,235 @@ class _PrayerDrawerState extends State<PrayerDrawer> {
       children: children,
     );
   }
-}
 
-void _showFeedbackSheet(BuildContext context, ThemePalette pal) {
-  showModalBottomSheet(
-    context: context,
-    backgroundColor: Colors.transparent,
-    isScrollControlled: true,
-    builder: (_) => Container(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
-      decoration: BoxDecoration(
-        color: pal.drawerBg,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        border: Border(
-            top: BorderSide(color: pal.primary.withOpacity(0.3), width: 1.5)),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 40,
-            height: 4,
+  void _showFeedbackSheet(BuildContext context, ThemePalette pal) {
+    String selectedRating = "";
+    final TextEditingController feedbackCtrl = TextEditingController();
+    bool isSending = false;
+    bool sent = false;
+
+    final List<Map<String, String>> ratings = [
+      {"label": "نایاب", "emoji": "🌟"},
+      {"label": "زۆر باش", "emoji": "⭐"},
+      {"label": "باش", "emoji": "✅"},
+      {"label": "کارتى ترى ئەوێت", "emoji": "🔧"},
+      {"label": "هەڵەى تێدایە", "emoji": "⚠️"},
+    ];
+
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDlgState) => Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding:
+              const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
+          child: Container(
             decoration: BoxDecoration(
-              color: Colors.white24,
-              borderRadius: BorderRadius.circular(10),
+              color: pal.drawerBg,
+              borderRadius: BorderRadius.circular(24),
+              border:
+                  Border.all(color: pal.primary.withOpacity(0.3), width: 1.5),
             ),
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
+            child: sent
+                ? Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.check_circle_outline,
+                          color: pal.primary, size: 52),
+                      const SizedBox(height: 12),
+                      Text("سوپاس!",
+                          style: TextStyle(
+                              color: pal.listText,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 6),
+                      Text("راوبۆچوونەکەت وەرگیرا",
+                          style: TextStyle(
+                              color: pal.listText.withOpacity(0.5),
+                              fontSize: 13)),
+                      const SizedBox(height: 20),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: pal.primary.withOpacity(0.15),
+                          foregroundColor: pal.primary,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14)),
+                        ),
+                        onPressed: () => Navigator.pop(ctx),
+                        child: const Text("داخستن"),
+                      ),
+                    ],
+                  )
+                : Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // ── سەرەوە ──
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Icon(Icons.feedback_outlined,
+                              color: pal.primary, size: 24),
+                          Text("پەیوەندی و راوبۆچوون",
+                              style: TextStyle(
+                                  color: pal.listText,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold)),
+                          GestureDetector(
+                            onTap: () => Navigator.pop(ctx),
+                            child: Icon(Icons.close,
+                                color: pal.listText.withOpacity(0.5), size: 20),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+
+                      // ── نرخاندن ──
+                      Text("ئەم ئەپڵیکەیشنە چۆن ئەبینیت؟",
+                          style: TextStyle(
+                              color: pal.listText.withOpacity(0.7),
+                              fontSize: 13)),
+                      const SizedBox(height: 10),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        alignment: WrapAlignment.center,
+                        children: ratings.map((r) {
+                          final bool selected = selectedRating == r["label"];
+                          return GestureDetector(
+                            onTap: () =>
+                                setDlgState(() => selectedRating = r["label"]!),
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: selected
+                                    ? pal.primary.withOpacity(0.2)
+                                    : pal.primary.withOpacity(0.05),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: selected
+                                      ? pal.primary
+                                      : pal.primary.withOpacity(0.2),
+                                  width: selected ? 1.5 : 1,
+                                ),
+                              ),
+                              child: Text(
+                                "${r["emoji"]} ${r["label"]}",
+                                style: TextStyle(
+                                  color: selected
+                                      ? pal.primary
+                                      : pal.listText.withOpacity(0.6),
+                                  fontSize: 12,
+                                  fontWeight: selected
+                                      ? FontWeight.bold
+                                      : FontWeight.normal,
+                                ),
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // ── تێکستی راوبۆچوون ──
+                      TextField(
+                        controller: feedbackCtrl,
+                        maxLines: 4,
+                        textDirection: TextDirection.rtl,
+                        style: TextStyle(color: pal.listText, fontSize: 13),
+                        decoration: InputDecoration(
+                          hintText: "راوبۆچوون و پێشنیارەکانت بنووسە...",
+                          hintStyle: TextStyle(
+                              color: pal.listText.withOpacity(0.3),
+                              fontSize: 12),
+                          filled: true,
+                          fillColor: pal.primary.withOpacity(0.05),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide:
+                                BorderSide(color: pal.primary.withOpacity(0.2)),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide:
+                                BorderSide(color: pal.primary.withOpacity(0.2)),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: BorderSide(color: pal.primary),
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // ── دوگمەی ناردن ──
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: pal.primary.withOpacity(0.15),
+                            foregroundColor: pal.primary,
+                            side:
+                                BorderSide(color: pal.primary.withOpacity(0.4)),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14)),
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                          ),
+                          onPressed: isSending
+                              ? null
+                              : () async {
+                                  if (selectedRating.isEmpty &&
+                                      feedbackCtrl.text.trim().isEmpty) {
+                                    return;
+                                  }
+
+                                  setDlgState(() => isSending = true);
+
+                                  try {
+                                    await http.post(
+                                      Uri.parse(
+                                          'https://script.google.com/macros/s/AKfycbzh9emst3Hz8JCl0DXFQwJgIuNWdDiaEjY6I3j5g9qwxILVcIUvOTpS919zzqtwRW60nQ/exec'),
+                                      headers: {
+                                        'Content-Type': 'application/json'
+                                      },
+                                      body: json.encode({
+                                        'rating': selectedRating,
+                                        'feedback': feedbackCtrl.text.trim(),
+                                      }),
+                                    );
+                                    setDlgState(() {
+                                      isSending = false;
+                                      sent = true;
+                                    });
+                                  } catch (e) {
+                                    setDlgState(() => isSending = false);
+                                  }
+                                },
+                          child: isSending
+                              ? SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(
+                                      color: pal.primary, strokeWidth: 2),
+                                )
+                              : const Text("ناردن",
+                                  style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.bold)),
+                        ),
+                      ),
+                    ],
+                  ),
           ),
-          const SizedBox(height: 16),
-          Icon(Icons.feedback_outlined, color: pal.primary, size: 28),
-          const SizedBox(height: 8),
-          Text("پەیوەندی و راوبۆچوون",
-              style: TextStyle(
-                  color: pal.listText,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold)),
-          const SizedBox(height: 8),
-          Text(
-            "بۆچوون و پێشنیاری خۆت بنووسە",
-            style:
-                TextStyle(color: pal.listText.withOpacity(0.5), fontSize: 13),
-          ),
-          const SizedBox(height: 20),
-          GestureDetector(
-            onTap: () async {
-              final Uri url = Uri.parse('https://forms.gle/T85wnBQHsJ13jp4VA');
-              await launchUrl(url, mode: LaunchMode.inAppWebView);
-            },
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
-              decoration: BoxDecoration(
-                color: pal.primary.withOpacity(0.12),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: pal.primary.withOpacity(0.4)),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.edit_note_rounded, color: pal.primary, size: 20),
-                  const SizedBox(width: 10),
-                  Text("بۆچوون و پێشنیاری خۆت بنووسە",
-                      style: TextStyle(
-                          color: pal.primary,
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold)),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 10),
-        ],
+        ),
       ),
-    ),
-  );
+    );
+  }
 }
 
 // ==================== ویدجەتی تەسبیح ====================
@@ -1088,24 +1245,6 @@ class _DateConverterDialogState extends State<_DateConverterDialog>
     });
   }
 
-  // ── کیبۆرد دادەخرێت کاتێک هەر سێ خانە پڕ بن ──
-  void _checkAndDismissKeyboard(BuildContext context) {
-    if (_prayDayCtrl.text.length == 2 &&
-        _prayMonthCtrl.text.length == 2 &&
-        _prayYearCtrl.text.length == 4) {
-      FocusScope.of(context).unfocus();
-    }
-  }
-
-  void _checkAndDismissConverterKeyboard(BuildContext context) {
-    if (_gregDayCtrl.text.length == 2 &&
-        _gregMonthCtrl.text.length == 2 &&
-        _gregYearCtrl.text.length == 4) {
-      FocusScope.of(context).unfocus();
-      _convertFromGreg();
-    }
-  }
-
   Future<void> _lookupPrayer() async {
     final d = int.tryParse(_prayDayCtrl.text.trim());
     final m = int.tryParse(_prayMonthCtrl.text.trim());
@@ -1169,10 +1308,12 @@ class _DateConverterDialogState extends State<_DateConverterDialog>
     return Dialog(
       backgroundColor: Colors.transparent,
       insetPadding: const EdgeInsets.all(12),
+      insetAnimationDuration: Duration.zero,
       child: Container(
         width: double.infinity,
         constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height * 0.88),
+            maxHeight: MediaQuery.of(context).size.height * 0.88 -
+                MediaQuery.of(context).viewInsets.bottom),
         decoration: BoxDecoration(
           color: const Color(0xFF101A38),
           borderRadius: BorderRadius.circular(22),
@@ -1301,8 +1442,7 @@ class _DateConverterDialogState extends State<_DateConverterDialog>
           const SizedBox(height: 3),
           _row3(
               _gregDayCtrl, _gregMonthCtrl, _gregYearCtrl, pc, _convertFromGreg,
-              topLabel: "میلادی",
-              onAnyChange: () => _checkAndDismissConverterKeyboard(context)),
+              topLabel: "میلادی"),
 
           Divider(
               color: Colors.white.withOpacity(0.5), height: 14, thickness: 1.5),
@@ -1366,7 +1506,10 @@ class _DateConverterDialogState extends State<_DateConverterDialog>
               icon: const Icon(Icons.swap_horiz, size: 15),
               label: const Text("بیگۆڕە",
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-              onPressed: _convertFromGreg,
+              onPressed: () {
+                FocusScope.of(context).unfocus();
+                _convertFromGreg();
+              },
             ),
             const SizedBox(width: 8),
             OutlinedButton.icon(
@@ -1475,7 +1618,6 @@ class _DateConverterDialogState extends State<_DateConverterDialog>
     bool readOnly = false,
     int maxDay = 31,
     String? topLabel,
-    VoidCallback? onAnyChange,
   }) {
     final style = TextStyle(
         color: readOnly ? Colors.white12 : Colors.white,
@@ -1532,12 +1674,7 @@ class _DateConverterDialogState extends State<_DateConverterDialog>
             maxLength: 2,
             style: style,
             decoration: dec("ڕۆژ"),
-            onChanged: readOnly
-                ? null
-                : (_) {
-                    clamp(d, maxDay);
-                    if (onAnyChange != null) onAnyChange();
-                  },
+            onChanged: readOnly ? null : (_) => clamp(d, maxDay),
             onSubmitted: readOnly
                 ? null
                 : (_) {
@@ -1559,12 +1696,7 @@ class _DateConverterDialogState extends State<_DateConverterDialog>
             maxLength: 2,
             style: style,
             decoration: dec("مانگ"),
-            onChanged: readOnly
-                ? null
-                : (_) {
-                    clamp(m, 12);
-                    if (onAnyChange != null) onAnyChange();
-                  },
+            onChanged: readOnly ? null : (_) => clamp(m, 12),
             onSubmitted: readOnly
                 ? null
                 : (_) {
@@ -1587,11 +1719,6 @@ class _DateConverterDialogState extends State<_DateConverterDialog>
                 maxLength: 4,
                 style: style,
                 decoration: dec("ساڵ"),
-                onChanged: readOnly
-                    ? null
-                    : (_) {
-                        if (onAnyChange != null) onAnyChange();
-                      },
                 onSubmitted: readOnly
                     ? null
                     : (_) {
@@ -1626,19 +1753,12 @@ class _DateConverterDialogState extends State<_DateConverterDialog>
             ]),
           ),
           Row(children: [
-            Expanded(
-                child: _numField(_prayDayCtrl, "ڕۆژ", pc,
-                    onChanged: (_) => _checkAndDismissKeyboard(context))),
+            Expanded(child: _numField(_prayDayCtrl, "ڕۆژ", pc)),
+            const SizedBox(width: 6),
+            Expanded(child: _numField(_prayMonthCtrl, "مانگ", pc)),
             const SizedBox(width: 6),
             Expanded(
-                child: _numField(_prayMonthCtrl, "مانگ", pc,
-                    onChanged: (_) => _checkAndDismissKeyboard(context))),
-            const SizedBox(width: 6),
-            Expanded(
-                flex: 2,
-                child: _numField(_prayYearCtrl, "ساڵ", pc,
-                    maxLen: 4,
-                    onChanged: (_) => _checkAndDismissKeyboard(context))),
+                flex: 2, child: _numField(_prayYearCtrl, "ساڵ", pc, maxLen: 4)),
           ]),
           const SizedBox(height: 14),
           Row(children: [
@@ -1676,7 +1796,10 @@ class _DateConverterDialogState extends State<_DateConverterDialog>
                 padding:
                     const EdgeInsets.symmetric(vertical: 13, horizontal: 16),
               ),
-              onPressed: _lookupPrayer,
+              onPressed: () {
+                FocusScope.of(context).unfocus();
+                _lookupPrayer();
+              },
               child: const Text("بدۆزەرەوە",
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
             ),

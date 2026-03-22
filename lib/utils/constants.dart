@@ -244,4 +244,4 @@ class AppColors {
 }
 
 // ── وەشان ──────────────────────────────────────────
-const String currentAppVersion = "1.0.9";
+const String currentAppVersion = "1.1.0";
