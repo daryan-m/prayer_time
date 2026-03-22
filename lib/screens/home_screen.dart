@@ -835,12 +835,12 @@ class _PrayerHomePageState extends State<PrayerHomePage>
       ),
       bottom: PreferredSize(
         preferredSize: const Size.fromHeight(1.5),
-        child: Container(height: 1.5, color: const Color(0xFFFFFFFF)),
+        child: Container(height: 1, color: const Color(0xFFFFFFFF)),
       ),
       actions: [
         Builder(
           builder: (context) => IconButton(
-            icon: Icon(Icons.menu_open, color: _palette.primary, size: 40),
+            icon: Icon(Icons.menu, color: _palette.primary, size: 40),
             onPressed: () => Scaffold.of(context).openDrawer(),
           ),
         ),
@@ -907,7 +907,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
           nextPrayerName: _getNextPrayerName(prayerTimes),
           palette: _palette,
         ),
-        Divider(color: _palette.divider, height: 10),
+        const Divider(color: Colors.white, height: 14, thickness: 1.5),
         Expanded(
           child: Column(
             children: List.generate(6, (i) => _buildPrayerCard(i)),

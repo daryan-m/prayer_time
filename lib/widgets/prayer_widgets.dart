@@ -126,33 +126,37 @@ class NextPrayerBar extends StatelessWidget {
       margin: const EdgeInsets.symmetric(vertical: 10),
       // بەکارهێنانی ClipRRect بۆ ئەوەی گۆشەکان بە جوانی ببڕدرێن
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(35),
+        borderRadius: BorderRadius.circular(25),
         child: Container(
           decoration: BoxDecoration(
             // لێرە تەنها بۆردەرەکان دادەنێین بێ borderRadius بۆ ئەوەی Error نەدات
             border: Border(
               top: BorderSide(
-                  color: palette.secondary.withOpacity(0.3), width: 2.0),
+                  color: palette.secondary.withOpacity(0.7), width: 3.0),
               bottom: BorderSide(
-                  color: palette.secondary.withOpacity(0.3), width: 2.0),
+                  color: palette.secondary.withOpacity(0.7), width: 3.0),
               left: BorderSide(
-                  color: palette.secondary.withOpacity(0.7), width: 15),
+                  color: palette.secondary.withOpacity(0.7), width: 17),
               right: BorderSide(
-                  color: palette.secondary.withOpacity(0.7), width: 15),
+                  color: palette.secondary.withOpacity(0.7), width: 17),
             ),
           ),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(0),
+            borderRadius: BorderRadius.circular(3),
             child: Container(
               padding: const EdgeInsets.symmetric(vertical: 7, horizontal: 12),
               decoration: BoxDecoration(
                 color: palette.cardBg,
                 // لێرەش بۆردەری لایەکان بە جیا دادەنێین
                 border: Border(
+                  top: BorderSide(
+                  color: palette.listText.withOpacity(0.8), width: 2.0),
+              bottom: BorderSide(
+                  color: palette.listText.withOpacity(0.8), width: 2.0),
                   left: BorderSide(
-                  color: palette.secondary.withOpacity(0.3), width: 15),
-              right: BorderSide(
-                  color: palette.secondary.withOpacity(0.3), width: 15),
+                      color: palette.listText.withOpacity(0.8), width: 6),
+                  right: BorderSide(
+                      color: palette.listText.withOpacity(0.8), width: 6),
                 ),
               ),
               child: Row(
