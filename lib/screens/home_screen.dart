@@ -56,13 +56,6 @@ class _PrayerHomePageState extends State<PrayerHomePage>
   void initState() {
     super.initState();
 
-    // جار ١ — placeholder بۆ یەکەم ئاینستال (شاری دیفۆڵت)
-    // _initAppData تەواو بووین دووبارە نوێ دەکرێتەوە
-    _prayerTimesFuture = _prayerDataService.getPrayerTimes(
-      currentCity, // "سلێمانی" — دیفۆڵت
-      DateTime.now(),
-    );
-
     _sunController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 2),
@@ -79,7 +72,6 @@ class _PrayerHomePageState extends State<PrayerHomePage>
     // یەکەم: چاوەڕێ دەکەین تا سێتینگ لۆد دەبێت (شارەکە دیاری دەکرێت)
     await _loadSavedSettings();
 
-    // دووەم: کاتێک دڵنیا بووینەوە شارەکە (یان سەیڤکراوە یان دیفۆڵتە)، ئینجا کاتەکان دەهێنین
     if (mounted) {
       setState(() {
         _prayerTimesFuture =
@@ -840,7 +832,8 @@ class _PrayerHomePageState extends State<PrayerHomePage>
       actions: [
         Builder(
           builder: (context) => IconButton(
-            icon: Icon(Icons.menu, color: _palette.primary, size: 40),
+            icon: Icon(Icons.more_vert_rounded,
+                color: _palette.primary, size: 40),
             onPressed: () => Scaffold.of(context).openDrawer(),
           ),
         ),
