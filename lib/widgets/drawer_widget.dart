@@ -404,6 +404,9 @@ class _PrayerDrawerState extends State<PrayerDrawer> {
           insetPadding:
               const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
           child: Container(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(ctx).size.height * 0.85,
+            ),
             decoration: BoxDecoration(
               color: pal.drawerBg,
               borderRadius: BorderRadius.circular(24),
@@ -411,199 +414,202 @@ class _PrayerDrawerState extends State<PrayerDrawer> {
                   Border.all(color: pal.primary.withOpacity(0.3), width: 1.5),
             ),
             padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
-            child: sent
-                ? Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.check_circle_outline,
-                          color: pal.primary, size: 52),
-                      const SizedBox(height: 12),
-                      Text("سوپاس!",
-                          style: TextStyle(
-                              color: pal.listText,
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 6),
-                      Text("راوبۆچوونەکەت وەرگیرا",
-                          style: TextStyle(
-                              color: pal.listText.withOpacity(0.5),
-                              fontSize: 13)),
-                      const SizedBox(height: 20),
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: pal.primary.withOpacity(0.15),
-                          foregroundColor: pal.primary,
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14)),
-                        ),
-                        onPressed: () => Navigator.pop(ctx),
-                        child: const Text("داخستن"),
-                      ),
-                    ],
-                  )
-                : Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // ── سەرەوە ──
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Icon(Icons.feedback_outlined,
-                              color: pal.primary, size: 24),
-                          Text("پەیوەندی و راوبۆچوون",
-                              style: TextStyle(
-                                  color: pal.listText,
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.bold)),
-                          GestureDetector(
-                            onTap: () => Navigator.pop(ctx),
-                            child: Icon(Icons.close,
-                                color: pal.listText.withOpacity(0.5), size: 20),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-
-                      // ── نرخاندن ──
-                      Text("ئەم ئەپڵیکەیشنە چۆن ئەبینیت؟",
-                          style: TextStyle(
-                              color: pal.listText.withOpacity(0.7),
-                              fontSize: 13)),
-                      const SizedBox(height: 10),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        alignment: WrapAlignment.center,
-                        children: ratings.map((r) {
-                          final bool selected = selectedRating == r["label"];
-                          return GestureDetector(
-                            onTap: () =>
-                                setDlgState(() => selectedRating = r["label"]!),
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 200),
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 12, vertical: 8),
-                              decoration: BoxDecoration(
-                                color: selected
-                                    ? pal.primary.withOpacity(0.2)
-                                    : pal.primary.withOpacity(0.05),
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(
-                                  color: selected
-                                      ? pal.primary
-                                      : pal.primary.withOpacity(0.2),
-                                  width: selected ? 1.5 : 1,
-                                ),
-                              ),
-                              child: Text(
-                                "${r["emoji"]} ${r["label"]}",
-                                style: TextStyle(
-                                  color: selected
-                                      ? pal.primary
-                                      : pal.listText.withOpacity(0.6),
-                                  fontSize: 12,
-                                  fontWeight: selected
-                                      ? FontWeight.bold
-                                      : FontWeight.normal,
-                                ),
-                              ),
-                            ),
-                          );
-                        }).toList(),
-                      ),
-
-                      const SizedBox(height: 16),
-
-                      // ── تێکستی راوبۆچوون ──
-                      TextField(
-                        controller: feedbackCtrl,
-                        maxLines: 4,
-                        textDirection: TextDirection.rtl,
-                        style: TextStyle(color: pal.listText, fontSize: 13),
-                        decoration: InputDecoration(
-                          hintText: "راوبۆچوون و پێشنیارەکانت بنووسە...",
-                          hintStyle: TextStyle(
-                              color: pal.listText.withOpacity(0.3),
-                              fontSize: 12),
-                          filled: true,
-                          fillColor: pal.primary.withOpacity(0.05),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(14),
-                            borderSide:
-                                BorderSide(color: pal.primary.withOpacity(0.2)),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(14),
-                            borderSide:
-                                BorderSide(color: pal.primary.withOpacity(0.2)),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(14),
-                            borderSide: BorderSide(color: pal.primary),
-                          ),
-                        ),
-                      ),
-
-                      const SizedBox(height: 16),
-
-                      // ── دوگمەی ناردن ──
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
+            child: SingleChildScrollView(
+              child: sent
+                  ? Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.check_circle_outline,
+                            color: pal.primary, size: 52),
+                        const SizedBox(height: 12),
+                        Text("سوپاس!",
+                            style: TextStyle(
+                                color: pal.listText,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 6),
+                        Text("راوبۆچوونەکەت وەرگیرا",
+                            style: TextStyle(
+                                color: pal.listText.withOpacity(0.5),
+                                fontSize: 13)),
+                        const SizedBox(height: 20),
+                        ElevatedButton(
                           style: ElevatedButton.styleFrom(
                             backgroundColor: pal.primary.withOpacity(0.15),
                             foregroundColor: pal.primary,
-                            side:
-                                BorderSide(color: pal.primary.withOpacity(0.4)),
                             shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(14)),
-                            padding: const EdgeInsets.symmetric(vertical: 14),
                           ),
-                          onPressed: isSending
-                              ? null
-                              : () async {
-                                  if (selectedRating.isEmpty &&
-                                      feedbackCtrl.text.trim().isEmpty) {
-                                    return;
-                                  }
-
-                                  setDlgState(() => isSending = true);
-
-                                  try {
-                                    await http.post(
-                                      Uri.parse(
-                                          'https://script.google.com/macros/s/AKfycbzh9emst3Hz8JCl0DXFQwJgIuNWdDiaEjY6I3j5g9qwxILVcIUvOTpS919zzqtwRW60nQ/exec'),
-                                      headers: {
-                                        'Content-Type': 'application/json'
-                                      },
-                                      body: json.encode({
-                                        'rating': selectedRating,
-                                        'feedback': feedbackCtrl.text.trim(),
-                                      }),
-                                    );
-                                    setDlgState(() {
-                                      isSending = false;
-                                      sent = true;
-                                    });
-                                  } catch (e) {
-                                    setDlgState(() => isSending = false);
-                                  }
-                                },
-                          child: isSending
-                              ? SizedBox(
-                                  height: 20,
-                                  width: 20,
-                                  child: CircularProgressIndicator(
-                                      color: pal.primary, strokeWidth: 2),
-                                )
-                              : const Text("ناردن",
-                                  style: TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.bold)),
+                          onPressed: () => Navigator.pop(ctx),
+                          child: const Text("داخستن"),
                         ),
-                      ),
-                    ],
-                  ),
+                      ],
+                    )
+                  : Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            GestureDetector(
+                              onTap: () => Navigator.pop(ctx),
+                              child: Icon(Icons.close,
+                                  color: pal.listText.withOpacity(0.5),
+                                  size: 20),
+                            ),
+                            Text("پەیوەندی و راوبۆچوون",
+                                style: TextStyle(
+                                    color: pal.listText,
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold)),
+                            Icon(Icons.feedback_outlined,
+                                color: pal.primary, size: 24),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+
+                        // ── نرخاندن ──
+                        Text("ئەم ئەپڵیکەیشنە چۆن ئەبینیت؟",
+                            style: TextStyle(
+                                color: pal.listText.withOpacity(0.7),
+                                fontSize: 13)),
+                        const SizedBox(height: 10),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          alignment: WrapAlignment.center,
+                          children: ratings.map((r) {
+                            final bool selected = selectedRating == r["label"];
+                            return GestureDetector(
+                              onTap: () => setDlgState(
+                                  () => selectedRating = r["label"]!),
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 200),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 8),
+                                decoration: BoxDecoration(
+                                  color: selected
+                                      ? pal.primary.withOpacity(0.2)
+                                      : pal.primary.withOpacity(0.05),
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(
+                                    color: selected
+                                        ? pal.primary
+                                        : pal.primary.withOpacity(0.2),
+                                    width: selected ? 1.5 : 1,
+                                  ),
+                                ),
+                                child: Text(
+                                  "${r["emoji"]} ${r["label"]}",
+                                  style: TextStyle(
+                                    color: selected
+                                        ? pal.primary
+                                        : pal.listText.withOpacity(0.6),
+                                    fontSize: 12,
+                                    fontWeight: selected
+                                        ? FontWeight.bold
+                                        : FontWeight.normal,
+                                  ),
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        // ── تێکستی راوبۆچوون ──
+                        TextField(
+                          controller: feedbackCtrl,
+                          maxLines: 4,
+                          textDirection: TextDirection.rtl,
+                          style: TextStyle(color: pal.listText, fontSize: 13),
+                          decoration: InputDecoration(
+                            hintText: "راوبۆچوون و پێشنیارەکانت بنووسە...",
+                            hintTextDirection: TextDirection.rtl,
+                            hintStyle: TextStyle(
+                                color: pal.listText.withOpacity(0.3),
+                                fontSize: 12),
+                            filled: true,
+                            fillColor: pal.primary.withOpacity(0.05),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(14),
+                              borderSide: BorderSide(
+                                  color: pal.primary.withOpacity(0.2)),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(14),
+                              borderSide: BorderSide(
+                                  color: pal.primary.withOpacity(0.2)),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(14),
+                              borderSide: BorderSide(color: pal.primary),
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        // ── دوگمەی ناردن ──
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: pal.primary.withOpacity(0.15),
+                              foregroundColor: pal.primary,
+                              side: BorderSide(
+                                  color: pal.primary.withOpacity(0.4)),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(14)),
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                            ),
+                            onPressed: isSending
+                                ? null
+                                : () async {
+                                    if (selectedRating.isEmpty &&
+                                        feedbackCtrl.text.trim().isEmpty) {
+                                      return;
+                                    }
+
+                                    setDlgState(() => isSending = true);
+
+                                    try {
+                                      await http.post(
+                                        Uri.parse(
+                                            'https://script.google.com/macros/s/AKfycbzh9emst3Hz8JCl0DXFQwJgIuNWdDiaEjY6I3j5g9qwxILVcIUvOTpS919zzqtwRW60nQ/exec'),
+                                        headers: {
+                                          'Content-Type': 'application/json'
+                                        },
+                                        body: json.encode({
+                                          'rating': selectedRating,
+                                          'feedback': feedbackCtrl.text.trim(),
+                                        }),
+                                      );
+                                      setDlgState(() {
+                                        isSending = false;
+                                        sent = true;
+                                      });
+                                    } catch (e) {
+                                      setDlgState(() => isSending = false);
+                                    }
+                                  },
+                            child: isSending
+                                ? SizedBox(
+                                    height: 20,
+                                    width: 20,
+                                    child: CircularProgressIndicator(
+                                        color: pal.primary, strokeWidth: 2),
+                                  )
+                                : const Text("ناردن",
+                                    style: TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.bold)),
+                          ),
+                        ),
+                      ],
+                    ),
+            ),
           ),
         ),
       ),
@@ -1444,6 +1450,46 @@ class _DateConverterDialogState extends State<_DateConverterDialog>
               _gregDayCtrl, _gregMonthCtrl, _gregYearCtrl, pc, _convertFromGreg,
               topLabel: "میلادی"),
 
+          const SizedBox(height: 6),
+          Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+            ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: pc.withOpacity(0.18),
+                foregroundColor: pc,
+                side: BorderSide(color: pc.withOpacity(0.45)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20)),
+                padding:
+                    const EdgeInsets.symmetric(vertical: 8, horizontal: 18),
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              icon: const Icon(Icons.swap_horiz, size: 15),
+              label: const Text("بیگۆڕە",
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+              onPressed: () {
+                FocusScope.of(context).unfocus();
+                _convertFromGreg();
+              },
+            ),
+            const SizedBox(width: 8),
+            OutlinedButton.icon(
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Colors.white38,
+                side: const BorderSide(color: Colors.white12),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20)),
+                padding:
+                    const EdgeInsets.symmetric(vertical: 8, horizontal: 14),
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              icon: const Icon(Icons.delete_outline, size: 14),
+              label: const Text("سڕینەوە", style: TextStyle(fontSize: 12)),
+              onPressed: _clearConverter,
+            ),
+          ]),
+
           Divider(
               color: Colors.white.withOpacity(0.5), height: 14, thickness: 1.5),
 
@@ -1488,46 +1534,6 @@ class _DateConverterDialogState extends State<_DateConverterDialog>
             const SizedBox(height: 4),
             _resultLine(_shamsiResult, const Color(0xFFF97316)),
           ],
-
-          const SizedBox(height: 10),
-          Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-            ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: pc.withOpacity(0.18),
-                foregroundColor: pc,
-                side: BorderSide(color: pc.withOpacity(0.45)),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20)),
-                padding:
-                    const EdgeInsets.symmetric(vertical: 8, horizontal: 18),
-                minimumSize: Size.zero,
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              ),
-              icon: const Icon(Icons.swap_horiz, size: 15),
-              label: const Text("بیگۆڕە",
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-              onPressed: () {
-                FocusScope.of(context).unfocus();
-                _convertFromGreg();
-              },
-            ),
-            const SizedBox(width: 8),
-            OutlinedButton.icon(
-              style: OutlinedButton.styleFrom(
-                foregroundColor: Colors.white38,
-                side: const BorderSide(color: Colors.white12),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20)),
-                padding:
-                    const EdgeInsets.symmetric(vertical: 8, horizontal: 14),
-                minimumSize: Size.zero,
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              ),
-              icon: const Icon(Icons.delete_outline, size: 14),
-              label: const Text("سڕینەوە", style: TextStyle(fontSize: 12)),
-              onPressed: _clearConverter,
-            ),
-          ]),
         ]),
       );
     });

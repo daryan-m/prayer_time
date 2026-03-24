@@ -318,7 +318,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
               textAlign: TextAlign.center,
               style: TextStyle(color: Colors.white)),
           content: Text(
-            "وەشانی $version ئێستا بەردەستە، ئایا دەتەوێت نوێی بکەیتەوە؟",
+            "وەشانی $version ئێستا بەردەستە، ئایا دەتەوێت نوێی بکەیتەوە؟ بەشى راوبۆچون و پێشنیار زیادکراوە، دیزاین باشتر کراوە.",
             textAlign: TextAlign.center,
             style: const TextStyle(color: Colors.white70),
           ),
