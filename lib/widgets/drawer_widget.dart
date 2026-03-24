@@ -25,7 +25,8 @@ final List<_ZikrItem> _zikrList = [
   _ZikrItem("الْحَمْدُ لِلَّهِ", "سوپاس و ستایش بۆ خودا", 33),
   _ZikrItem("اللَّهُ أَكْبَرُ", "خوا گەورەترە", 34),
   _ZikrItem("لَا إِلَٰهَ إِلَّا اللَّهُ", "هیچ خوایەک نییە جگە لەالله", 100),
-  _ZikrItem("أَسْتَغْفِرُ اللَّهَ", "داوای لێخۆشبوون لە خوا دەکەم", 100),
+  _ZikrItem("أَسْتَغْفِرُ اللهَ وَأَتُوبُ إِلَيْهِ ",
+      "داوای لێخۆشبوون لە خوا دەکەم", 100),
   _ZikrItem("سُبْحَانَ اللَّهِ وَبِحَمْدِهِ",
       "   پاک و بیگەردى و سوپاس و ستایش بۆ خودا ", 100),
   _ZikrItem("لَا حَوْلَ وَلَا قُوَّةَ إِلَّا بِاللَّهِ",
@@ -139,7 +140,7 @@ class _PrayerDrawerState extends State<PrayerDrawer> {
                   children: [
                     _buildExpansionTile(
                         Icons.record_voice_over, "دەنگی بانگبێژ", pal, [
-                      _buildAthanOption("م. کمال رؤوف", "kamal_rauf.mp3", pal),
+                      _buildAthanOption("م. کمال رؤوف", "bang.mp3", pal),
                       _buildAthanOption("بانگی مەدینە", "madina.mp3", pal),
                       _buildAthanOption("بانگی کوەیت", "kwait.mp3", pal),
                     ]),
@@ -391,7 +392,7 @@ class _PrayerDrawerState extends State<PrayerDrawer> {
       {"label": "نایاب", "emoji": "🌟"},
       {"label": "زۆر باش", "emoji": "⭐"},
       {"label": "باش", "emoji": "✅"},
-      {"label": "کارتى ترى ئەوێت", "emoji": "🔧"},
+      {"label": "کارى ترى ئەوێت", "emoji": "🔧"},
       {"label": "هەڵەى تێدایە", "emoji": "⚠️"},
     ];
 
@@ -401,8 +402,14 @@ class _PrayerDrawerState extends State<PrayerDrawer> {
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDlgState) => Dialog(
           backgroundColor: Colors.transparent,
-          insetPadding:
-              const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
+          insetPadding: EdgeInsets.only(
+            left: 20,
+            right: 20,
+            top: 40, // ئەمە وەک خۆی دەهێڵێتەوە تا دراوەرەکە نەشارێتەوە
+            bottom: MediaQuery.of(ctx).viewInsets.bottom > 0
+                ? 10
+                : 40, // کاتێک کیبۆرد هەبوو، بۆشایی خوارەوە کەم دەکاتەوە تا دوگمەکە دەرکەوێت
+          ),
           child: Container(
             constraints: BoxConstraints(
               maxHeight: MediaQuery.of(ctx).size.height * 0.85,
@@ -413,7 +420,7 @@ class _PrayerDrawerState extends State<PrayerDrawer> {
               border:
                   Border.all(color: pal.primary.withOpacity(0.3), width: 1.5),
             ),
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
             child: SingleChildScrollView(
               child: sent
                   ? Column(
