@@ -5,6 +5,6 @@
     <item>
         <bitmap
             android:gravity="center"
-            android:src="@mipmap-xhdpi/launcher_icon" />
+            android:src="@mipmap/launcher_icon" />
     </item>
 </layer-list>
