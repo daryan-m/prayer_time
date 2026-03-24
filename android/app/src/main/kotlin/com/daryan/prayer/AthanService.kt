@@ -37,7 +37,7 @@ class AthanService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        val soundFile  = intent?.getStringExtra(EXTRA_SOUND)  ?: "kamal_rauf"
+        val soundFile  = intent?.getStringExtra(EXTRA_SOUND)  ?: "bang"
         val prayerName = intent?.getStringExtra(EXTRA_PRAYER) ?: "بانگ"
 
         // ── WakeLock: مۆبایل خەو نەبێت لە کاتی بانگ ──

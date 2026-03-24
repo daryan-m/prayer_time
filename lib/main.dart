@@ -21,11 +21,11 @@ void main() async {
   // bypassDnd: true — لە DND (سایلەنت مۆد) یش کار دەکات
   const List<AndroidNotificationChannel> channels = [
     AndroidNotificationChannel(
-      'athan_kamal_rauf',
-      'بانگ - kamal_rauf',
+      'athan_bang',
+      'بانگ - bang',
       description: 'کەناڵی نۆتیفیکەیشنی بانگ',
       importance: Importance.max,
-      sound: RawResourceAndroidNotificationSound('kamal_rauf'),
+      sound: RawResourceAndroidNotificationSound('bang'),
       playSound: true,
       enableVibration: true,
       // لێرەدا چیتر bypassDnd نانووسین، لە جیاتی ئەو ئەمە زیاد دەکەین:

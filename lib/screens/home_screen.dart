@@ -42,7 +42,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
   DateTime _now = DateTime.now();
   String currentCity = "سلێمانی";
   Set<String> activeAthans = {};
-  String selectedAthanFile = "kamal_rauf.mp3";
+  String selectedAthanFile = "bang.mp3";
   String selectedThemeName = "شین";
   Color primaryColor = const Color(0xFF22D3EE);
   ThemePalette _palette = getThemePalette("شین");
@@ -55,6 +55,13 @@ class _PrayerHomePageState extends State<PrayerHomePage>
   @override
   void initState() {
     super.initState();
+
+    // جار ١ — placeholder بۆ یەکەم ئاینستال (شاری دیفۆڵت)
+    // _initAppData تەواو بووین دووبارە نوێ دەکرێتەوە
+    _prayerTimesFuture = _prayerDataService.getPrayerTimes(
+      currentCity, // "سلێمانی" — دیفۆڵت
+      DateTime.now(),
+    );
 
     _sunController = AnimationController(
       vsync: this,
@@ -72,6 +79,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
     // یەکەم: چاوەڕێ دەکەین تا سێتینگ لۆد دەبێت (شارەکە دیاری دەکرێت)
     await _loadSavedSettings();
 
+    // دووەم: کاتێک دڵنیا بووینەوە شارەکە (یان سەیڤکراوە یان دیفۆڵتە)، ئینجا کاتەکان دەهێنین
     if (mounted) {
       setState(() {
         _prayerTimesFuture =
@@ -103,7 +111,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
 
     setState(() {
       currentCity = prefs.getString('selectedCity') ?? 'سلێمانی';
-      selectedAthanFile = prefs.getString('selected_sound') ?? 'kamal_rauf.mp3';
+      selectedAthanFile = prefs.getString('selected_sound') ?? 'bang.mp3';
       selectedThemeName = prefs.getString('selectedTheme') ?? 'شین';
       primaryColor = appThemes[selectedThemeName] ?? const Color(0xFF22D3EE);
       _palette = getThemePalette(selectedThemeName);
@@ -833,7 +841,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
         Builder(
           builder: (context) => IconButton(
             icon: Icon(Icons.more_vert_rounded,
-                color: _palette.primary, size: 40),
+                color: _palette.listText, size: 40),
             onPressed: () => Scaffold.of(context).openDrawer(),
           ),
         ),

@@ -27,7 +27,7 @@ class AthanAlarmReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         Log.d(TAG, "Alarm received — starting AthanService")
 
-        val soundFile  = intent.getStringExtra(AthanService.EXTRA_SOUND)  ?: "kamal_rauf"
+        val soundFile  = intent.getStringExtra(AthanService.EXTRA_SOUND)  ?: "bang"
         val prayerName = intent.getStringExtra(AthanService.EXTRA_PRAYER) ?: "بانگ"
 
         val serviceIntent = Intent(context, AthanService::class.java).apply {

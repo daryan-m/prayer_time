@@ -43,7 +43,7 @@ assets/
 │   ├── penjwen_time.json      # کاتەکانی پێنجوێن (٣٦٦ ڕۆژ)
 │   └── prayer_time.json       # کاتەکانی سلێمانی (٣٦٦ ڕۆژ)
 └── audio/
-    ├── kamal_rauf.mp3         # دەنگی یەکەم
+    ├── bang.mp3         # دەنگی یەکەم
     ├── madina.mp3             # دەنگی دووەم
     └── kwait.mp3              # دەنگی سێیەم
 ```
@@ -71,7 +71,7 @@ flutter pub get
 ### ٤. **زیادکردنی فایلە دەنگییەکان:**
 ```
 assets/audio/
-├── kamal_rauf.mp3
+├── bang.mp3
 ├── madina.mp3
 └── kwait.mp3
 ```
