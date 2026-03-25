@@ -50,3 +50,17 @@ key.properties
 android/local.properties
 ios/Pods/
 *.txt   # تەنها ئەگەر Base64 sensitive
+
+# Flutter auto-generated (not needed in version control)
+.flutter-plugins
+.metadata
+
+# AI/Tool files
+GEMINI.md
+
+# Environment & secrets
+.env
+.env.*
+*.pem
+google-services.json
+GoogleService-Info.plist
