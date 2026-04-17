@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:http_parser/src/scan.dart';
 import 'dart:async';
 import 'dart:ui' as ui;
 import 'package:intl/intl.dart';

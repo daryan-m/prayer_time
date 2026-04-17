@@ -201,6 +201,24 @@ const Map<String, ThemePalette> appThemePalettes = {
     clockText: Color(0xFF2DD4BF),
     divider: Color(0xFF2DD4BF),
   ),
+
+  // ── ئەسمەری ──────────────────────────────────────
+  "مۆر": ThemePalette(
+    primary: Color(0xFFE879F9),
+    secondary: Color(0xFFF0ABFC),
+    glow: Color(0xFFD946EF),
+    icon: Color(0xFF820B94),
+    border: Color(0xFF701A75),
+    background: Color(0xFF8F36AD),
+    cardBg: Color(0xFFAB5AC2),
+    cardBgActive: Color(0xFF9900FF),
+    drawerBg: Color(0xFF120018),
+    drawerBorder: Color(0xFFE879F9),
+    headerText: Color(0xFFE879F9),
+    listText: Color(0xFFFAE8FF),
+    clockText: Color(0xFFE879F9),
+    divider: Color(0xFFE879F9),
+  ),
 };
 
 // بۆ بەکارهێنانی ئاسان لە drawer رادیۆبتن
