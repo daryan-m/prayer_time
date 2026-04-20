@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:http_parser/src/scan.dart';
 import 'dart:async';
 import 'dart:ui' as ui;
 import 'package:intl/intl.dart';
@@ -40,9 +39,9 @@ class _PrayerHomePageState extends State<PrayerHomePage>
   late AnimationController _sunController;
 
   DateTime _now = DateTime.now();
-  String currentCity = "سلێمانی";
+  String currentCity = "هەولێر";
   Set<String> activeAthans = {};
-  String selectedAthanFile = "bang.mp3";
+  String selectedAthanFile = "kwait.mp3";
   String selectedThemeName = "شین";
   Color primaryColor = const Color(0xFF22D3EE);
   ThemePalette _palette = getThemePalette("شین");
@@ -59,7 +58,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
     // جار ١ — placeholder بۆ یەکەم ئاینستال (شاری دیفۆڵت)
     // _initAppData تەواو بووین دووبارە نوێ دەکرێتەوە
     _prayerTimesFuture = _prayerDataService.getPrayerTimes(
-      currentCity, // "سلێمانی" — دیفۆڵت
+      currentCity, // "هەولێر" — دیفۆڵت
       DateTime.now(),
     );
 
@@ -110,8 +109,8 @@ class _PrayerHomePageState extends State<PrayerHomePage>
     final bool isFirstRun = prefs.getBool('hasLaunched') != true;
 
     setState(() {
-      currentCity = prefs.getString('selectedCity') ?? 'سلێمانی';
-      selectedAthanFile = prefs.getString('selected_sound') ?? 'bang.mp3';
+      currentCity = prefs.getString('selectedCity') ?? 'هەولێر';
+      selectedAthanFile = prefs.getString('selected_sound') ?? 'kwait.mp3';
       selectedThemeName = prefs.getString('selectedTheme') ?? 'شین';
       primaryColor = appThemes[selectedThemeName] ?? const Color(0xFF22D3EE);
       _palette = getThemePalette(selectedThemeName);
@@ -318,7 +317,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
               textAlign: TextAlign.center,
               style: TextStyle(color: Colors.white)),
           content: Text(
-            "وەشانی $version ئێستا بەردەستە، ئایا دەتەوێت نوێی بکەیتەوە؟ بەشى راوبۆچون و پێشنیار زیادکراوە، دیزاین باشتر کراوە.",
+            "وەشانی $version ئێستا بەردەستە،  ٢٣ شار بۆ٢٣ شارۆچکە بۆ لیستى شارەکان زیاد کراوە وەهەروەها تایبتمەندى وەستانى دەنگى بانگ لە نۆتیفیکەیشن زیادکراوە",
             textAlign: TextAlign.center,
             style: const TextStyle(color: Colors.white70),
           ),
@@ -370,7 +369,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
                 style: TextStyle(
                     color: Colors.white, fontWeight: FontWeight.bold)),
             content: const Text(
-              "تکایە لە ڕێکخستن مۆڵەتی \"ئینستاڵکردنی ئەپی نەناسراو\" بدە بە ئەپەکە، پاشان دووبارە هەوڵ بدەرەوە.",
+              "تکایە لە ڕێکخستن مۆڵەتی \"ئینستاڵکردنی ئەپ\" بدە بە ئەپەکە، پاشان دووبارە هەوڵ بدەرەوە.",
               style: TextStyle(color: Colors.white70),
               textAlign: TextAlign.center,
             ),

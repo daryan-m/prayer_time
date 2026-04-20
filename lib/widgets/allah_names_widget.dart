@@ -271,6 +271,8 @@ class _AllahNamesDialogState extends State<AllahNamesDialog> {
     final bool hasActive =
         _currentIndex >= 0 && _currentIndex < allahNames.length;
     final AllahName? active = hasActive ? allahNames[_currentIndex] : null;
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
 
     return Dialog(
       backgroundColor: Colors.transparent,
@@ -279,7 +281,7 @@ class _AllahNamesDialogState extends State<AllahNamesDialog> {
         constraints: BoxConstraints(
             maxHeight: MediaQuery.of(context).size.height * 0.82),
         decoration: BoxDecoration(
-          color: const Color(0xFF101A38),
+          color: colorScheme.surface,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: pc.withOpacity(0.7)),
           boxShadow: [
@@ -296,17 +298,18 @@ class _AllahNamesDialogState extends State<AllahNamesDialog> {
               child: Row(children: [
                 Icon(Icons.auto_awesome, color: pc, size: 16),
                 const SizedBox(width: 8),
-                const Text("٩٩ ناوی خوای گەورە",
+                Text("٩٩ ناوی خوای گەورە",
                     style: TextStyle(
-                        color: Colors.white,
+                        color: textTheme.bodyLarge?.color,
                         fontSize: 14,
                         fontWeight: FontWeight.bold)),
                 const Spacer(),
                 IconButton(
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
-                  icon:
-                      const Icon(Icons.close, color: Colors.white30, size: 20),
+                  icon: Icon(Icons.close,
+                      color: textTheme.bodyMedium?.color?.withOpacity(0.3),
+                      size: 20),
                   onPressed: () {
                     _autoTimer?.cancel();
                     _audioPlayer.stop();
@@ -420,8 +423,10 @@ class _AllahNamesDialogState extends State<AllahNamesDialog> {
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
-                                color:
-                                    isActive ? Colors.white70 : Colors.white54,
+                                color: isActive
+                                    ? Colors.white.withOpacity(0.7)
+                                    : textTheme.bodyMedium?.color
+                                        ?.withOpacity(0.54),
                                 fontSize: 9.5,
                               ),
                             ),
@@ -438,7 +443,7 @@ class _AllahNamesDialogState extends State<AllahNamesDialog> {
             Container(
               height: 1,
               margin: const EdgeInsets.symmetric(horizontal: 16),
-              color: Colors.white.withOpacity(0.09),
+              color: colorScheme.onSurface.withOpacity(0.09),
             ),
 
             // ── پەنجەی ئەکتیڤ — سپی سادە ──
@@ -533,9 +538,10 @@ class _AllahNamesDialogState extends State<AllahNamesDialog> {
               margin: const EdgeInsets.fromLTRB(14, 4, 14, 14),
               padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.04),
+                color: colorScheme.onSurface.withOpacity(0.04),
                 borderRadius: BorderRadius.circular(40),
-                border: Border.all(color: Colors.white.withOpacity(0.08)),
+                border:
+                    Border.all(color: colorScheme.onSurface.withOpacity(0.08)),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,

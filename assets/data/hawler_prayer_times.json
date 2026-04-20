@@ -1,6 +1,6 @@
 {
   "city": "هەولێر",
-  "source": "amozhgary.tv",
+  "source": "Bang Kurdistan",
   "months": [
     {
       "month": 1,
@@ -8,9 +8,9 @@
         {"day": 1, "fajr": "06:02", "sunrise": "07:21", "dhuhr": "12:16", "asr": "02:45", "maghrib": "05:06", "isha": "06:21"},
         {"day": 2, "fajr": "06:03", "sunrise": "07:21", "dhuhr": "12:16", "asr": "02:45", "maghrib": "05:06", "isha": "06:21"},
         {"day": 3, "fajr": "06:03", "sunrise": "07:21", "dhuhr": "12:17", "asr": "02:46", "maghrib": "05:07", "isha": "06:22"},
-        {"day": 4, "fajr": "06:02", "sunrise": "07:22", "dhuhr": "12:17", "asr": "02:46", "maghrib": "05:08", "isha": "06:23"},
-        {"day": 5, "fajr": "06:01", "sunrise": "07:22", "dhuhr": "12:17", "asr": "02:50", "maghrib": "05:09", "isha": "06:24"},
-        {"day": 6, "fajr": "06:01", "sunrise": "07:22", "dhuhr": "12:17", "asr": "02:50", "maghrib": "05:10", "isha": "06:25"},
+        {"day": 4, "fajr": "06:02", "sunrise": "07:21", "dhuhr": "12:17", "asr": "02:46", "maghrib": "05:08", "isha": "06:23"},
+        {"day": 5, "fajr": "06:01", "sunrise": "07:21", "dhuhr": "12:17", "asr": "02:50", "maghrib": "05:09", "isha": "06:24"},
+        {"day": 6, "fajr": "06:01", "sunrise": "07:21", "dhuhr": "12:17", "asr": "02:50", "maghrib": "05:10", "isha": "06:25"},
         {"day": 7, "fajr": "06:01", "sunrise": "07:21", "dhuhr": "12:20", "asr": "02:50", "maghrib": "05:11", "isha": "06:26"},
         {"day": 8, "fajr": "06:01", "sunrise": "07:21", "dhuhr": "12:20", "asr": "02:50", "maghrib": "05:12", "isha": "06:27"},
         {"day": 9, "fajr": "06:01", "sunrise": "07:21", "dhuhr": "12:20", "asr": "02:50", "maghrib": "05:13", "isha": "06:28"},
@@ -67,8 +67,9 @@
         {"day": 24, "fajr": "05:21", "sunrise": "06:46", "dhuhr": "12:26", "asr": "03:28", "maghrib": "05:59", "isha": "07:14"},
         {"day": 25, "fajr": "05:20", "sunrise": "06:45", "dhuhr": "12:26", "asr": "03:29", "maghrib": "06:00", "isha": "07:15"},
         {"day": 26, "fajr": "05:19", "sunrise": "06:43", "dhuhr": "12:26", "asr": "03:30", "maghrib": "06:01", "isha": "07:16"},
-        {"day": 27, "fajr": "05:18", "sunrise": "06:43", "dhuhr": "12:26", "asr": "03:30", "maghrib": "06:01", "isha": "07:16"},
-        {"day": 28, "fajr": "05:17", "sunrise": "06:41", "dhuhr": "12:26", "asr": "03:31", "maghrib": "06:02", "isha": "07:17"}
+        {"day": 27, "fajr": "05:18", "sunrise": "06:42", "dhuhr": "12:26", "asr": "03:30", "maghrib": "06:01", "isha": "07:16"},
+        {"day": 28, "fajr": "05:17", "sunrise": "06:41", "dhuhr": "12:26", "asr": "03:31", "maghrib": "06:02", "isha": "07:17"},
+        {"day": 29, "fajr": "05:17", "sunrise": "06:41", "dhuhr": "12:26", "asr": "03:31", "maghrib": "06:02", "isha": "07:17"}
       ]
     },
     {
@@ -91,7 +92,7 @@
         {"day": 15, "fajr": "04:52", "sunrise": "06:20", "dhuhr": "12:23", "asr": "03:39", "maghrib": "06:15", "isha": "07:30"},
         {"day": 16, "fajr": "04:50", "sunrise": "06:19", "dhuhr": "12:20", "asr": "03:39", "maghrib": "06:16", "isha": "07:31"},
         {"day": 17, "fajr": "04:49", "sunrise": "06:18", "dhuhr": "12:20", "asr": "03:39", "maghrib": "06:16", "isha": "07:31"},
-        {"day": 18, "fajr": "04:48", "sunrise": "06:18", "dhuhr": "12:20", "asr": "03:40", "maghrib": "06:17", "isha": "07:32"},
+        {"day": 18, "fajr": "04:48", "sunrise": "06:17", "dhuhr": "12:20", "asr": "03:40", "maghrib": "06:17", "isha": "07:32"},
         {"day": 19, "fajr": "04:47", "sunrise": "06:16", "dhuhr": "12:20", "asr": "03:40", "maghrib": "06:18", "isha": "07:33"},
         {"day": 20, "fajr": "04:46", "sunrise": "06:15", "dhuhr": "12:20", "asr": "03:40", "maghrib": "06:19", "isha": "07:34"},
         {"day": 21, "fajr": "04:45", "sunrise": "06:14", "dhuhr": "12:20", "asr": "03:41", "maghrib": "06:20", "isha": "07:35"},
@@ -156,7 +157,7 @@
         {"day": 9, "fajr": "03:36", "sunrise": "05:13", "dhuhr": "12:10", "asr": "03:56", "maghrib": "07:02", "isha": "08:17"},
         {"day": 10, "fajr": "03:35", "sunrise": "05:12", "dhuhr": "12:10", "asr": "03:56", "maghrib": "07:03", "isha": "08:18"},
         {"day": 11, "fajr": "03:34", "sunrise": "05:11", "dhuhr": "12:10", "asr": "03:56", "maghrib": "07:04", "isha": "08:19"},
-        {"day": 12, "fajr": "03:33", "sunrise": "05:10", "dhuhr": "12:10", "asr": "03:56", "maghrib": "07:04", "isha": "08:19"},
+        {"day": 12, "fajr": "03:33", "sunrise": "05:10", "dhuhr": "12:09", "asr": "03:56", "maghrib": "07:04", "isha": "08:19"},
         {"day": 13, "fajr": "03:32", "sunrise": "05:09", "dhuhr": "12:09", "asr": "03:56", "maghrib": "07:05", "isha": "08:20"},
         {"day": 14, "fajr": "03:31", "sunrise": "05:08", "dhuhr": "12:09", "asr": "03:56", "maghrib": "07:06", "isha": "08:21"},
         {"day": 15, "fajr": "03:30", "sunrise": "05:07", "dhuhr": "12:09", "asr": "03:58", "maghrib": "07:07", "isha": "08:22"},
@@ -195,7 +196,7 @@
         {"day": 12, "fajr": "03:15", "sunrise": "04:59", "dhuhr": "12:15", "asr": "04:04", "maghrib": "07:25", "isha": "08:40"},
         {"day": 13, "fajr": "03:15", "sunrise": "05:00", "dhuhr": "12:15", "asr": "04:05", "maghrib": "07:26", "isha": "08:41"},
         {"day": 14, "fajr": "03:15", "sunrise": "05:00", "dhuhr": "12:15", "asr": "04:05", "maghrib": "07:26", "isha": "08:41"},
-        {"day": 15, "fajr": "03:15", "sunrise": "05:00", "dhuhr": "12:16", "asr": "04:05", "maghrib": "07:27", "isha": "08:42"},
+        {"day": 15, "fajr": "03:15", "sunrise": "05:00", "dhuhr": "12:15", "asr": "04:05", "maghrib": "07:27", "isha": "08:42"},
         {"day": 16, "fajr": "03:16", "sunrise": "05:00", "dhuhr": "12:16", "asr": "04:05", "maghrib": "07:27", "isha": "08:42"},
         {"day": 17, "fajr": "03:16", "sunrise": "05:00", "dhuhr": "12:16", "asr": "04:05", "maghrib": "07:27", "isha": "08:42"},
         {"day": 18, "fajr": "03:16", "sunrise": "05:00", "dhuhr": "12:16", "asr": "04:05", "maghrib": "07:28", "isha": "08:43"},
@@ -221,7 +222,7 @@
         {"day": 3, "fajr": "03:21", "sunrise": "05:03", "dhuhr": "12:20", "asr": "04:08", "maghrib": "07:29", "isha": "08:44"},
         {"day": 4, "fajr": "03:22", "sunrise": "05:03", "dhuhr": "12:20", "asr": "04:08", "maghrib": "07:28", "isha": "08:43"},
         {"day": 5, "fajr": "03:22", "sunrise": "05:04", "dhuhr": "12:21", "asr": "04:09", "maghrib": "07:28", "isha": "08:43"},
-        {"day": 6, "fajr": "03:23", "sunrise": "05:04", "dhuhr": "12:21", "asr": "04:09", "maghrib": "07:28", "isha": "08:43"},
+        {"day": 6, "fajr": "03:23", "sunrise": "05:04", "dhuhr": "12:20", "asr": "04:09", "maghrib": "07:28", "isha": "08:43"},
         {"day": 7, "fajr": "03:23", "sunrise": "05:05", "dhuhr": "12:21", "asr": "04:09", "maghrib": "07:28", "isha": "08:43"},
         {"day": 8, "fajr": "03:24", "sunrise": "05:05", "dhuhr": "12:22", "asr": "04:09", "maghrib": "07:28", "isha": "08:43"},
         {"day": 9, "fajr": "03:24", "sunrise": "05:05", "dhuhr": "12:22", "asr": "04:09", "maghrib": "07:28", "isha": "08:43"},

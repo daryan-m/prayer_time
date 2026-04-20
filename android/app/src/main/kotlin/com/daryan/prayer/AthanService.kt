@@ -23,6 +23,7 @@ class AthanService : Service() {
         const val EXTRA_SOUND  = "sound_file"
         const val EXTRA_PRAYER = "prayer_name"
         const val TAG          = "AthanService"
+        const val ACTION_STOP  = "STOP_ATHAN"
     }
 
     private var mediaPlayer: MediaPlayer? = null
@@ -37,7 +38,13 @@ class AthanService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        val soundFile  = intent?.getStringExtra(EXTRA_SOUND)  ?: "bang"
+        // ── ئەگەر دوگمەی دابخە کلیک کرا ──
+        if (intent?.action == ACTION_STOP) {
+            stopSelf()
+            return START_NOT_STICKY
+        }
+
+        val soundFile  = intent?.getStringExtra(EXTRA_SOUND)  ?: "kwait"
         val prayerName = intent?.getStringExtra(EXTRA_PRAYER) ?: "بانگ"
 
         // ── WakeLock: مۆبایل خەو نەبێت لە کاتی بانگ ──
@@ -47,7 +54,7 @@ class AthanService : Service() {
             "AthanApp::AthanWakeLock"
         ).also { it.acquire(10 * 60 * 1000L) }
 
-        // ── Foreground: ServiceCompat بۆ Android 14+ (پێویستترین ڕێگا) ──
+        // ── Foreground: ServiceCompat بۆ Android 14+ ──
         val notif = buildNotification(prayerName)
         ServiceCompat.startForeground(
             this,
@@ -56,7 +63,7 @@ class AthanService : Service() {
             ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK
         )
 
-        // ── AudioFocus: AUDIOFOCUS_GAIN (نەک TRANSIENT) ──
+        // ── AudioFocus ──
         requestAudioFocus()
 
         // ── Volume: alarm channel بە max ──
@@ -96,7 +103,6 @@ class AthanService : Service() {
 
     private fun playSound(soundFile: String) {
         try {
-            // ناوی فایل بەبێ .mp3 — res/raw/ دا دانراوە
             val cleanName = soundFile.replace(".mp3", "").lowercase().replace(" ", "_")
             val resId = resources.getIdentifier(cleanName, "raw", packageName)
             if (resId == 0) {
@@ -141,15 +147,26 @@ class AthanService : Service() {
             this, 0, intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
+
+        // ── دوگمەی دابخە ──
+        val stopIntent = Intent(this, AthanService::class.java).apply {
+            action = ACTION_STOP
+        }
+        val stopPi = PendingIntent.getService(
+            this, 1, stopIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.ic_lock_silent_mode_off)
             .setContentTitle("کاتی بانگی $prayerName")
-            .setContentText("ئێستا کاتی بانگەیە")
+            .setContentText("ئێستا کاتی بانگە")
             .setContentIntent(pi)
             .setPriority(NotificationCompat.PRIORITY_MAX)
             .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setOngoing(true)
+            .addAction(android.R.drawable.ic_delete, "دابخە", stopPi)
             .build()
     }
 
@@ -161,8 +178,8 @@ class AthanService : Service() {
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
                 description = "کەناڵی سێرڤیسی دەنگی بانگ"
-                setSound(null, null)      // دەنگ لە MediaPlayer دێت نەک کەناڵەوە
-                setBypassDnd(true)        // DND bypass
+                setSound(null, null)
+                setBypassDnd(true)
                 enableVibration(false)
                 lockscreenVisibility = Notification.VISIBILITY_PUBLIC
             }
