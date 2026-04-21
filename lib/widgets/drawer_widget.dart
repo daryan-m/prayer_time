@@ -413,6 +413,67 @@ class _PrayerDrawerState extends State<PrayerDrawer> {
             "ئەم ئەپلیکەیشنە تایبەتە بە کاتى بانگى شارو شارۆچکەکانى هەرێمى کوردستان.",
             style: TextStyle(color: pal.listText, fontSize: 13, height: 1.5)),
         const SizedBox(height: 15),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.info_outline, color: pal.primary, size: 16),
+                const SizedBox(width: 8),
+                RichText(
+                  text: TextSpan(
+                    style: TextStyle(
+                      color: pal.listText.withOpacity(0.7),
+                      fontSize: 14,
+                    ),
+                    children: const [
+                      TextSpan(text: "📚"),
+                      TextSpan(text: "سەرچاوەکان و ئاماژە "),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            InkWell(
+              onTap: () async {
+                final Uri url = Uri.parse('https://github.com');
+                if (!await launchUrl(
+                  url,
+                  mode: LaunchMode.externalApplication,
+                )) {
+                  debugPrint("کێشەیەک هەیە");
+                }
+              },
+              child: const Text(
+                "Bang Kurdistan Repository — GitHub",
+                style: TextStyle(
+                  color: Colors.blue,
+                  decoration: TextDecoration.underline,
+                ),
+              ),
+            ),
+            const SizedBox(height: 4),
+            InkWell(
+              onTap: () async {
+                final Uri url = Uri.parse('https://tanzil.net');
+                if (!await launchUrl(
+                  url,
+                  mode: LaunchMode.externalApplication,
+                )) {
+                  debugPrint("کێشەیەک هەیە");
+                }
+              },
+              child: const Text(
+                "Tanzil Project — Tanzil.net",
+                style: TextStyle(
+                  color: Colors.blue,
+                  decoration: TextDecoration.underline,
+                ),
+              ),
+            ),
+          ],
+        ),
         Row(children: [
           Icon(Icons.label_outline, color: pal.primary, size: 16),
           const SizedBox(width: 8),
