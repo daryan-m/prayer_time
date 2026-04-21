@@ -635,14 +635,30 @@ class _PrayerHomePageState extends State<PrayerHomePage>
           .replaceAllMapped(
               RegExp(r'[٠-٩]'),
               (m) => {
-                    '٠': '0', '١': '1', '٢': '2', '٣': '3', '٤': '4',
-                    '٥': '5', '٦': '6', '٧': '7', '٨': '8', '٩': '9',
+                    '٠': '0',
+                    '١': '1',
+                    '٢': '2',
+                    '٣': '3',
+                    '٤': '4',
+                    '٥': '5',
+                    '٦': '6',
+                    '٧': '7',
+                    '٨': '8',
+                    '٩': '9',
                   }[m.group(0)]!)
           .replaceAllMapped(
               RegExp(r'[۰-۹]'),
               (m) => {
-                    '۰': '0', '۱': '1', '۲': '2', '۳': '3', '۴': '4',
-                    '۵': '5', '۶': '6', '۷': '7', '۸': '8', '۹': '9',
+                    '۰': '0',
+                    '۱': '1',
+                    '۲': '2',
+                    '۳': '3',
+                    '۴': '4',
+                    '۵': '5',
+                    '۶': '6',
+                    '۷': '7',
+                    '۸': '8',
+                    '۹': '9',
                   }[m.group(0)]!)
           .trim();
 
@@ -654,10 +670,14 @@ class _PrayerHomePageState extends State<PrayerHomePage>
 
       if ((cleanTime.contains("د.ن") ||
               cleanTime.toUpperCase().contains("PM")) &&
-          hour < 12) hour += 12;
+          hour < 12) {
+        hour += 12;
+      }
       if ((cleanTime.contains("پ.ن") ||
               cleanTime.toUpperCase().contains("AM")) &&
-          hour == 12) hour = 0;
+          hour == 12) {
+        hour = 0;
+      }
 
       final now = DateTime.now();
       DateTime scheduledDate =
@@ -733,6 +753,9 @@ class _PrayerHomePageState extends State<PrayerHomePage>
             appBar: _buildAppBar(),
             drawerEnableOpenDragGesture: true,
             drawerEdgeDragWidth: 50,
+            bottomNavigationBar: MediaQuery.of(context).size.width <= 600
+                ? _buildBottomBar(context)
+                : null,
             drawer: PrayerDrawer(
               currentCity: currentCity,
               onCityChanged: (city) {
@@ -877,52 +900,58 @@ class _PrayerHomePageState extends State<PrayerHomePage>
     );
   }
 
-  // ── ئایکۆنەکانی خوارەوە ───────────────────────────
-  Widget _buildBottomIcons(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-      decoration: BoxDecoration(
-        border: Border(
-            top: BorderSide(color: _palette.secondary.withOpacity(0.2))),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _buildBottomIcon(
-            icon: Icons.menu_book_rounded,
-            label: "قورئان",
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => QuranScreen(
-                  primaryColor: primaryColor,
-                  palette: _palette,
+  // ── بارێکی خوارەوە (ستانداردی Flutter) ──────────
+  Widget _buildBottomBar(BuildContext context) {
+    return SafeArea(
+      child: Container(
+        height: 64,
+        decoration: BoxDecoration(
+          color: _palette.background,
+          border: Border(
+            top: BorderSide(color: _palette.secondary.withOpacity(0.25)),
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _buildBottomIcon(
+              icon: Icons.menu_book_rounded,
+              label: "قورئان",
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => QuranScreen(
+                    primaryColor: primaryColor,
+                    palette: _palette,
+                  ),
                 ),
               ),
             ),
-          ),
-          _buildBottomIcon(
-            icon: Icons.grain,
-            label: "تەسبیح",
-            onTap: () => showDialog(
-              context: context,
-              builder: (_) => TasbihDialog(primaryColor: primaryColor),
+            _buildBottomIcon(
+              icon: Icons.grain,
+              label: "تەسبیح",
+              onTap: () => showDialog(
+                context: context,
+                builder: (_) => TasbihDialog(primaryColor: primaryColor),
+              ),
             ),
-          ),
-          _buildBottomIcon(
-            icon: Icons.auto_awesome,
-            label: "ناوی خوا",
-            onTap: () => showDialog(
-              context: context,
-              builder: (_) => AllahNamesDialog(primaryColor: primaryColor),
+            _buildBottomIcon(
+              icon: Icons.auto_awesome,
+              label: "ناوی خوا",
+              onTap: () => showDialog(
+                context: context,
+                builder: (_) => AllahNamesDialog(primaryColor: primaryColor),
+              ),
             ),
-          ),
-          _buildBottomIcon(
-            icon: Icons.tune_rounded,
-            label: "ڕێکخستن",
-            onTap: () => Scaffold.of(context).openDrawer(),
-          ),
-        ],
+            Builder(
+              builder: (ctx) => _buildBottomIcon(
+                icon: Icons.tune_rounded,
+                label: "ڕێکخستن",
+                onTap: () => Scaffold.of(ctx).openDrawer(),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

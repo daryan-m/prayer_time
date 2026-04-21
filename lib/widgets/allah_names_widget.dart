@@ -276,7 +276,7 @@ class _AllahNamesDialogState extends State<AllahNamesDialog> {
 
     return Dialog(
       backgroundColor: Colors.transparent,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 26),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 22),
       child: Container(
         constraints: BoxConstraints(
             maxHeight: MediaQuery.of(context).size.height * 0.82),

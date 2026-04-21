@@ -1,3 +1,6 @@
+import 'package:bang/widgets/allah_names_widget.dart';
+import 'package:bang/widgets/date_converter_widget.dart';
+import 'package:bang/widgets/tasbih_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:vibration/vibration.dart';
 import 'package:audioplayers/audioplayers.dart';
@@ -6,12 +9,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:hijri/hijri_calendar.dart';
 import '../utils/constants.dart';
 import '../services/prayer_service.dart';
-import 'allah_names_widget.dart';
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:http/http.dart' as http;
-import 'tasbih_widget.dart';
-import 'date_converter_widget.dart';
 
 // ==================== DRAWER ====================
 
@@ -226,93 +226,8 @@ class _PrayerDrawerState extends State<PrayerDrawer> {
                       },
                     ),
                     _divider(pal),
-                    // ── دەربارە — ئێستا وەک دیالۆگ ──
-                    ListTile(
-                      leading: Icon(Icons.info_outline,
-                          color: pal.primary, size: 22),
-                      title: Text("دەربارە",
-                          style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: pal.listText)),
-                      trailing: Icon(Icons.arrow_forward_ios,
-                          color: pal.listText.withOpacity(0.4), size: 14),
-                      onTap: () => showDialog(
-                        context: context,
-                        barrierDismissible: true,
-                        builder: (ctx) => Dialog(
-                          backgroundColor: Colors.transparent,
-                          insetPadding: const EdgeInsets.only(
-                            left: 20,
-                            right: 20,
-                            top: 40,
-                            bottom: 40,
-                          ),
-                          child: Container(
-                            constraints: BoxConstraints(
-                              maxHeight: MediaQuery.of(ctx).size.height * 0.85,
-                            ),
-                            decoration: BoxDecoration(
-                              color: pal.drawerBg,
-                              borderRadius: BorderRadius.circular(24),
-                              border: Border.all(
-                                  color: pal.primary.withOpacity(0.3),
-                                  width: 1.5),
-                            ),
-                            padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    GestureDetector(
-                                      onTap: () => Navigator.pop(ctx),
-                                      child: Icon(Icons.close,
-                                          color: pal.listText.withOpacity(0.5),
-                                          size: 20),
-                                    ),
-                                    Text("دەربارە",
-                                        style: TextStyle(
-                                            color: pal.listText,
-                                            fontSize: 15,
-                                            fontWeight: FontWeight.bold)),
-                                    Icon(Icons.info_outline,
-                                        color: pal.primary, size: 24),
-                                  ],
-                                ),
-                                const SizedBox(height: 20),
-                                _buildAboutContent(pal),
-                                const SizedBox(height: 20),
-                                SizedBox(
-                                  width: double.infinity,
-                                  child: ElevatedButton(
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor:
-                                          pal.primary.withOpacity(0.15),
-                                      foregroundColor: pal.primary,
-                                      side: BorderSide(
-                                          color: pal.primary.withOpacity(0.4)),
-                                      shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(14)),
-                                      padding: const EdgeInsets.symmetric(
-                                          vertical: 14),
-                                    ),
-                                    onPressed: () => Navigator.pop(ctx),
-                                    child: const Text("داخستن",
-                                        style: TextStyle(
-                                            fontSize: 15,
-                                            fontWeight: FontWeight.bold)),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
+                    _buildExpansionTile(Icons.info_outline, "دەربارە", pal,
+                        [_buildAboutContent(pal)]),
                     _divider(pal),
                     ListTile(
                       leading: Icon(Icons.feedback_outlined,
@@ -468,8 +383,10 @@ class _PrayerDrawerState extends State<PrayerDrawer> {
           insetPadding: EdgeInsets.only(
             left: 20,
             right: 20,
-            top: 40,
-            bottom: MediaQuery.of(ctx).viewInsets.bottom > 0 ? 10 : 40,
+            top: 40, // ئەمە وەک خۆی دەهێڵێتەوە تا دراوەرەکە نەشارێتەوە
+            bottom: MediaQuery.of(ctx).viewInsets.bottom > 0
+                ? 10
+                : 40, // کاتێک کیبۆرد هەبوو، بۆشایی خوارەوە کەم دەکاتەوە تا دوگمەکە دەرکەوێت
           ),
           child: Container(
             constraints: BoxConstraints(
@@ -535,6 +452,8 @@ class _PrayerDrawerState extends State<PrayerDrawer> {
                           ],
                         ),
                         const SizedBox(height: 16),
+
+                        // ── نرخاندن ──
                         Text("ئەم ئەپڵیکەیشنە چۆن ئەبینیت؟",
                             style: TextStyle(
                                 color: pal.listText.withOpacity(0.7),
@@ -581,7 +500,10 @@ class _PrayerDrawerState extends State<PrayerDrawer> {
                             );
                           }).toList(),
                         ),
+
                         const SizedBox(height: 16),
+
+                        // ── تێکستی راوبۆچوون ──
                         TextField(
                           controller: feedbackCtrl,
                           maxLines: 4,
@@ -611,7 +533,10 @@ class _PrayerDrawerState extends State<PrayerDrawer> {
                             ),
                           ),
                         ),
+
                         const SizedBox(height: 16),
+
+                        // ── دوگمەی ناردن ──
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(
@@ -631,7 +556,9 @@ class _PrayerDrawerState extends State<PrayerDrawer> {
                                         feedbackCtrl.text.trim().isEmpty) {
                                       return;
                                     }
+
                                     setDlgState(() => isSending = true);
+
                                     try {
                                       await http.post(
                                         Uri.parse(

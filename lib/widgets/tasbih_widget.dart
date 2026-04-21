@@ -212,7 +212,7 @@ class _TasbihDialogState extends State<TasbihDialog>
 
     return Dialog(
       backgroundColor: Colors.transparent,
-      insetPadding: const EdgeInsets.all(16),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 22),
       child: Container(
         width: double.infinity,
         constraints: BoxConstraints(

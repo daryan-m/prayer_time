@@ -41,6 +41,7 @@ flutter:
     - assets/images/
     - assets/data/
     - assets/audio/allah_names/
+    - assets/quran/
   fonts:
     - family: NotoNaskh
       fonts:

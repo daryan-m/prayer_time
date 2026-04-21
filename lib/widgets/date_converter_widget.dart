@@ -1018,7 +1018,7 @@ class _DateConverterDialogState extends State<DateConverterDialog>
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20)),
                   padding:
-                      const EdgeInsets.symmetric(vertical: 8, horizontal: 14),
+                      const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
                   minimumSize: Size.zero,
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),

@@ -1,74 +1,51 @@
-# 🕌 ئەپی کاتەکانی بانگ بۆ کوردستان
+# 🕌 Prayer Times — Bang Kurdistan (Bilingual README)
 
-ئەپێکی تەواو بۆ پیشاندانی کاتەکانی بانگ لە پێنجوێن و سلێمانی بە ئۆفلاین.
-
----
-
-## ✨ تایبەتمەندییەکان
-
-✅ **کاتەکانی بانگ بە ئۆفلاین** - داتا لە JSON فایلەکانەوە
-✅ **دوو شار** - پێنجوێن و سلێمانی
-✅ **کاتژمێری زیندوو** - هەر چرکەیەک نوێ دەبێتەوە
-✅ **سێ بەروار:**
-   - بەروارى کۆچى (لە JSON)
-   - بەروارى میلادى (بە فۆرماتى /)
-   - بەروارى کوردى (بە حیسابی +625)
-✅ **٣ دەنگی جیاواز بۆ بانگ:**
-   - بانگى مەککە
-   - بانگی مەدینە
-   - بانگی کوەیت
-✅ **ئاگادارکردنەوە** - لە کاتی داخراندا بانگ دەدات
-✅ **پشکنینی ئەپدەیت** - هەر ٢٤ کاتژمێر جارێک
-✅ **Responsive Design** - بۆ هەموو شاشەیەک
+English | Kurdish (کوردی)
 
 ---
 
-## 📂 پێکهاتەی پرۆژە
+## About — دەربارە
 
-```
-lib/
-├── main.dart                   # دەستپێکردنی ئەپ
-├── screens/
-│   └── home_screen.dart       # پەڕەی سەرەکی
-├── widgets/
-│   ├── prayer_widgets.dart    # کارتەکان، کاتژمێر، بەروار
-│   └── drawer_widget.dart     # Drawer
-├── services/
-│   └── prayer_service.dart    # خوێندنەوەی JSON + تایمەکان
-└── utils/
-    └── constants.dart         # ڕەنگ، data، بەراوردکردنی وەشان
+This project is a lightweight Flutter app that displays daily prayer (adhan) times for two cities (Penjwen and Sulaymaniyah) using offline JSON data. The app includes notification scheduling, selectable athan sounds, and date formats (Gregorian, Hijri, and a Kurdish year offset).
 
-assets/
-├── data/
-│   ├── penjwen_time.json      # کاتەکانی پێنجوێن (٣٦٦ ڕۆژ)
-│   └── prayer_time.json       # کاتەکانی سلێمانی (٣٦٦ ڕۆژ)
-└── audio/
-    ├── bang.mp3         # دەنگی یەکەم
-    ├── madina.mp3             # دەنگی دووەم
-    └── kwait.mp3              # دەنگی سێیەم
-```
+ئەم پرۆژەیە ئەپێکی Flutter-ە و کاتەکانی بانگ (ئاذان) بۆ دوو شار — پێنجوێن و سلێمانی — پیشان دەدات بە بەکارهێنانی داتای ئۆفلاین لە فایلی JSON دا. ئەپەکە ئاگادارکردن، هەڵبژاردنی دەنگ، و فۆرماتەکانی بەروار (میلادی، کۆچی، و ساڵی کوردی) پشتیوانی دەکات.
 
 ---
 
-## 🚀 چۆنیەتی دامەزراندن
+## Key Features — تایبەتمەندییە سەرەکییەکان
 
-### ١. **پێداویستییەکان:**
-```bash
-flutter --version  # Flutter 3.0+
-```
+- Offline prayer times from JSON files.
+- Two cities: Penjwen and Sulaymaniyah.
+- Live clock and daily schedules.
+- Multiple date formats: Gregorian, Hijri, Kurdish (year +625).
+- Three selectable athan sounds.
+- Local notifications for adhan times.
+- Automatic update-check (polls `version.json` every 24 hours).
 
-### ٢. **دابەزاندنی پرۆژە:**
+- داتای بانگ بە شێوەی ئۆفلاین (JSON).
+- دوو شار: پێنجوێن و سلێمانی.
+- کاتژمێر زیندوو و خشتەی ڕۆژانە.
+- فۆرماتەکانی بەروار: میلادی، کۆچی، ساڵی کوردی (+625).
+- ٣ دەنگی هەڵبژێردراو.
+- ئاگادارکردن بۆ کاتەکانی بانگ.
+- پشکنینی ئاپدەیت هەر ٢٤ کاتژمێر.
+
+---
+
+## Installation — دامەزراندن
+
+Requirements: Flutter 3.0+
+
+Clone and install:
+
 ```bash
 git clone https://github.com/daryan-m/prayer_time.git
 cd prayer_time
-```
-
-### ٣. **دامەزراندنی پاکێجەکان:**
-```bash
 flutter pub get
 ```
 
-### ٤. **زیادکردنی فایلە دەنگییەکان:**
+Add audio assets to `assets/audio/`:
+
 ```
 assets/audio/
 ├── macca.mp3
@@ -76,197 +53,93 @@ assets/audio/
 └── kwait.mp3
 ```
 
-⚠️ **گرنگ:** دەنگەکان دەبێت لە فۆڵدەری `assets/audio/` دابنرێن!
+Run:
 
-### ٥. **جێبەجێکردن:**
 ```bash
-# بۆ ئەندرۆید
+# Android
 flutter run
 
-# بۆ دروستکردنی APK
+# Build APK
 flutter build apk --release
 
-# بۆ دروستکردنی App Bundle
+# Build App Bundle
 flutter build appbundle --release
 ```
 
 ---
 
-## 📦 پاکێجەکان
+## Files & Structure — پێکهاتە و فایلەکان
 
-لە `pubspec.yaml`:
+Main folders:
 
-```yaml
-dependencies:
-  intl: ^0.19.0                           # بەروار و فۆرماتکردن
-  hijri: ^3.0.0                           # بەرواری کۆچی
-  timezone: ^0.9.2                        # کاتەکان
-  audioplayers: ^5.2.1                    # لێدانی دەنگ
-  flutter_local_notifications: ^16.3.0    # ئاگادارکردنەوە
-  http: ^1.1.2                            # پشکنینی ئەپدەیت
-  url_launcher: ^6.2.2                    # کردنەوەی لینکەکان
-  ota_update: ^6.0.0                      # نوێکردنەوەی ئەپ
 ```
+lib/
+├── main.dart
+├── screens/
+├── widgets/
+├── services/      # JSON loading, time calculations
+└── utils/
 
-زیادکردن:
-```bash
-flutter pub add intl hijri timezone audioplayers flutter_local_notifications http url_launcher ota_update
+assets/
+├── data/          # prayer time JSON files
+└── audio/         # athan mp3 files
 ```
 
 ---
 
-## 🔄 سیستەمی ئەپدەیت
+## Attribution & Data Sources — سەرچاوەکان و ئاماژە
 
-### چۆن کاردەکات:
+- Prayer times data: Bang Kurdistan repository — https://github.com/Bang-Kurdistan
+- Qur'an text used for the app's Quran section: Tanzil — https://tanzil.net/
 
-1. **ئەپەکە** هەر ٢٤ کاتژمێر جارێک پشکنین دەکات
-2. **فایلی `version.json`** لە GitHub دەخوێنێتەوە:
-   ```json
-   {
-     "version": "1.0.1",
-     "url": "https://github.com/daryan-m/prayer_time/releases/download/v1.0.1/prayer_app.apk"
-   }
-   ```
-3. **بەراوردکردن:** ئەگەر وەشانی نوێ > وەشانی ئێستا
-4. **پەیامی نوێکردنەوە** پیشان دەدات
+Use of prayer times data and Qur'anic text in this project is permitted only with clear attribution to their original sources listed above. If you redistribute or reuse the data or text, include a reference to these sources.
 
-### چۆنیەتی دانانی وەشانی نوێ:
+- داتای کاتەکانی بانگ: Bang-Kurdistan — https://github.com/Bang-Kurdistan
+- دەقەکانی قورئان بۆ بەشەکانی قورئان: Tanzil — https://tanzil.net/
 
-**لە GitHub:**
-
-1. **دروستکردنی APK:**
-   ```bash
-   flutter build apk --release
-   ```
-
-2. **دروستکردنی Release لە GitHub:**
-   - بڕۆ بۆ: `Releases` > `Create new release`
-   - Tag: `v1.0.1`
-   - Upload: `app-release.apk`
-
-3. **نوێکردنەوەی `version.json`:**
-   ```json
-   {
-     "version": "1.0.1",
-     "url": "https://github.com/daryan-m/prayer_time/releases/download/v1.0.1/prayer_app.apk"
-   }
-   ```
-
-4. **Commit & Push:**
-   ```bash
-   git add version.json
-   git commit -m "Update version to 1.0.1"
-   git push
-   ```
-
-✅ **ئێستا بەکارهێنەران پەیامی ئەپدەیت دەبینن!**
+بەکارهێنانی داتا و دەقەکان تەنها بە ئاماژەدان بە سەرچاوەکانی سەرەوە ڕێگەپێدراوە. هەر کاتێک دیتا یان دەقەکان دوبارە بەکاربهێنیت، تکایە ئەم ئاماژەیە هەبێت.
 
 ---
 
-## 📱 تایبەتمەندییە تایبەتەکان
+## Licensing & Permissions — ماف وڕێگا
 
-### ١. **کاتەکانی بانگ لە JSON:**
-```dart
-// لە prayer_service.dart
-Future<PrayerTimes> getPrayerTimes(String city, DateTime date) async {
-  String fileName = city == "پێنجوێن"
-      ? "penjwen_time.json"
-      : "prayer_time.json";
+This project is released under the MIT License (see the repository `LICENSE`).
 
-  String jsonString = await rootBundle.loadString('assets/data/$fileName');
-  // ...
-}
-```
+Permissions and expectations:
 
-### ٢. **بەرواری کوردی:**
-```dart
-// لە prayer_service.dart
-String kurdishDateString(DateTime dt) {
-  int kurdishYear = dt.year + 625;
-  final months = ["خاکەلێوە", "گوڵان", ...];
-  return "${dt.day}ی ${months[dt.month-1]} $kurdishYear";
-}
-```
+- The app itself is free to use.
+- You may use the project code without modification; if you redistribute or publish binaries, include attribution to this project and to the data sources above.
+- Use of prayer times data (Bang-Kurdistan) and Qur'an text (Tanzil) must always include attribution to their respective sources.
 
-### ٣. **هەڵبژاردنی دەنگ:**
-```dart
-// لە home_screen.dart
-Future<void> _scheduleAthanBackground(...) async {
-  String soundFileName = selectedAthanFile.replaceAll('.mp3', '');
-  // بەکارهێنانی دەنگی هەڵبژێردراو
-}
-```
-
-### ٤. **بەراوردکردنی وەشان:**
-```dart
-// لە constants.dart
-bool isNewerVersion(String current, String newVer) {
-  // بەراوردکردنی "1.0.0" لەگەڵ "1.0.1"
-  // ئەگەر newVer > current → true
-}
-```
+- ئەم پرۆژەیە لە ژێر مافنامەی MIT ئازاد کراوە.
+- ئەپەکە بۆ بەکارهێنەرەکان بەخۆڕاییە.
+- دەتوانیت کۆدی پرۆژە بەبێ دەستکاری بەکاربهێنی؛ بەڵام هەروەها گەر داتای پرۆژە یان نەرمەکاڵاەکان دوبارە بەدابنێیت، تکایە ئاماژە بدە بە ئەسڵی پرۆژە و سەرچاوەکانی داتاکان.
 
 ---
 
-## 🐛 چارەسەری کێشەکان
+## Disclaimer — ئاگاداری/ڕەخنە
 
-### کێشە: JSON بارنابێت
-```bash
-flutter clean
-flutter pub get
-flutter run
-```
+This project is provided "as is". The authors and contributors are not responsible for any damages or losses resulting from the use of this software or from inaccurate prayer times. Users should verify critical timings from authoritative local sources when necessary.
 
-### کێشە: دەنگ نایە
-- دڵنیابە فایلەکان لە `assets/audio/` دایە
-- لە `pubspec.yaml` چک بکە:
-  ```yaml
-  assets:
-    - assets/audio/
-  ```
-
-### کێشە: Notification کارناکات
-```dart
-// لە AndroidManifest.xml
-<uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
-<uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
-```
-
-### کێشە: OTA Update کارناکات
-```dart
-// لە AndroidManifest.xml
-<uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES"/>
-```
+ئەم پرۆژەیە بە "وەکە" پێشکەش دەکرێت. نووسەر و بەشداریبەران لەسەر هەر زیان یان کێشانەوەیەک کە ڕەخنە بکات بۆ بەکارهێنانی ئەم سەرچاوە یان نادروستیی کاتەکان، بەرپرسیار نییە. دەستکاریکردن یان دیاریکردنی کاتە گرنگەکان لە سەرچاوەی ناوخۆیی راستەقینە پێویستە.
 
 ---
 
-## 📸 Screenshot-ەکان
+## Contribution — بەشداریکردن
 
-```
-[شاشەی سەرەکی]    [Drawer]    [Notification]
-```
+Contributions are welcome. Please open issues or pull requests on the main repository. Maintain attribution for data sources when modifying or extending data-related features.
 
 ---
 
-## 🤝 بەشداریکردن
+## Contact — پەیوەندی
 
-بەخێرهاتن! Pull Request بنێرە یان Issue دروست بکە.
-
----
-
-## 📞 پەیوەندی
-
-- **YouTube:** [@daryan111](https://www.youtube.com/@daryan111)
-- **GitHub:** [daryan-m/prayer_time](https://github.com/daryan-m/prayer_time)
+- YouTube / Author: https://www.youtube.com/@daryan111
+- Repo: https://github.com/daryan-m/prayer_time
 
 ---
 
-## 📜 لایسێنس
-
-MIT License - بەخۆڕایی بەکاری بهێنە و بیگۆڕە.
+Thank you — سوپاس
 
 ---
 
-**دروستکراوە بە ❤️ بۆ خەڵکی کوردستان**
-
-🕌 **کاتەکانی بانگ - پێنجوێن و سلێمانی** 🕌
+**File updated:** [README_KU.md](README_KU.md)
