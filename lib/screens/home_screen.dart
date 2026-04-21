@@ -873,7 +873,6 @@ class _PrayerHomePageState extends State<PrayerHomePage>
             children: List.generate(6, (i) => _buildPrayerCard(i)),
           ),
         ),
-        _buildBottomIcons(context),
       ],
     );
   }
