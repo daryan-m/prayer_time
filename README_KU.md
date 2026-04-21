@@ -14,7 +14,7 @@
    - بەروارى میلادى (بە فۆرماتى /)
    - بەروارى کوردى (بە حیسابی +625)
 ✅ **٣ دەنگی جیاواز بۆ بانگ:**
-   - م. کمال رؤوف
+   - بانگى مەککە
    - بانگی مەدینە
    - بانگی کوەیت
 ✅ **ئاگادارکردنەوە** - لە کاتی داخراندا بانگ دەدات
@@ -71,7 +71,7 @@ flutter pub get
 ### ٤. **زیادکردنی فایلە دەنگییەکان:**
 ```
 assets/audio/
-├── bang.mp3
+├── macca.mp3
 ├── madina.mp3
 └── kwait.mp3
 ```
@@ -169,10 +169,10 @@ flutter pub add intl hijri timezone audioplayers flutter_local_notifications htt
 ```dart
 // لە prayer_service.dart
 Future<PrayerTimes> getPrayerTimes(String city, DateTime date) async {
-  String fileName = city == "پێنجوێن" 
-      ? "penjwen_time.json" 
+  String fileName = city == "پێنجوێن"
+      ? "penjwen_time.json"
       : "prayer_time.json";
-  
+
   String jsonString = await rootBundle.loadString('assets/data/$fileName');
   // ...
 }

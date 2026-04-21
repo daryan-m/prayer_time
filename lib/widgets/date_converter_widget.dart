@@ -347,7 +347,7 @@ class _DateConverterDialogState extends State<DateConverterDialog>
             maxHeight: MediaQuery.of(context).size.height * 0.88 -
                 MediaQuery.of(context).viewInsets.bottom),
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
+          color: Theme.of(context).colorScheme.background,
           borderRadius: BorderRadius.circular(22),
           border: Border.all(color: pc.withOpacity(0.5)),
           boxShadow: [
@@ -388,7 +388,7 @@ class _DateConverterDialogState extends State<DateConverterDialog>
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 16),
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.05),
+              color: Theme.of(context).colorScheme.background.withOpacity(0.05),
               borderRadius: BorderRadius.circular(12),
             ),
             child: TabBar(
@@ -522,7 +522,7 @@ class _DateConverterDialogState extends State<DateConverterDialog>
                 side: BorderSide(
                     color: Theme.of(context)
                         .colorScheme
-                        .onSurface
+                        .background
                         .withOpacity(0.12)),
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20)),
@@ -818,14 +818,14 @@ class _DateConverterDialogState extends State<DateConverterDialog>
               padding: const EdgeInsets.symmetric(horizontal: 12),
               decoration: BoxDecoration(
                 color:
-                    Theme.of(context).colorScheme.onSurface.withOpacity(0.07),
+                    Theme.of(context).colorScheme.background.withOpacity(0.07),
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(color: pc.withOpacity(0.35)),
               ),
               child: DropdownButtonHideUnderline(
                   child: DropdownButton<String>(
                 value: _selectedCity,
-                dropdownColor: Theme.of(context).colorScheme.surface,
+                dropdownColor: Theme.of(context).colorScheme.background,
                 style: TextStyle(
                     color: Theme.of(context).textTheme.bodyMedium?.color,
                     fontSize: 13),
@@ -1013,7 +1013,7 @@ class _DateConverterDialogState extends State<DateConverterDialog>
                   side: BorderSide(
                       color: Theme.of(context)
                           .colorScheme
-                          .onSurface
+                          .background
                           .withOpacity(0.12)),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20)),

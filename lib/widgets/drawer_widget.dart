@@ -118,8 +118,8 @@ class _PrayerDrawerState extends State<PrayerDrawer> {
                   children: [
                     _buildExpansionTile(
                         Icons.record_voice_over, "دەنگی بانگبێژ", pal, [
-                      _buildAthanOption("بانگى مەدینە", "madina.mp3", pal),
                       _buildAthanOption("بانگی مەککە", "macca.mp3", pal),
+                      _buildAthanOption("بانگى مەدینە", "madina.mp3", pal),
                       _buildAthanOption("بانگی کوەیت", "kwait.mp3", pal),
                     ]),
                     _divider(pal),
@@ -367,11 +367,11 @@ class _PrayerDrawerState extends State<PrayerDrawer> {
     bool sent = false;
 
     final List<Map<String, String>> ratings = [
-      {"label": "نایاب", "emoji": "🌟"},
-      {"label": "زۆر باش", "emoji": "⭐"},
       {"label": "باش", "emoji": "✅"},
-      {"label": "کارى ترى ئەوێت", "emoji": "🔧"},
+      {"label": "زۆر باش", "emoji": "⭐"},
+      {"label": "نایاب", "emoji": "🌟"},
       {"label": "هەڵەى تێدایە", "emoji": "⚠️"},
+      {"label": "کارى ترى ئەوێت", "emoji": "🔧"},
     ];
 
     showDialog(

@@ -15,6 +15,9 @@ import 'package:ota_update/ota_update.dart';
 import '../services/prayer_service.dart';
 import '../widgets/prayer_widgets.dart';
 import '../widgets/drawer_widget.dart';
+import '../widgets/tasbih_widget.dart';
+import '../widgets/allah_names_widget.dart';
+import '../widgets/quran_screen.dart';
 import '../utils/constants.dart';
 import '../main.dart';
 
@@ -55,10 +58,8 @@ class _PrayerHomePageState extends State<PrayerHomePage>
   void initState() {
     super.initState();
 
-    // جار ١ — placeholder بۆ یەکەم ئاینستال (شاری دیفۆڵت)
-    // _initAppData تەواو بووین دووبارە نوێ دەکرێتەوە
     _prayerTimesFuture = _prayerDataService.getPrayerTimes(
-      currentCity, // "هەولێر" — دیفۆڵت
+      currentCity,
       DateTime.now(),
     );
 
@@ -71,14 +72,12 @@ class _PrayerHomePageState extends State<PrayerHomePage>
       if (mounted) setState(() => _now = DateTime.now());
     });
 
-    _initAppData(); // ← ئەگەر شار ذخیرەکراو بوو، دووبارە نوێ دەکاتەوە
+    _initAppData();
   }
 
   Future<void> _initAppData() async {
-    // یەکەم: چاوەڕێ دەکەین تا سێتینگ لۆد دەبێت (شارەکە دیاری دەکرێت)
     await _loadSavedSettings();
 
-    // دووەم: کاتێک دڵنیا بووینەوە شارەکە (یان سەیڤکراوە یان دیفۆڵتە)، ئینجا کاتەکان دەهێنین
     if (mounted) {
       setState(() {
         _prayerTimesFuture =
@@ -100,7 +99,6 @@ class _PrayerHomePageState extends State<PrayerHomePage>
     super.dispose();
   }
 
-  // ── ڕێکخستنەکان بارکردن ──────────────────────────
   Future<void> _loadSavedSettings() async {
     final prefs = await SharedPreferences.getInstance();
     if (!mounted) return;
@@ -140,7 +138,6 @@ class _PrayerHomePageState extends State<PrayerHomePage>
     await prefs.setStringList('activePrayers', activeAthans.toList());
   }
 
-  // ── دووبارە خشتەکردنی بانگ ───────────────────────
   Future<void> _reSchedulePrayer(String prayerName) async {
     try {
       final times = await _prayerTimesFuture;
@@ -167,7 +164,6 @@ class _PrayerHomePageState extends State<PrayerHomePage>
     }
   }
 
-  // ── خشتەکردنی بانگ ───────────────────────────────
   Future<void> _scheduleAthan(
       int id, String prayerName, DateTime prayerTime) async {
     final String soundFileName = selectedAthanFile
@@ -206,7 +202,6 @@ class _PrayerHomePageState extends State<PrayerHomePage>
     }
   }
 
-  // ── داوای مۆڵەت ──────────────────────────────────
   Future<bool> _requestPermissions() async {
     if (!mounted) return false;
 
@@ -256,21 +251,13 @@ class _PrayerHomePageState extends State<PrayerHomePage>
 
     if (agreed != true) return false;
 
-    // --- لێرەدا گۆڕانکارییەکەمان کردووە بۆ ئەوەی یەک یەک دەربکەون ---
-
-    // سەرەتا داوای نۆتیفیکەیشن دەکەین
     final notificationStatus = await Permission.notification.request();
-
-    // تەنها ئەگەر نۆتیفیکەیشنی قبوڵ کرد، ئینجا داوای Battery Optimization دەکەین
     if (notificationStatus.isGranted) {
       await Permission.ignoreBatteryOptimizations.request();
     }
-
-    // لە کۆتاییدا ئەنجامی نۆتیفیکەیشنەکە دەگەڕێنینەوە بۆ ئەوەی بزانین کارتەکە چالاک بکەین یان نا
     return await Permission.notification.isGranted;
   }
 
-  // ── پشکنینی نوێکردنەوە ───────────────────────────
   Future<void> _checkForUpdate() async {
     try {
       final response = await http.get(Uri.parse(
@@ -342,7 +329,6 @@ class _PrayerHomePageState extends State<PrayerHomePage>
     );
   }
 
-  // ── داگرتن و ئینستاڵی نوێکردنەوە ────────────────
   void _startUpdate(String url, String version) async {
     await WakelockPlus.enable();
     if (!mounted) return;
@@ -526,7 +512,6 @@ class _PrayerHomePageState extends State<PrayerHomePage>
     }
   }
 
-  // ── دووبارە خشتەکردنی هەموو بانگەکان ────────────
   Future<void> _refreshAllAthanSchedules(PrayerTimes times) async {
     await _cancelAllAthans();
 
@@ -572,7 +557,6 @@ class _PrayerHomePageState extends State<PrayerHomePage>
     });
   }
 
-  // ── ماوەی بانگی داهاتوو ──────────────────────────
   String _getNextRemaining(PrayerTimes times) {
     final now = DateTime.now();
     final list = [
@@ -611,14 +595,12 @@ class _PrayerHomePageState extends State<PrayerHomePage>
     return "بەیانی";
   }
 
-  // ── تاپ لەسەر کارتی بانگ ─────────────────────────
   Future<void> _handlePrayerCardTap(String name, String time) async {
     if (name == "خۆرهەڵاتن") return;
 
     final bool willBeActive = !activeAthans.contains(name);
 
     if (willBeActive) {
-      // لێرەدا هەم پشکنین دەکات هەم داوای ڕێپێدان، ئەگەر "بۆ کاتێکی تر" دابگرێت لێرەدا دەوەستێت
       final bool hasPermission = await _requestPermissions();
       if (!hasPermission) return;
     }
@@ -638,9 +620,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
         content: Text(
           willBeActive ? "بانگی $name چالاک کرا" : "بانگی $name ناچالاک کرا",
           textAlign: TextAlign.center,
-          style: const TextStyle(
-            color: Colors.white,
-          ),
+          style: const TextStyle(color: Colors.white),
         ),
         backgroundColor:
             willBeActive ? const Color(0xFF10B981) : Colors.redAccent,
@@ -655,30 +635,14 @@ class _PrayerHomePageState extends State<PrayerHomePage>
           .replaceAllMapped(
               RegExp(r'[٠-٩]'),
               (m) => {
-                    '٠': '0',
-                    '١': '1',
-                    '٢': '2',
-                    '٣': '3',
-                    '٤': '4',
-                    '٥': '5',
-                    '٦': '6',
-                    '٧': '7',
-                    '٨': '8',
-                    '٩': '9',
+                    '٠': '0', '١': '1', '٢': '2', '٣': '3', '٤': '4',
+                    '٥': '5', '٦': '6', '٧': '7', '٨': '8', '٩': '9',
                   }[m.group(0)]!)
           .replaceAllMapped(
               RegExp(r'[۰-۹]'),
               (m) => {
-                    '۰': '0',
-                    '۱': '1',
-                    '۲': '2',
-                    '۳': '3',
-                    '۴': '4',
-                    '۵': '5',
-                    '۶': '6',
-                    '۷': '7',
-                    '۸': '8',
-                    '۹': '9',
+                    '۰': '0', '۱': '1', '۲': '2', '۳': '3', '۴': '4',
+                    '۵': '5', '۶': '6', '۷': '7', '۸': '8', '۹': '9',
                   }[m.group(0)]!)
           .trim();
 
@@ -690,14 +654,10 @@ class _PrayerHomePageState extends State<PrayerHomePage>
 
       if ((cleanTime.contains("د.ن") ||
               cleanTime.toUpperCase().contains("PM")) &&
-          hour < 12) {
-        hour += 12;
-      }
+          hour < 12) hour += 12;
       if ((cleanTime.contains("پ.ن") ||
               cleanTime.toUpperCase().contains("AM")) &&
-          hour == 12) {
-        hour = 0;
-      }
+          hour == 12) hour = 0;
 
       final now = DateTime.now();
       DateTime scheduledDate =
@@ -913,7 +873,83 @@ class _PrayerHomePageState extends State<PrayerHomePage>
             children: List.generate(6, (i) => _buildPrayerCard(i)),
           ),
         ),
+        _buildBottomIcons(context),
       ],
+    );
+  }
+
+  // ── ئایکۆنەکانی خوارەوە ───────────────────────────
+  Widget _buildBottomIcons(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+      decoration: BoxDecoration(
+        border: Border(
+            top: BorderSide(color: _palette.secondary.withOpacity(0.2))),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          _buildBottomIcon(
+            icon: Icons.menu_book_rounded,
+            label: "قورئان",
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => QuranScreen(
+                  primaryColor: primaryColor,
+                  palette: _palette,
+                ),
+              ),
+            ),
+          ),
+          _buildBottomIcon(
+            icon: Icons.grain,
+            label: "تەسبیح",
+            onTap: () => showDialog(
+              context: context,
+              builder: (_) => TasbihDialog(primaryColor: primaryColor),
+            ),
+          ),
+          _buildBottomIcon(
+            icon: Icons.auto_awesome,
+            label: "ناوی خوا",
+            onTap: () => showDialog(
+              context: context,
+              builder: (_) => AllahNamesDialog(primaryColor: primaryColor),
+            ),
+          ),
+          _buildBottomIcon(
+            icon: Icons.tune_rounded,
+            label: "ڕێکخستن",
+            onTap: () => Scaffold.of(context).openDrawer(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBottomIcon({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: _palette.secondary, size: 34),
+          const SizedBox(height: 3),
+          Text(
+            label,
+            style: TextStyle(
+              color: _palette.secondary,
+              fontSize: 10,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
     );
   }
 

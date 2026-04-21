@@ -218,7 +218,7 @@ class _TasbihDialogState extends State<TasbihDialog>
         constraints: BoxConstraints(
             maxHeight: MediaQuery.of(context).size.height * 0.92),
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
+          color: Theme.of(context).colorScheme.background,
           borderRadius: BorderRadius.circular(24),
           border: Border.all(color: pc.withOpacity(0.3)),
           boxShadow: [
@@ -283,7 +283,7 @@ class _TasbihDialogState extends State<TasbihDialog>
                           ? pc
                           : Theme.of(context)
                               .colorScheme
-                              .onSurface
+                              .background
                               .withOpacity(0.07),
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
@@ -291,7 +291,7 @@ class _TasbihDialogState extends State<TasbihDialog>
                               ? pc
                               : Theme.of(context)
                                   .colorScheme
-                                  .onSurface
+                                  .background
                                   .withOpacity(0.24)),
                     ),
                     child: Text(_zikrList[i].arabic,
@@ -361,7 +361,7 @@ class _TasbihDialogState extends State<TasbihDialog>
                       minHeight: 8,
                       backgroundColor: Theme.of(context)
                           .colorScheme
-                          .onSurface
+                          .background
                           .withOpacity(0.12),
                       valueColor: AlwaysStoppedAnimation<Color>(pc))),
             ]),

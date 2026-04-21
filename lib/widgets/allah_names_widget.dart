@@ -281,7 +281,7 @@ class _AllahNamesDialogState extends State<AllahNamesDialog> {
         constraints: BoxConstraints(
             maxHeight: MediaQuery.of(context).size.height * 0.82),
         decoration: BoxDecoration(
-          color: colorScheme.surface,
+          color: colorScheme.background,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: pc.withOpacity(0.7)),
           boxShadow: [
@@ -443,7 +443,7 @@ class _AllahNamesDialogState extends State<AllahNamesDialog> {
             Container(
               height: 1,
               margin: const EdgeInsets.symmetric(horizontal: 16),
-              color: colorScheme.onSurface.withOpacity(0.09),
+              color: colorScheme.background.withOpacity(0.09),
             ),
 
             // ── پەنجەی ئەکتیڤ — سپی سادە ──
@@ -538,10 +538,10 @@ class _AllahNamesDialogState extends State<AllahNamesDialog> {
               margin: const EdgeInsets.fromLTRB(14, 4, 14, 14),
               padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
               decoration: BoxDecoration(
-                color: colorScheme.onSurface.withOpacity(0.04),
+                color: colorScheme.background.withOpacity(0.04),
                 borderRadius: BorderRadius.circular(40),
                 border:
-                    Border.all(color: colorScheme.onSurface.withOpacity(0.08)),
+                    Border.all(color: colorScheme.background.withOpacity(0.08)),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
