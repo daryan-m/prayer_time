@@ -199,12 +199,17 @@ class _TasbihDialogState extends State<TasbihDialog>
   }
 
   @override
+  @override
   Widget build(BuildContext context) {
     final Color pc = widget.primaryColor;
     final int target = _current.target;
     final double progress = _count / target;
     final Color bgColor =
         widget.dialogBg ?? Theme.of(context).colorScheme.surface;
+
+    // ✅ رەنگەکان لە bgColor دادەمەزرێن نەک لە تیمەکە
+    const Color textColor = Colors.white;
+    const Color textSubColor = Colors.white60;
 
     final Widget hapticBtn =
         _buildFeedbackBtn(_FeedbackType.haptic, Icons.vibration, "هەززە", pc);
@@ -235,9 +240,9 @@ class _TasbihDialogState extends State<TasbihDialog>
             child: Row(children: [
               Icon(Icons.grain, color: pc, size: 22),
               const SizedBox(width: 10),
-              Text("تەسبیح",
+              const Text("تەسبیح",
                   style: TextStyle(
-                      color: Theme.of(context).textTheme.bodyLarge?.color,
+                      color: textColor, // ✅
                       fontSize: 18,
                       fontWeight: FontWeight.bold)),
               const Spacer(),
@@ -253,16 +258,11 @@ class _TasbihDialogState extends State<TasbihDialog>
               ),
               const SizedBox(width: 8),
               IconButton(
-                  icon: Icon(Icons.close,
-                      color: Theme.of(context)
-                          .textTheme
-                          .bodyMedium
-                          ?.color
-                          ?.withOpacity(0.5)),
+                  icon: const Icon(Icons.close, color: textSubColor), // ✅
                   onPressed: () => Navigator.pop(context)),
             ]),
           ),
-          Divider(color: Theme.of(context).dividerColor.withOpacity(0.2)),
+          Divider(color: Colors.white.withOpacity(0.1)),
           SizedBox(
             height: 42,
             child: ListView.builder(
@@ -282,30 +282,17 @@ class _TasbihDialogState extends State<TasbihDialog>
                     padding:
                         const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                     decoration: BoxDecoration(
-                      color: selected
-                          ? pc
-                          : Theme.of(context)
-                              .colorScheme
-                              .onSurface
-                              .withOpacity(0.07),
+                      color:
+                          selected ? pc : Colors.white.withOpacity(0.07), // ✅
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
                           color: selected
                               ? pc
-                              : Theme.of(context)
-                                  .colorScheme
-                                  .onSurface
-                                  .withOpacity(0.24)),
+                              : Colors.white.withOpacity(0.24)), // ✅
                     ),
                     child: Text(_zikrList[i].arabic,
                         style: TextStyle(
-                          color: selected
-                              ? Colors.black87
-                              : Theme.of(context)
-                                  .textTheme
-                                  .bodyMedium
-                                  ?.color
-                                  ?.withOpacity(0.7),
+                          color: selected ? Colors.black87 : textSubColor, // ✅
                           fontSize: 13,
                           fontWeight:
                               selected ? FontWeight.bold : FontWeight.normal,
@@ -329,12 +316,8 @@ class _TasbihDialogState extends State<TasbihDialog>
               const SizedBox(height: 4),
               Text(_current.kurdish,
                   textAlign: TextAlign.center,
-                  style: TextStyle(
-                      color: Theme.of(context)
-                          .textTheme
-                          .bodyMedium
-                          ?.color
-                          ?.withOpacity(0.6),
+                  style: const TextStyle(
+                      color: textSubColor, // ✅
                       fontSize: 13,
                       height: 1.4)),
             ]),
@@ -348,12 +331,8 @@ class _TasbihDialogState extends State<TasbihDialog>
                     style: TextStyle(
                         color: pc, fontSize: 13, fontWeight: FontWeight.bold)),
                 Text("$target",
-                    style: TextStyle(
-                        color: Theme.of(context)
-                            .textTheme
-                            .bodyMedium
-                            ?.color
-                            ?.withOpacity(0.38),
+                    style: const TextStyle(
+                        color: textSubColor, // ✅
                         fontSize: 13)),
               ]),
               const SizedBox(height: 6),
@@ -362,10 +341,7 @@ class _TasbihDialogState extends State<TasbihDialog>
                   child: LinearProgressIndicator(
                       value: progress,
                       minHeight: 8,
-                      backgroundColor: Theme.of(context)
-                          .colorScheme
-                          .onSurface
-                          .withOpacity(0.12),
+                      backgroundColor: Colors.white.withOpacity(0.12), // ✅
                       valueColor: AlwaysStoppedAnimation<Color>(pc))),
             ]),
           ),
@@ -406,11 +382,8 @@ class _TasbihDialogState extends State<TasbihDialog>
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text("$_count",
-                                  style: TextStyle(
-                                      color: Theme.of(context)
-                                          .textTheme
-                                          .bodyLarge
-                                          ?.color,
+                                  style: const TextStyle(
+                                      color: textColor, // ✅
                                       fontSize: 46,
                                       fontWeight: FontWeight.bold)),
                               Text("/ $target",
@@ -428,20 +401,10 @@ class _TasbihDialogState extends State<TasbihDialog>
           const SizedBox(height: 12),
           TextButton.icon(
             onPressed: _reset,
-            icon: Icon(Icons.refresh,
-                color: Theme.of(context)
-                    .textTheme
-                    .bodyMedium
-                    ?.color
-                    ?.withOpacity(0.38),
-                size: 18),
-            label: Text("ڕیست",
+            icon: const Icon(Icons.refresh, color: textSubColor, size: 18), // ✅
+            label: const Text("ڕیست",
                 style: TextStyle(
-                    color: Theme.of(context)
-                        .textTheme
-                        .bodyMedium
-                        ?.color
-                        ?.withOpacity(0.54),
+                    color: textSubColor, // ✅
                     fontSize: 13)),
           ),
           const SizedBox(height: 14),

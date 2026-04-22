@@ -515,14 +515,15 @@ class _PrayerDrawerState extends State<PrayerDrawer> {
             children: [
               InkWell(
                 onTap: () async {
-                  final Uri url = Uri.parse('https://tanzil.net');
+                  final Uri url = Uri.parse('https://docs.globalquran.com/about'
+                      'https://alquran.cloud/terms-and-conditions');
                   if (!await launchUrl(url,
                       mode: LaunchMode.externalApplication)) {
                     debugPrint("کێشەیەک هەیە");
                   }
                 },
                 child: Text(
-                  "tanzil.net",
+                  "globalquran.com" "alquran.cloud",
                   style: TextStyle(
                       color: pal.primary,
                       fontSize: 12,

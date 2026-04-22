@@ -1,7 +1,7 @@
 name: bang
 description: A new Flutter project.
 publish_to: 'none'
-version: 1.1.5+50
+version: 1.1.6+50
 environment:
   sdk: '>=3.0.0 <4.0.0'
 
@@ -45,6 +45,10 @@ flutter:
     - family: NotoNaskh
       fonts:
         - asset: assets/fonts/noto.ttf
+
+    - family: Uthmanic
+      fonts:
+        - asset: assets/fonts/Uthmanic.otf
 
 flutter_launcher_icons:
   android: true

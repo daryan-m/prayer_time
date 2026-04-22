@@ -88,14 +88,14 @@ class PrayerTimesApp extends StatelessWidget {
       ),
 
       // ✅ زیادکرا — فۆنت سیستەم ئیگنۆر دەکرێت
-      builder: (context, child) {
-        return MediaQuery(
-          data: MediaQuery.of(context).copyWith(
-            textScaler: TextScaler.noScaling,
-          ),
-          child: child!,
-        );
-      },
+      //builder: (context, child) {
+      //return MediaQuery(
+      //data: MediaQuery.of(context).copyWith(
+      //textScaler: TextScaler.noScaling,
+      //),
+      //child: child!,
+      //);
+      //},
       home: const PrayerHomePage(),
     );
   }
