@@ -167,8 +167,10 @@ class _PrayerDrawerState extends State<PrayerDrawer> {
                           color: pal.listText.withOpacity(0.4), size: 14),
                       onTap: () => showDialog(
                           context: context,
-                          builder: (_) =>
-                              TasbihDialog(primaryColor: pal.primary)),
+                          builder: (_) => TasbihDialog(
+                                primaryColor: pal.primary,
+                                dialogBg: pal.drawerBg,
+                              )),
                     ),
                     _divider(pal),
                     ListTile(
@@ -183,8 +185,10 @@ class _PrayerDrawerState extends State<PrayerDrawer> {
                           color: pal.listText.withOpacity(0.4), size: 14),
                       onTap: () => showDialog(
                           context: context,
-                          builder: (_) =>
-                              AllahNamesDialog(primaryColor: pal.primary)),
+                          builder: (_) => AllahNamesDialog(
+                                primaryColor: pal.primary,
+                                dialogBg: pal.drawerBg,
+                              )),
                     ),
                     _divider(pal),
                     ListTile(
@@ -205,6 +209,7 @@ class _PrayerDrawerState extends State<PrayerDrawer> {
                                 dataService: PrayerDataService(),
                                 timeService: TimeService(),
                                 currentCity: widget.currentCity,
+                                dialogBg: pal.drawerBg,
                               )),
                     ),
                     _divider(pal),
@@ -408,88 +413,130 @@ class _PrayerDrawerState extends State<PrayerDrawer> {
   Widget _buildAboutContent(ThemePalette pal) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(
-            "ئەم ئەپلیکەیشنە تایبەتە بە کاتى بانگى شارو شارۆچکەکانى هەرێمى کوردستان.",
-            style: TextStyle(color: pal.listText, fontSize: 13, height: 1.5)),
-        const SizedBox(height: 15),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.info_outline, color: pal.primary, size: 16),
-                const SizedBox(width: 8),
-                RichText(
-                  text: TextSpan(
-                    style: TextStyle(
-                      color: pal.listText.withOpacity(0.7),
-                      fontSize: 14,
-                    ),
-                    children: const [
-                      TextSpan(text: "📚"),
-                      TextSpan(text: "سەرچاوەکان و ئاماژە "),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 6),
-            InkWell(
-              onTap: () async {
-                final Uri url = Uri.parse('https://github.com');
-                if (!await launchUrl(
-                  url,
-                  mode: LaunchMode.externalApplication,
-                )) {
-                  debugPrint("کێشەیەک هەیە");
-                }
-              },
-              child: const Text(
-                "Bang Kurdistan Repository — GitHub",
-                style: TextStyle(
-                  color: Colors.blue,
-                  decoration: TextDecoration.underline,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          // ── دەربارەی ئەپ ──
+          Text(
+            "ئەم ئەپلیکەیشنە تایبەتە بە کاتی بانگی شارو شارۆچکەکانی هەرێمی کوردستان.",
+            textAlign: TextAlign.right,
+            style: TextStyle(color: pal.listText, fontSize: 13, height: 1.5),
+          ),
+          const SizedBox(height: 12),
+
+          // ── وەشان ──
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Text("وەشانی: $currentAppVersion",
+                  style: TextStyle(
+                      color: pal.listText.withOpacity(0.7), fontSize: 13)),
+              const SizedBox(width: 8),
+              Icon(Icons.label_outline, color: pal.primary, size: 16),
+            ],
+          ),
+          const SizedBox(height: 6),
+
+          // ── دیزاینەر ──
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Text("دیزاینەر: داریان مەزهەر",
+                  style: TextStyle(
+                      color: pal.listText.withOpacity(0.7), fontSize: 13)),
+              const SizedBox(width: 8),
+              Icon(Icons.brush_outlined, color: pal.primary, size: 16),
+            ],
+          ),
+
+          const SizedBox(height: 12),
+          Divider(color: pal.primary.withOpacity(0.3), thickness: 1),
+          const SizedBox(height: 10),
+
+          // ── سەرچاوەکان و ئاماژە ──
+          // ── سەرچاوەکان و ئاماژە ──
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Text("سەرچاوەکان و ئاماژە",
+                  style: TextStyle(
+                      color: pal.listText,
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold)),
+              const SizedBox(width: 8),
+              Icon(Icons.info_outline, color: pal.primary, size: 16),
+            ],
+          ),
+          const SizedBox(height: 4),
+
+// ── تێبینی بچووک ──
+          Text(
+            "داتای کاتەکانی بانگ و تێکستی قورئانی پیرۆز لەم سەرچاوانە وەرگیراوە",
+            textAlign: TextAlign.right,
+            style: TextStyle(
+                color: pal.listText.withOpacity(0.4),
+                fontSize: 10,
+                height: 1.5),
+          ),
+          const SizedBox(height: 8),
+
+          // ── لینکی گیتهەب ──
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              InkWell(
+                onTap: () async {
+                  final Uri url =
+                      Uri.parse('https://github.com/Bang-Kurdistan');
+                  if (!await launchUrl(url,
+                      mode: LaunchMode.externalApplication)) {
+                    debugPrint("کێشەیەک هەیە");
+                  }
+                },
+                child: Text(
+                  "github.com/Bang-Kurdistan",
+                  style: TextStyle(
+                      color: pal.primary,
+                      fontSize: 12,
+                      decoration: TextDecoration.underline),
                 ),
               ),
-            ),
-            const SizedBox(height: 4),
-            InkWell(
-              onTap: () async {
-                final Uri url = Uri.parse('https://tanzil.net');
-                if (!await launchUrl(
-                  url,
-                  mode: LaunchMode.externalApplication,
-                )) {
-                  debugPrint("کێشەیەک هەیە");
-                }
-              },
-              child: const Text(
-                "Tanzil Project — Tanzil.net",
-                style: TextStyle(
-                  color: Colors.blue,
-                  decoration: TextDecoration.underline,
+              const SizedBox(width: 8),
+              Text("داتای کاتەکانی بانگ:",
+                  style: TextStyle(
+                      color: pal.listText.withOpacity(0.7), fontSize: 13)),
+            ],
+          ),
+          const SizedBox(height: 6),
+
+          // ── لینکی تەنزیل ──
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              InkWell(
+                onTap: () async {
+                  final Uri url = Uri.parse('https://tanzil.net');
+                  if (!await launchUrl(url,
+                      mode: LaunchMode.externalApplication)) {
+                    debugPrint("کێشەیەک هەیە");
+                  }
+                },
+                child: Text(
+                  "tanzil.net",
+                  style: TextStyle(
+                      color: pal.primary,
+                      fontSize: 12,
+                      decoration: TextDecoration.underline),
                 ),
               ),
-            ),
-          ],
-        ),
-        Row(children: [
-          Icon(Icons.label_outline, color: pal.primary, size: 16),
-          const SizedBox(width: 8),
-          Text("وەشانى: $currentAppVersion",
-              style: TextStyle(
-                  color: pal.listText.withOpacity(0.7), fontSize: 14)),
-        ]),
-        const SizedBox(height: 8),
-        Row(children: [
-          Icon(Icons.brush_outlined, color: pal.primary, size: 16),
-          const SizedBox(width: 8),
-          Text("دیزاینەر: داریان مەزهەر",
-              style: TextStyle(
-                  color: pal.listText.withOpacity(0.7), fontSize: 14)),
-        ]),
-      ]),
+              const SizedBox(width: 8),
+              Text("تێکستی قورئانی پیرۆز:",
+                  style: TextStyle(
+                      color: pal.listText.withOpacity(0.7), fontSize: 13)),
+            ],
+          ),
+        ],
+      ),
     );
   }
 

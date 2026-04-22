@@ -15,6 +15,7 @@ class DateConverterDialog extends StatefulWidget {
   final PrayerDataService dataService;
   final TimeService timeService;
   final String currentCity;
+  final Color? dialogBg;
 
   const DateConverterDialog({
     super.key,
@@ -23,6 +24,7 @@ class DateConverterDialog extends StatefulWidget {
     required this.dataService,
     required this.timeService,
     required this.currentCity,
+    this.dialogBg,
   });
 
   @override
@@ -101,7 +103,6 @@ class _DateConverterDialogState extends State<DateConverterDialog>
     final d = int.tryParse(_gregDayCtrl.text.trim());
     final m = int.tryParse(_gregMonthCtrl.text.trim());
     final y = int.tryParse(_gregYearCtrl.text.trim());
-
     if (d == null ||
         m == null ||
         y == null ||
@@ -156,7 +157,6 @@ class _DateConverterDialogState extends State<DateConverterDialog>
       "شەممە"
     ];
     final weekday = weekdays[dt.weekday % 7];
-
     final hijri = HijriCalendar.fromDate(dt);
     final hijriStr =
         "${widget.timeService.toKu(hijri.hDay.toString())}ـى ${hijri.toFormat("MMMM")} ${widget.timeService.toKu(hijri.hYear.toString())}";
@@ -181,22 +181,18 @@ class _DateConverterDialogState extends State<DateConverterDialog>
         : shamsi[1].toString();
     final String shamsiStr =
         "${widget.timeService.toKu(shamsi[2].toString())} $mNameـى ${widget.timeService.toKu(shamsi[0].toString())}";
-
     setState(() {
       _hijriResult = hijriStr;
       _kurdResult = kurdStr;
       _shamsiResult = shamsiStr;
       _weekdayResult = weekday;
     });
-
     _hijriDayCtrl.text = hijri.hDay.toString();
     _hijriMonthCtrl.text = hijri.hMonth.toString();
     _hijriYearCtrl.text = hijri.hYear.toString();
-
     _kurdDayCtrl.text = _kDay(dt).toString();
     _kurdMonthCtrl.text = _kMonth(dt).toString();
     _kurdYearCtrl.text = _kYear(dt).toString();
-
     _shamsiDayCtrl.text = shamsi[2].toString();
     _shamsiMonthCtrl.text = shamsi[1].toString();
     _shamsiYearCtrl.text = shamsi[0].toString();
@@ -230,16 +226,13 @@ class _DateConverterDialogState extends State<DateConverterDialog>
     return _jdToShamsi(jd);
   }
 
-  int _gregorianToJD(int y, int m, int d) {
-    return (1461 * (y + 4800 + (m - 14) ~/ 12)) ~/ 4 +
-        (367 * (m - 2 - 12 * ((m - 14) ~/ 12))) ~/ 12 -
-        (3 * ((y + 4900 + (m - 14) ~/ 12) ~/ 100)) ~/ 4 +
-        d -
-        32075;
-  }
-
+  int _gregorianToJD(int y, int m, int d) =>
+      (1461 * (y + 4800 + (m - 14) ~/ 12)) ~/ 4 +
+      (367 * (m - 2 - 12 * ((m - 14) ~/ 12))) ~/ 12 -
+      (3 * ((y + 4900 + (m - 14) ~/ 12) ~/ 100)) ~/ 4 +
+      d -
+      32075;
   int _shamsiYearStart(int y) => _gregorianToJD(y + 621, 3, 21);
-
   List<int> _jdToShamsi(int jd) {
     int y = (jd - _gregorianToJD(622, 3, 21)) ~/ 365 + 1;
     while (true) {
@@ -281,7 +274,6 @@ class _DateConverterDialogState extends State<DateConverterDialog>
     final d = int.tryParse(_prayDayCtrl.text.trim());
     final m = int.tryParse(_prayMonthCtrl.text.trim());
     final y = int.tryParse(_prayYearCtrl.text.trim());
-
     if (d == null ||
         d < 1 ||
         d > 31 ||
@@ -337,6 +329,8 @@ class _DateConverterDialogState extends State<DateConverterDialog>
   @override
   Widget build(BuildContext context) {
     final pc = widget.primaryColor;
+    final Color bgColor =
+        widget.dialogBg ?? Theme.of(context).colorScheme.surface;
     return Dialog(
       backgroundColor: Colors.transparent,
       insetPadding: const EdgeInsets.all(12),
@@ -347,7 +341,7 @@ class _DateConverterDialogState extends State<DateConverterDialog>
             maxHeight: MediaQuery.of(context).size.height * 0.88 -
                 MediaQuery.of(context).viewInsets.bottom),
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.background,
+          color: bgColor,
           borderRadius: BorderRadius.circular(22),
           border: Border.all(color: pc.withOpacity(0.5)),
           boxShadow: [
@@ -388,16 +382,15 @@ class _DateConverterDialogState extends State<DateConverterDialog>
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 16),
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.background.withOpacity(0.05),
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.05),
               borderRadius: BorderRadius.circular(12),
             ),
             child: TabBar(
               controller: _tabCtrl,
               indicator: BoxDecoration(
-                borderRadius: BorderRadius.circular(10),
-                color: pc.withOpacity(0.22),
-                border: Border.all(color: pc.withOpacity(0.45)),
-              ),
+                  borderRadius: BorderRadius.circular(10),
+                  color: pc.withOpacity(0.22),
+                  border: Border.all(color: pc.withOpacity(0.45))),
               labelColor: pc,
               unselectedLabelColor: Theme.of(context)
                   .textTheme
@@ -409,7 +402,7 @@ class _DateConverterDialogState extends State<DateConverterDialog>
               dividerColor: Colors.transparent,
               tabs: const [
                 Tab(height: 30, text: "گۆڕینی بەروار"),
-                Tab(height: 30, text: "دۆزینەوەی کاتی بانگ"),
+                Tab(height: 30, text: "دۆزینەوەی کاتی بانگ")
               ],
             ),
           ),
@@ -418,7 +411,7 @@ class _DateConverterDialogState extends State<DateConverterDialog>
           Expanded(
               child: TabBarView(controller: _tabCtrl, children: [
             _buildConverterTab(pc),
-            _buildPrayerLookupTab(pc),
+            _buildPrayerLookupTab(pc)
           ])),
         ]),
       ),
@@ -435,10 +428,9 @@ class _DateConverterDialogState extends State<DateConverterDialog>
             padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 12),
             margin: const EdgeInsets.only(bottom: 8),
             decoration: BoxDecoration(
-              color: pc.withOpacity(0.07),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: pc.withOpacity(0.2)),
-            ),
+                color: pc.withOpacity(0.07),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: pc.withOpacity(0.2))),
             child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
               Icon(Icons.info_outline, color: pc.withOpacity(0.7), size: 12),
               const SizedBox(width: 6),
@@ -453,10 +445,9 @@ class _DateConverterDialogState extends State<DateConverterDialog>
             Container(
               padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 12),
               decoration: BoxDecoration(
-                color: pc.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: pc.withOpacity(0.3)),
-              ),
+                  color: pc.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: pc.withOpacity(0.3))),
               child:
                   Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                 Icon(Icons.today, color: pc, size: 13),
@@ -493,16 +484,15 @@ class _DateConverterDialogState extends State<DateConverterDialog>
           Row(mainAxisAlignment: MainAxisAlignment.center, children: [
             ElevatedButton.icon(
               style: ElevatedButton.styleFrom(
-                backgroundColor: pc.withOpacity(0.18),
-                foregroundColor: pc,
-                side: BorderSide(color: pc.withOpacity(0.45)),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20)),
-                padding:
-                    const EdgeInsets.symmetric(vertical: 8, horizontal: 18),
-                minimumSize: Size.zero,
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              ),
+                  backgroundColor: pc.withOpacity(0.18),
+                  foregroundColor: pc,
+                  side: BorderSide(color: pc.withOpacity(0.45)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20)),
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 8, horizontal: 18),
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap),
               icon: const Icon(Icons.swap_horiz, size: 15),
               label: const Text("بیگۆڕە",
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
@@ -522,7 +512,7 @@ class _DateConverterDialogState extends State<DateConverterDialog>
                 side: BorderSide(
                     color: Theme.of(context)
                         .colorScheme
-                        .background
+                        .onSurface
                         .withOpacity(0.12)),
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20)),
@@ -548,7 +538,7 @@ class _DateConverterDialogState extends State<DateConverterDialog>
               yearCtrl: _hijriYearCtrl),
           if (_hijriResult.isNotEmpty) ...[
             const SizedBox(height: 4),
-            _resultLine(_hijriResult, const Color(0xFFF59E0B)),
+            _resultLine(_hijriResult, const Color(0xFFF59E0B))
           ],
           Divider(
               color: Theme.of(context).dividerColor.withOpacity(0.5),
@@ -562,7 +552,7 @@ class _DateConverterDialogState extends State<DateConverterDialog>
               yearCtrl: _kurdYearCtrl),
           if (_kurdResult.isNotEmpty) ...[
             const SizedBox(height: 4),
-            _resultLine(_kurdResult, const Color(0xFF4ADE80)),
+            _resultLine(_kurdResult, const Color(0xFF4ADE80))
           ],
           Divider(
               color: Theme.of(context).dividerColor.withOpacity(0.5),
@@ -576,7 +566,7 @@ class _DateConverterDialogState extends State<DateConverterDialog>
               yearCtrl: _shamsiYearCtrl),
           if (_shamsiResult.isNotEmpty) ...[
             const SizedBox(height: 4),
-            _resultLine(_shamsiResult, const Color(0xFFF97316)),
+            _resultLine(_shamsiResult, const Color(0xFFF97316))
           ],
         ]),
       );
@@ -587,10 +577,9 @@ class _DateConverterDialogState extends State<DateConverterDialog>
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 10),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.07),
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: color.withOpacity(0.2)),
-      ),
+          color: color.withOpacity(0.07),
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(color: color.withOpacity(0.2))),
       child: Text(value,
           textAlign: TextAlign.center,
           style: TextStyle(
@@ -598,25 +587,23 @@ class _DateConverterDialogState extends State<DateConverterDialog>
     );
   }
 
-  Widget _rowDates(
-    Color pc, {
-    required TextEditingController dayCtrl,
-    required TextEditingController monthCtrl,
-    required TextEditingController yearCtrl,
-  }) {
+  Widget _rowDates(Color pc,
+      {required TextEditingController dayCtrl,
+      required TextEditingController monthCtrl,
+      required TextEditingController yearCtrl}) {
     return Row(children: [
       Expanded(
           child: Column(children: [
         Text("ڕۆژ", style: TextStyle(color: pc.withOpacity(0.4), fontSize: 9)),
         const SizedBox(height: 2),
-        _readonlyBox(dayCtrl.text, pc),
+        _readonlyBox(dayCtrl.text, pc)
       ])),
       const SizedBox(width: 5),
       Expanded(
           child: Column(children: [
         Text("مانگ", style: TextStyle(color: pc.withOpacity(0.4), fontSize: 9)),
         const SizedBox(height: 2),
-        _readonlyBox(monthCtrl.text, pc),
+        _readonlyBox(monthCtrl.text, pc)
       ])),
       const SizedBox(width: 5),
       Expanded(
@@ -625,7 +612,7 @@ class _DateConverterDialogState extends State<DateConverterDialog>
             Text("ساڵ",
                 style: TextStyle(color: pc.withOpacity(0.4), fontSize: 9)),
             const SizedBox(height: 2),
-            _readonlyBox(yearCtrl.text, pc),
+            _readonlyBox(yearCtrl.text, pc)
           ])),
     ]);
   }
@@ -635,10 +622,9 @@ class _DateConverterDialogState extends State<DateConverterDialog>
       height: 34,
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: pc.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: pc.withOpacity(0.3)),
-      ),
+          color: pc.withOpacity(0.05),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: pc.withOpacity(0.3))),
       child: Text(val.isEmpty ? "—" : val,
           style: TextStyle(
               color: pc.withOpacity(0.8),
@@ -658,16 +644,9 @@ class _DateConverterDialogState extends State<DateConverterDialog>
     ]);
   }
 
-  Widget _row3(
-    TextEditingController d,
-    TextEditingController m,
-    TextEditingController y,
-    Color pc,
-    VoidCallback? onSubmit, {
-    bool readOnly = false,
-    int maxDay = 31,
-    String? topLabel,
-  }) {
+  Widget _row3(TextEditingController d, TextEditingController m,
+      TextEditingController y, Color pc, VoidCallback? onSubmit,
+      {bool readOnly = false, int maxDay = 31, String? topLabel}) {
     final textColor = Theme.of(context).textTheme.bodyLarge?.color;
     final style = TextStyle(
         color: readOnly ? textColor?.withOpacity(0.12) : textColor,
@@ -677,7 +656,6 @@ class _DateConverterDialogState extends State<DateConverterDialog>
     final Color borderColor = readOnly
         ? (textColor?.withOpacity(0.06) ?? Colors.transparent)
         : pc.withOpacity(0.35);
-
     InputDecoration dec(String hint) => InputDecoration(
           counterText: "",
           hintText: readOnly ? "—" : hint,
@@ -695,7 +673,6 @@ class _DateConverterDialogState extends State<DateConverterDialog>
           contentPadding:
               const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
         );
-
     void clamp(TextEditingController ctrl, int max) {
       final v = int.tryParse(ctrl.text);
       if (v != null && v > max) {
@@ -709,13 +686,12 @@ class _DateConverterDialogState extends State<DateConverterDialog>
           child: Column(children: [
         Text(topLabel ?? "ڕۆژ",
             style: TextStyle(
-              color: topLabel != null
-                  ? pc.withOpacity(0.75)
-                  : pc.withOpacity(readOnly ? 0.2 : 0.55),
-              fontSize: 9,
-              fontWeight:
-                  topLabel != null ? FontWeight.bold : FontWeight.normal,
-            )),
+                color: topLabel != null
+                    ? pc.withOpacity(0.75)
+                    : pc.withOpacity(readOnly ? 0.2 : 0.55),
+                fontSize: 9,
+                fontWeight:
+                    topLabel != null ? FontWeight.bold : FontWeight.normal)),
         const SizedBox(height: 2),
         TextField(
             controller: d,
@@ -789,10 +765,9 @@ class _DateConverterDialogState extends State<DateConverterDialog>
             padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 12),
             margin: const EdgeInsets.only(bottom: 12),
             decoration: BoxDecoration(
-              color: pc.withOpacity(0.07),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: pc.withOpacity(0.2)),
-            ),
+                color: pc.withOpacity(0.07),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: pc.withOpacity(0.2))),
             child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
               Icon(Icons.info_outline, color: pc.withOpacity(0.7), size: 12),
               const SizedBox(width: 6),
@@ -814,51 +789,53 @@ class _DateConverterDialogState extends State<DateConverterDialog>
           const SizedBox(height: 14),
           Row(children: [
             Expanded(
-                child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              decoration: BoxDecoration(
-                color:
-                    Theme.of(context).colorScheme.background.withOpacity(0.07),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: pc.withOpacity(0.35)),
-              ),
-              child: DropdownButtonHideUnderline(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                decoration: BoxDecoration(
+                  color:
+                      Theme.of(context).colorScheme.onSurface.withOpacity(0.07),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: pc.withOpacity(0.35)),
+                ),
+                child: DropdownButtonHideUnderline(
                   child: DropdownButton<String>(
-                value: _selectedCity,
-                dropdownColor: Theme.of(context).colorScheme.background,
-                style: TextStyle(
-                    color: Theme.of(context).textTheme.bodyMedium?.color,
-                    fontSize: 13),
-                iconEnabledColor: Theme.of(context)
-                    .textTheme
-                    .bodyMedium
-                    ?.color
-                    ?.withOpacity(0.54),
-                isExpanded: true,
-                hint: Text("شار",
+                    value: _selectedCity,
+                    dropdownColor: widget.dialogBg ??
+                        Theme.of(context).colorScheme.surface,
                     style: TextStyle(
-                        color: Theme.of(context)
-                            .textTheme
-                            .bodyMedium
-                            ?.color
-                            ?.withOpacity(0.38))),
-                items: kurdistanCitiesData
-                    .map((c) => DropdownMenuItem(value: c, child: Text(c)))
-                    .toList(),
-                onChanged: (v) => setState(() => _selectedCity = v),
-              )),
-            )),
+                        color: Theme.of(context).textTheme.bodyMedium?.color,
+                        fontSize: 13),
+                    iconEnabledColor: Theme.of(context)
+                        .textTheme
+                        .bodyMedium
+                        ?.color
+                        ?.withOpacity(0.54),
+                    isExpanded: true,
+                    hint: Text("شار",
+                        style: TextStyle(
+                            color: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.color
+                                ?.withOpacity(0.38))),
+                    items: kurdistanCitiesData
+                        .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+                        .toList(),
+                    onChanged: (v) => setState(() => _selectedCity = v),
+                  ),
+                ),
+              ),
+            ),
             const SizedBox(width: 10),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: pc.withOpacity(0.2),
-                foregroundColor: pc,
-                side: BorderSide(color: pc.withOpacity(0.5)),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
-                padding:
-                    const EdgeInsets.symmetric(vertical: 13, horizontal: 16),
-              ),
+                  backgroundColor: pc.withOpacity(0.2),
+                  foregroundColor: pc,
+                  side: BorderSide(color: pc.withOpacity(0.5)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 13, horizontal: 16)),
               onPressed: () {
                 FocusScope.of(context).unfocus();
                 _lookupPrayer();
@@ -883,10 +860,9 @@ class _DateConverterDialogState extends State<DateConverterDialog>
             Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: Colors.red.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.red.withOpacity(0.3)),
-              ),
+                  color: Colors.red.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.red.withOpacity(0.3))),
               child: Row(children: [
                 const Icon(Icons.error_outline, color: Colors.red, size: 18),
                 const SizedBox(width: 8),
@@ -900,10 +876,9 @@ class _DateConverterDialogState extends State<DateConverterDialog>
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: pc.withOpacity(0.07),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: pc.withOpacity(0.25)),
-              ),
+                  color: pc.withOpacity(0.07),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: pc.withOpacity(0.25))),
               child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -917,18 +892,17 @@ class _DateConverterDialogState extends State<DateConverterDialog>
                                 style: TextStyle(
                                     color: pc,
                                     fontWeight: FontWeight.bold,
-                                    fontSize: 14)),
+                                    fontSize: 14))
                           ]),
                           Text(
-                            "${_prayDayCtrl.text.padLeft(2, '0')}/${_prayMonthCtrl.text.padLeft(2, '0')}/${_prayYearCtrl.text.isNotEmpty ? _prayYearCtrl.text : DateTime.now().year}",
-                            style: TextStyle(
-                                color: Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium
-                                    ?.color
-                                    ?.withOpacity(0.54),
-                                fontSize: 12),
-                          ),
+                              "${_prayDayCtrl.text.padLeft(2, '0')}/${_prayMonthCtrl.text.padLeft(2, '0')}/${_prayYearCtrl.text.isNotEmpty ? _prayYearCtrl.text : DateTime.now().year}",
+                              style: TextStyle(
+                                  color: Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium
+                                      ?.color
+                                      ?.withOpacity(0.54),
+                                  fontSize: 12)),
                         ]),
                     Divider(
                         color: Theme.of(context).dividerColor.withOpacity(0.1),
@@ -1013,7 +987,7 @@ class _DateConverterDialogState extends State<DateConverterDialog>
                   side: BorderSide(
                       color: Theme.of(context)
                           .colorScheme
-                          .background
+                          .onSurface
                           .withOpacity(0.12)),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20)),

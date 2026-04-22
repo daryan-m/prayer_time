@@ -166,7 +166,7 @@ class AthanService : Service() {
             .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setOngoing(true)
-            .addAction(android.R.drawable.ic_delete, "دابخە", stopPi)
+            .addAction(android.R.drawable.ic_delete, "ڕاگرتنى دەنگ", stopPi)
             .build()
     }
 

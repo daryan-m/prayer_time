@@ -86,6 +86,16 @@ class PrayerTimesApp extends StatelessWidget {
         scaffoldBackgroundColor: const Color(0xFF020617),
         textTheme: ThemeData.dark().textTheme.apply(fontFamily: 'NotoNaskh'),
       ),
+
+      // ✅ زیادکرا — فۆنت سیستەم ئیگنۆر دەکرێت
+      builder: (context, child) {
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(
+            textScaler: TextScaler.noScaling,
+          ),
+          child: child!,
+        );
+      },
       home: const PrayerHomePage(),
     );
   }

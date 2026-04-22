@@ -131,7 +131,9 @@ const List<AllahName> allahNames = [
 
 class AllahNamesDialog extends StatefulWidget {
   final Color primaryColor;
-  const AllahNamesDialog({super.key, required this.primaryColor});
+  final Color? dialogBg;
+  const AllahNamesDialog(
+      {super.key, required this.primaryColor, this.dialogBg});
 
   @override
   State<AllahNamesDialog> createState() => _AllahNamesDialogState();
@@ -163,15 +165,11 @@ class _AllahNamesDialogState extends State<AllahNamesDialog> {
     super.dispose();
   }
 
-  // ==================== دەنگ ====================
-
   Future<void> _playSound(int index) async {
     final fileName = '${index + 1}.mp3';
     await _audioPlayer.stop();
     await _audioPlayer.play(AssetSource('audio/allah_names/$fileName'));
   }
-
-  // ==================== AUTO PLAY ====================
 
   void _startAutoPlay() {
     WakelockPlus.enable();
@@ -219,7 +217,6 @@ class _AllahNamesDialogState extends State<AllahNamesDialog> {
     }
   }
 
-  // ── ستۆپ: گەرانەوە بۆ سەرەوەتا ──
   Future<void> _stopAndReset() async {
     WakelockPlus.disable();
     _autoTimer?.cancel();
@@ -236,8 +233,6 @@ class _AllahNamesDialogState extends State<AllahNamesDialog> {
       );
     }
   }
-
-  // ==================== سکرۆل ====================
 
   void _scrollToCenter(int index) {
     if (!_scrollCtrl.hasClients) return;
@@ -263,15 +258,14 @@ class _AllahNamesDialogState extends State<AllahNamesDialog> {
     if (_isPlaying) _startAutoPlay();
   }
 
-  // ==================== BUILD ====================
-
   @override
   Widget build(BuildContext context) {
     final Color pc = widget.primaryColor;
     final bool hasActive =
         _currentIndex >= 0 && _currentIndex < allahNames.length;
     final AllahName? active = hasActive ? allahNames[_currentIndex] : null;
-    final colorScheme = Theme.of(context).colorScheme;
+    final Color bgColor =
+        widget.dialogBg ?? Theme.of(context).colorScheme.surface;
     final textTheme = Theme.of(context).textTheme;
 
     return Dialog(
@@ -279,9 +273,9 @@ class _AllahNamesDialogState extends State<AllahNamesDialog> {
       insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 22),
       child: Container(
         constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height * 0.82),
+            maxHeight: MediaQuery.of(context).size.height * 0.86),
         decoration: BoxDecoration(
-          color: colorScheme.background,
+          color: bgColor,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: pc.withOpacity(0.7)),
           boxShadow: [
@@ -292,7 +286,6 @@ class _AllahNamesDialogState extends State<AllahNamesDialog> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // ── سەرەوە ──
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
               child: Row(children: [
@@ -318,8 +311,6 @@ class _AllahNamesDialogState extends State<AllahNamesDialog> {
                 ),
               ]),
             ),
-
-            // ── لیستی ئاسۆیی ──
             SizedBox(
               height: 138,
               child: ListView.builder(
@@ -438,15 +429,11 @@ class _AllahNamesDialogState extends State<AllahNamesDialog> {
                 },
               ),
             ),
-
-            // ── دیواری جیاکەر ──
             Container(
               height: 1,
               margin: const EdgeInsets.symmetric(horizontal: 16),
-              color: colorScheme.background.withOpacity(0.09),
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.09),
             ),
-
-            // ── پەنجەی ئەکتیڤ — سپی سادە ──
             AnimatedSwitcher(
               duration: const Duration(milliseconds: 350),
               child: active != null
@@ -530,18 +517,19 @@ class _AllahNamesDialogState extends State<AllahNamesDialog> {
                       ),
                     ),
             ),
-
             const SizedBox(height: 4),
-
-            // ── دوگمەکانی کۆنترۆل ──
             Container(
               margin: const EdgeInsets.fromLTRB(14, 4, 14, 14),
               padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
               decoration: BoxDecoration(
-                color: colorScheme.background.withOpacity(0.04),
+                color:
+                    Theme.of(context).colorScheme.onSurface.withOpacity(0.04),
                 borderRadius: BorderRadius.circular(40),
-                border:
-                    Border.all(color: colorScheme.background.withOpacity(0.08)),
+                border: Border.all(
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withOpacity(0.08)),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,

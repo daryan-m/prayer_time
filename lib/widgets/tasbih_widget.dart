@@ -37,7 +37,8 @@ final List<_ZikrItem> _zikrList = [
 
 class TasbihDialog extends StatefulWidget {
   final Color primaryColor;
-  const TasbihDialog({super.key, required this.primaryColor});
+  final Color? dialogBg;
+  const TasbihDialog({super.key, required this.primaryColor, this.dialogBg});
   @override
   State<TasbihDialog> createState() => _TasbihDialogState();
 }
@@ -202,6 +203,8 @@ class _TasbihDialogState extends State<TasbihDialog>
     final Color pc = widget.primaryColor;
     final int target = _current.target;
     final double progress = _count / target;
+    final Color bgColor =
+        widget.dialogBg ?? Theme.of(context).colorScheme.surface;
 
     final Widget hapticBtn =
         _buildFeedbackBtn(_FeedbackType.haptic, Icons.vibration, "هەززە", pc);
@@ -216,9 +219,9 @@ class _TasbihDialogState extends State<TasbihDialog>
       child: Container(
         width: double.infinity,
         constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height * 0.92),
+            maxHeight: MediaQuery.of(context).size.height * 0.76),
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.background,
+          color: bgColor,
           borderRadius: BorderRadius.circular(24),
           border: Border.all(color: pc.withOpacity(0.3)),
           boxShadow: [
@@ -283,7 +286,7 @@ class _TasbihDialogState extends State<TasbihDialog>
                           ? pc
                           : Theme.of(context)
                               .colorScheme
-                              .background
+                              .onSurface
                               .withOpacity(0.07),
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
@@ -291,7 +294,7 @@ class _TasbihDialogState extends State<TasbihDialog>
                               ? pc
                               : Theme.of(context)
                                   .colorScheme
-                                  .background
+                                  .onSurface
                                   .withOpacity(0.24)),
                     ),
                     child: Text(_zikrList[i].arabic,
@@ -361,7 +364,7 @@ class _TasbihDialogState extends State<TasbihDialog>
                       minHeight: 8,
                       backgroundColor: Theme.of(context)
                           .colorScheme
-                          .background
+                          .onSurface
                           .withOpacity(0.12),
                       valueColor: AlwaysStoppedAnimation<Color>(pc))),
             ]),

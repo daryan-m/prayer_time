@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/constants.dart';
 
 // ==================== مۆدێل ====================
@@ -20,6 +25,133 @@ class QuranSurah {
     required this.ayahCount,
     required this.isMakki,
   });
+}
+
+class QuranReciter {
+  final String nameArabic;
+  final String nameKurdish;
+  final String key;
+
+  const QuranReciter({
+    required this.nameArabic,
+    required this.nameKurdish,
+    required this.key,
+  });
+}
+
+// ==================== قاریەکان ====================
+
+const List<QuranReciter> quranReciters = [
+  QuranReciter(
+      nameArabic: 'مشاری العفاسی',
+      nameKurdish: 'مشاری عەفاسی',
+      key: 'Mishary_Rashid_Alafasy_128kbps'),
+  QuranReciter(
+      nameArabic: 'الحصری', nameKurdish: 'حوسەری', key: 'Husary_128kbps'),
+  QuranReciter(
+      nameArabic: 'عبدالباسط',
+      nameKurdish: 'عەبدولباسیت',
+      key: 'Abdul_Basit_Murattal_128kbps'),
+  QuranReciter(
+      nameArabic: 'السدیس',
+      nameKurdish: 'سودەیس',
+      key: 'Abdurrahmaan_As-Sudais_192kbps'),
+  QuranReciter(
+      nameArabic: 'منشاوی',
+      nameKurdish: 'مینشاوی',
+      key: 'Muhammad_Siddiq_Al-Minshawi_128kbps'),
+];
+
+// ==================== سێرڤیسی قورئان ====================
+
+class QuranService {
+  static List<dynamic>? _allAyahs;
+
+  static Future<void> _ensureLoaded() async {
+    if (_allAyahs != null) return;
+    final String raw = await rootBundle.loadString('assets/quran/quran.json');
+    _allAyahs = json.decode(raw) as List<dynamic>;
+  }
+
+  static Future<List<Map<String, dynamic>>> loadSurah(int surahNumber) async {
+    await _ensureLoaded();
+    return _allAyahs!
+        .where((a) => a['s'] == surahNumber)
+        .map<Map<String, dynamic>>((a) => {
+              'a': a['a'] as int,
+              't': a['t'] as String,
+              'b': a['b'],
+            })
+        .toList();
+  }
+
+  // ── دابەشکردنی ئایەتەکان بۆ لاپەرەکان ──
+  // هەر لاپەرە نزیکەی ١٥ دێری تێدایە
+  static List<List<Map<String, dynamic>>> splitIntoPages(
+      List<Map<String, dynamic>> ayahs) {
+    const double avgCharsPerLine = 32.0;
+    const int linesPerPage = 15;
+
+    List<List<Map<String, dynamic>>> pages = [];
+    List<Map<String, dynamic>> current = [];
+    double usedLines = 0;
+
+    for (final ayah in ayahs) {
+      final String text = ayah['t'] as String;
+      final double lines = (text.length / avgCharsPerLine).ceilToDouble() + 0.8;
+      if (usedLines + lines > linesPerPage && current.isNotEmpty) {
+        pages.add(current);
+        current = [];
+        usedLines = 0;
+      }
+      current.add(ayah);
+      usedLines += lines;
+    }
+    if (current.isNotEmpty) pages.add(current);
+    return pages;
+  }
+
+  // ── URLی دەنگ ──
+  static String audioUrl(int surahNumber, int ayahNumber, String reciterKey) {
+    final s = surahNumber.toString().padLeft(3, '0');
+    final a = ayahNumber.toString().padLeft(3, '0');
+    return 'https://everyayah.com/data/$reciterKey/$s$a.mp3';
+  }
+
+  static Future<String> _localPath(int s, int a, String key) async {
+    final dir = await getApplicationDocumentsDirectory();
+    final folder = Directory('${dir.path}/quran_audio/$key');
+    await folder.create(recursive: true);
+    return '${folder.path}/${s.toString().padLeft(3, '0')}${a.toString().padLeft(3, '0')}.mp3';
+  }
+
+  static Future<bool> isDownloaded(int s, int a, String key) async {
+    final path = await _localPath(s, a, key);
+    return File(path).exists();
+  }
+
+  // ── ئۆنلاین یان ئۆفلاین ──
+  static Future<String> getAudioSource(int s, int a, String key) async {
+    final path = await _localPath(s, a, key);
+    if (await File(path).exists()) return path;
+    return audioUrl(s, a, key);
+  }
+
+  // ── داگرتنی یەک ئایەت ──
+  static Future<void> downloadAyah(int s, int a, String key) async {
+    final path = await _localPath(s, a, key);
+    if (await File(path).exists()) return;
+    try {
+      final resp = await http.get(Uri.parse(audioUrl(s, a, key)));
+      if (resp.statusCode == 200) await File(path).writeAsBytes(resp.bodyBytes);
+    } catch (_) {}
+  }
+
+  static Future<void> deleteReciter(String key) async {
+    final dir = await getApplicationDocumentsDirectory();
+    final folder = Directory('${dir.path}/quran_audio/$key');
+    if (await folder.exists()) await folder.delete(recursive: true);
+  }
 }
 
 // ==================== سکرینی لیستی سووره ====================
@@ -744,6 +876,13 @@ class QuranScreen extends StatelessWidget {
                     fontSize: 18,
                     fontWeight: FontWeight.bold)),
           ]),
+          actions: [
+            IconButton(
+              icon: Icon(Icons.download_rounded, color: palette.secondary),
+              tooltip: "داگرتنی دەنگ",
+              onPressed: () => _showRecitersSheet(context),
+            ),
+          ],
           bottom: PreferredSize(
             preferredSize: const Size.fromHeight(1),
             child: Container(height: 1, color: Colors.white24),
@@ -762,16 +901,276 @@ class QuranScreen extends StatelessWidget {
                 context,
                 MaterialPageRoute(
                   builder: (_) => QuranReadScreen(
-                    surah: surah,
-                    primaryColor: primaryColor,
-                    palette: palette,
-                  ),
+                      surah: surah,
+                      primaryColor: primaryColor,
+                      palette: palette),
                 ),
               ),
             );
           },
         ),
       ),
+    );
+  }
+
+  void _showRecitersSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: palette.drawerBg,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (_) => _RecitersSheet(
+          primaryColor: primaryColor, palette: palette, surahs: surahs),
+    );
+  }
+}
+
+// ==================== شیتی قاریەکان ====================
+
+class _RecitersSheet extends StatefulWidget {
+  final Color primaryColor;
+  final ThemePalette palette;
+  final List<QuranSurah> surahs;
+  const _RecitersSheet(
+      {required this.primaryColor,
+      required this.palette,
+      required this.surahs});
+
+  @override
+  State<_RecitersSheet> createState() => _RecitersSheetState();
+}
+
+class _RecitersSheetState extends State<_RecitersSheet> {
+  String? _downloadingKey;
+  int _done = 0;
+  final int _total = 6236;
+
+  Future<void> _downloadAll(QuranReciter reciter) async {
+    setState(() {
+      _downloadingKey = reciter.key;
+      _done = 0;
+    });
+    int done = 0;
+    for (final s in widget.surahs) {
+      for (int a = 1; a <= s.ayahCount; a++) {
+        await QuranService.downloadAyah(s.number, a, reciter.key);
+        done++;
+        if (mounted) setState(() => _done = done);
+      }
+    }
+    if (mounted) {
+      setState(() => _downloadingKey = null);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text("${reciter.nameKurdish} تەواو داگیرا ✓"),
+        backgroundColor: Colors.green.shade700,
+      ));
+    }
+  }
+
+  Future<void> _delete(QuranReciter reciter) async {
+    await QuranService.deleteReciter(reciter.key);
+    if (mounted) setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: DraggableScrollableSheet(
+        expand: false,
+        initialChildSize: 0.6,
+        maxChildSize: 0.9,
+        builder: (_, ctrl) => Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(children: [
+            Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                    color: Colors.white24,
+                    borderRadius: BorderRadius.circular(2))),
+            const SizedBox(height: 16),
+            Row(children: [
+              Icon(Icons.download_rounded,
+                  color: widget.primaryColor, size: 22),
+              const SizedBox(width: 10),
+              Text("قاریەکان و داگرتنی دەنگ",
+                  style: TextStyle(
+                      color: widget.palette.listText,
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold)),
+            ]),
+            const SizedBox(height: 6),
+            Text("دەنگ داگرە بۆ خوێندنەوەی ئۆفلاین — یان ئۆنلاین بیبیستە",
+                style: TextStyle(
+                    color: widget.palette.listText.withOpacity(0.5),
+                    fontSize: 11)),
+            const SizedBox(height: 16),
+            Expanded(
+              child: ListView(
+                  controller: ctrl,
+                  children: quranReciters
+                      .map((r) => _ReciterTile(
+                            reciter: r,
+                            primaryColor: widget.primaryColor,
+                            palette: widget.palette,
+                            isDownloading: _downloadingKey == r.key,
+                            done: _downloadingKey == r.key ? _done : 0,
+                            total: _total,
+                            onDownload: () => _downloadAll(r),
+                            onDelete: () async {
+                              await _delete(r);
+                              setState(() {});
+                            },
+                          ))
+                      .toList()),
+            ),
+          ]),
+        ),
+      ),
+    );
+  }
+}
+
+class _ReciterTile extends StatefulWidget {
+  final QuranReciter reciter;
+  final Color primaryColor;
+  final ThemePalette palette;
+  final bool isDownloading;
+  final int done;
+  final int total;
+  final VoidCallback onDownload;
+  final VoidCallback onDelete;
+
+  const _ReciterTile({
+    required this.reciter,
+    required this.primaryColor,
+    required this.palette,
+    required this.isDownloading,
+    required this.done,
+    required this.total,
+    required this.onDownload,
+    required this.onDelete,
+  });
+
+  @override
+  State<_ReciterTile> createState() => _ReciterTileState();
+}
+
+class _ReciterTileState extends State<_ReciterTile> {
+  bool _downloaded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _check();
+  }
+
+  @override
+  void didUpdateWidget(_ReciterTile old) {
+    super.didUpdateWidget(old);
+    if (!widget.isDownloading && old.isDownloading) _check();
+  }
+
+  Future<void> _check() async {
+    final ok = await QuranService.isDownloaded(1, 1, widget.reciter.key);
+    if (mounted) setState(() => _downloaded = ok);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final progress = widget.total > 0 ? widget.done / widget.total : 0.0;
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: widget.palette.cardBg,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: widget.primaryColor.withOpacity(0.2)),
+      ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Row(children: [
+          Icon(Icons.record_voice_over_rounded,
+              color: widget.primaryColor, size: 20),
+          const SizedBox(width: 10),
+          Expanded(
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                Text(widget.reciter.nameKurdish,
+                    style: TextStyle(
+                        color: widget.palette.listText,
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold)),
+                Text(widget.reciter.nameArabic,
+                    style: TextStyle(
+                        color: widget.palette.listText.withOpacity(0.5),
+                        fontSize: 11)),
+              ])),
+          if (widget.isDownloading)
+            SizedBox(
+                width: 22,
+                height: 22,
+                child: CircularProgressIndicator(
+                    strokeWidth: 2, color: widget.primaryColor))
+          else if (_downloaded)
+            Row(children: [
+              Icon(Icons.check_circle_rounded,
+                  color: Colors.green.shade400, size: 18),
+              const SizedBox(width: 8),
+              GestureDetector(
+                onTap: () async {
+                  widget.onDelete();
+                  await Future.delayed(const Duration(milliseconds: 400));
+                  _check();
+                },
+                child: Icon(Icons.delete_outline_rounded,
+                    color: Colors.red.shade300, size: 20),
+              ),
+            ])
+          else
+            GestureDetector(
+              onTap: widget.onDownload,
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: widget.primaryColor.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(20),
+                  border:
+                      Border.all(color: widget.primaryColor.withOpacity(0.4)),
+                ),
+                child: Row(mainAxisSize: MainAxisSize.min, children: [
+                  Icon(Icons.download_rounded,
+                      color: widget.primaryColor, size: 14),
+                  const SizedBox(width: 4),
+                  Text("داگرە",
+                      style:
+                          TextStyle(color: widget.primaryColor, fontSize: 12)),
+                ]),
+              ),
+            ),
+        ]),
+        if (widget.isDownloading) ...[
+          const SizedBox(height: 8),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              value: progress,
+              minHeight: 4,
+              backgroundColor: widget.palette.listText.withOpacity(0.1),
+              valueColor: AlwaysStoppedAnimation<Color>(widget.primaryColor),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text('${widget.done} / ${widget.total} ئایەت',
+              style: TextStyle(
+                  color: widget.palette.listText.withOpacity(0.5),
+                  fontSize: 10),
+              textAlign: TextAlign.center),
+        ],
+      ]),
     );
   }
 }
@@ -784,12 +1183,11 @@ class _SurahListTile extends StatelessWidget {
   final ThemePalette palette;
   final VoidCallback onTap;
 
-  const _SurahListTile({
-    required this.surah,
-    required this.primaryColor,
-    required this.palette,
-    required this.onTap,
-  });
+  const _SurahListTile(
+      {required this.surah,
+      required this.primaryColor,
+      required this.palette,
+      required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -803,49 +1201,45 @@ class _SurahListTile extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: Colors.white.withOpacity(0.07)),
         ),
-        child: Row(
-          children: [
-            Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: primaryColor.withOpacity(0.15),
-                border: Border.all(color: primaryColor.withOpacity(0.4)),
-              ),
-              alignment: Alignment.center,
-              child: Text('${surah.number}',
-                  style: TextStyle(
-                      color: primaryColor,
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold)),
+        child: Row(children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: primaryColor.withOpacity(0.15),
+              border: Border.all(color: primaryColor.withOpacity(0.4)),
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(surah.nameKurdish,
-                      style: TextStyle(
-                          color: palette.listText,
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 2),
-                  Text(
-                    '${surah.ayahCount} ئایەت · ${surah.isMakki ? "مەکی" : "مەدەنی"}',
-                    style: TextStyle(
-                        color: palette.listText.withOpacity(0.5), fontSize: 11),
-                  ),
-                ],
-              ),
-            ),
-            Text(surah.nameArabic,
+            alignment: Alignment.center,
+            child: Text('${surah.number}',
                 style: TextStyle(
                     color: primaryColor,
-                    fontSize: 16,
+                    fontSize: 11,
                     fontWeight: FontWeight.bold)),
-          ],
-        ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                Text(surah.nameKurdish,
+                    style: TextStyle(
+                        color: palette.listText,
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold)),
+                const SizedBox(height: 2),
+                Text(
+                    '${surah.ayahCount} ئایەت · ${surah.isMakki ? "مەکی" : "مەدەنی"}',
+                    style: TextStyle(
+                        color: palette.listText.withOpacity(0.5),
+                        fontSize: 11)),
+              ])),
+          Text(surah.nameArabic,
+              style: TextStyle(
+                  color: primaryColor,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold)),
+        ]),
       ),
     );
   }
@@ -858,47 +1252,36 @@ class QuranReadScreen extends StatefulWidget {
   final Color primaryColor;
   final ThemePalette palette;
 
-  const QuranReadScreen({
-    super.key,
-    required this.surah,
-    required this.primaryColor,
-    required this.palette,
-  });
+  const QuranReadScreen(
+      {super.key,
+      required this.surah,
+      required this.primaryColor,
+      required this.palette});
 
   @override
   State<QuranReadScreen> createState() => _QuranReadScreenState();
 }
 
 class _QuranReadScreenState extends State<QuranReadScreen> {
-  // ── داتا ──────────────────────────────────────────
   List<Map<String, dynamic>> _ayahs = [];
+  List<List<Map<String, dynamic>>> _pages = [];
   bool _loading = true;
   String _error = '';
 
-  // ── پلەیەر ────────────────────────────────────────
   final AudioPlayer _audioPlayer = AudioPlayer();
   bool _isPlaying = false;
   int _currentAyahIdx = -1;
 
-  // ── قاریەکان ──────────────────────────────────────
-  static const List<Map<String, String>> _reciters = [
-    {'name': 'مشاری عفاسی', 'key': 'afs'},
-    {'name': 'الحصری', 'key': 'husary'},
-    {'name': 'عبدالباسط', 'key': 'Abdul_Basit_Murattal_64kbps'},
-    {'name': 'السدیس', 'key': 'Saud_Al-Shuraim_128kbps'},
-  ];
   int _selectedReciterIdx = 0;
 
-  // ── سکرۆڵ ─────────────────────────────────────────
-  final ScrollController _scrollCtrl = ScrollController();
-
-  // ── GlobalKey بۆ هەر ئایەتێک ──────────────────────
-  final Map<int, GlobalKey> _ayahKeys = {};
+  final PageController _pageCtrl = PageController();
+  int _currentPage = 0;
 
   @override
   void initState() {
     super.initState();
     _loadSurah();
+    _loadReciter();
     _audioPlayer.onPlayerComplete.listen((_) {
       if (!mounted || !_isPlaying) return;
       _playNext();
@@ -909,34 +1292,27 @@ class _QuranReadScreenState extends State<QuranReadScreen> {
   void dispose() {
     _audioPlayer.stop();
     _audioPlayer.dispose();
-    _scrollCtrl.dispose();
+    _pageCtrl.dispose();
     super.dispose();
   }
 
-  // ── بارکردن لە JSON ────────────────────────────────
+  Future<void> _loadReciter() async {
+    final prefs = await SharedPreferences.getInstance();
+    final idx = prefs.getInt('quran_reciter_idx') ?? 0;
+    if (mounted) {
+      setState(
+          () => _selectedReciterIdx = idx.clamp(0, quranReciters.length - 1));
+    }
+  }
+
   Future<void> _loadSurah() async {
     try {
-      final String raw = await rootBundle.loadString('assets/quran/quran.json');
-      final List<dynamic> all = json.decode(raw);
-      final int s = widget.surah.number;
-
-      final filtered = all
-          .where((v) => v['s'] == s)
-          .map<Map<String, dynamic>>((v) => {
-                'a': v['a'] as int,
-                't': v['t'] as String,
-                'b': v['b'], // بسملە ئەگەر هەبوو
-              })
-          .toList();
-
-      // دروست کردنی GlobalKey بۆ هەر ئایەتێک
-      for (final ay in filtered) {
-        _ayahKeys[ay['a'] as int] = GlobalKey();
-      }
-
+      final ayahs = await QuranService.loadSurah(widget.surah.number);
+      final pages = QuranService.splitIntoPages(ayahs);
       if (mounted) {
         setState(() {
-          _ayahs = filtered;
+          _ayahs = ayahs;
+          _pages = pages;
           _loading = false;
         });
       }
@@ -950,27 +1326,55 @@ class _QuranReadScreenState extends State<QuranReadScreen> {
     }
   }
 
-  // ── ئادرێسی MP3 ────────────────────────────────────
-  String _audioUrl(int ayahNumber) {
-    final key = _reciters[_selectedReciterIdx]['key']!;
-    final s = widget.surah.number.toString().padLeft(3, '0');
-    final a = ayahNumber.toString().padLeft(3, '0');
-    return 'https://server8.mp3quran.net/$key/$s$a.mp3';
+  // ── ئیندێکسی گشتی ──
+  int _globalIdx(int pageIdx, int localIdx) {
+    int c = 0;
+    for (int p = 0; p < pageIdx; p++) {
+      c += _pages[p].length;
+    }
+    return c + localIdx;
   }
 
-  // ── پلەی کردن ─────────────────────────────────────
-  Future<void> _playAyah(int index) async {
-    if (index < 0 || index >= _ayahs.length) return;
-    setState(() => _currentAyahIdx = index);
-    _scrollToAyah(index);
+  // ── پەیجی ئایەتێک ──
+  int _pageOfGlobalIdx(int globalIdx) {
+    int c = 0;
+    for (int p = 0; p < _pages.length; p++) {
+      if (globalIdx < c + _pages[p].length) return p;
+      c += _pages[p].length;
+    }
+    return _pages.length - 1;
+  }
+
+  Future<void> _playAyah(int globalIdx) async {
+    if (globalIdx < 0 || globalIdx >= _ayahs.length) return;
+    setState(() => _currentAyahIdx = globalIdx);
+
+    // بچۆ پەیجی ئایەتەکە
+    final pageIdx = _pageOfGlobalIdx(globalIdx);
+    if (_currentPage != pageIdx) {
+      _currentPage = pageIdx;
+      _pageCtrl.animateToPage(pageIdx,
+          duration: const Duration(milliseconds: 350), curve: Curves.easeInOut);
+    }
+
     await _audioPlayer.stop();
-    await _audioPlayer.play(UrlSource(_audioUrl(_ayahs[index]['a'] as int)));
+    final ayahNum = _ayahs[globalIdx]['a'] as int;
+    final key = quranReciters[_selectedReciterIdx].key;
+    final src =
+        await QuranService.getAudioSource(widget.surah.number, ayahNum, key);
+
+    if (src.startsWith('/')) {
+      await _audioPlayer.play(DeviceFileSource(src));
+    } else {
+      await _audioPlayer.play(UrlSource(src));
+    }
   }
 
   void _playNext() {
     if (_currentAyahIdx < _ayahs.length - 1) {
       _playAyah(_currentAyahIdx + 1);
     } else {
+      // کۆتایی سووره
       setState(() {
         _isPlaying = false;
         _currentAyahIdx = -1;
@@ -984,8 +1388,7 @@ class _QuranReadScreenState extends State<QuranReadScreen> {
       setState(() => _isPlaying = false);
     } else {
       setState(() => _isPlaying = true);
-      final start = _currentAyahIdx < 0 ? 0 : _currentAyahIdx;
-      await _playAyah(start);
+      await _playAyah(_currentAyahIdx < 0 ? 0 : _currentAyahIdx);
     }
   }
 
@@ -997,112 +1400,86 @@ class _QuranReadScreenState extends State<QuranReadScreen> {
     });
   }
 
-  // ── سکرۆڵ بۆ ئایەتی دەنگدراو ─────────────────────
-  void _scrollToAyah(int index) {
-    if (index < 0 || index >= _ayahs.length) return;
-    final ayahNum = _ayahs[index]['a'] as int;
-    final key = _ayahKeys[ayahNum];
-    if (key?.currentContext == null) return;
-    Scrollable.ensureVisible(
-      key!.currentContext!,
-      duration: const Duration(milliseconds: 400),
-      curve: Curves.easeOut,
-      alignment: 0.3,
-    );
-  }
-
-  // ── بنای تێکستی بەردەوام ──────────────────────────
-  Widget _buildContinuousText() {
+  // ── بنای لاپەرە ──
+  Widget _buildPage(int pageIdx) {
+    final pageAyahs = _pages[pageIdx];
     final List<InlineSpan> spans = [];
 
-    // بسملە:
-    // سووره ٢ تا ١١٤ (جگە لە ٩): لە فیێڵدی b ی ئایەتی یەکەم دێت
-    // سووره ١: بسملە ئایەتی a:1 ی خۆیەتی، پێویستی بە زیادکردنی جیا نییە
-    // سووره ٩: بسملەی نییە
-    if (_ayahs.isNotEmpty && _ayahs[0]['b'] != null) {
-      spans.add(
-        TextSpan(
-          text: '${_ayahs[0]['b']}\n\n',
-          style: TextStyle(
-            fontSize: 20,
-            color: widget.primaryColor,
-            fontWeight: FontWeight.bold,
-            height: 2.2,
-          ),
+    // بسملە لەسەر پەیجی یەکەم
+    if (pageIdx == 0 && pageAyahs.isNotEmpty && pageAyahs[0]['b'] != null) {
+      spans.add(TextSpan(
+        text: '${pageAyahs[0]['b']}\n\n',
+        style: TextStyle(
+          fontSize: 14,
+          color: widget.primaryColor,
+          fontWeight: FontWeight.bold,
+          height: 2.2,
         ),
-      );
+      ));
     }
 
-    for (int i = 0; i < _ayahs.length; i++) {
-      final ayah = _ayahs[i];
+    for (int li = 0; li < pageAyahs.length; li++) {
+      final int gi = _globalIdx(pageIdx, li);
+      final ayah = pageAyahs[li];
       final int ayahNum = ayah['a'] as int;
       final String text = ayah['t'] as String;
-      final bool isActive = _currentAyahIdx == i;
+      final bool isActive = _currentAyahIdx == gi;
 
-      spans.add(
-        WidgetSpan(
-          alignment: PlaceholderAlignment.baseline,
-          baseline: TextBaseline.alphabetic,
-          child: GestureDetector(
-            onTap: () async {
-              setState(() => _isPlaying = true);
-              await _playAyah(i);
-            },
-            child: Container(
-              key: _ayahKeys[ayahNum],
-              // پاددینگی کەمێک بۆ ئەوەی هایلایت دیاربێت
-              padding: isActive
-                  ? const EdgeInsets.symmetric(horizontal: 5, vertical: 3)
-                  : const EdgeInsets.symmetric(horizontal: 1, vertical: 1),
-              decoration: isActive
-                  ? BoxDecoration(
-                      color: widget.primaryColor.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                          color: widget.primaryColor.withOpacity(0.5),
-                          width: 1),
-                    )
-                  : null,
-              child: RichText(
-                textDirection: TextDirection.rtl,
-                text: TextSpan(
-                  children: [
-                    TextSpan(
-                      text: text,
-                      style: TextStyle(
-                        fontSize: 22,
-                        color: isActive ? widget.primaryColor : Colors.white,
-                        fontWeight:
-                            isActive ? FontWeight.w600 : FontWeight.normal,
-                        height: 2.1,
-                      ),
-                    ),
-                    // ژمارەی ئایەت بە عەرەبی
-                    TextSpan(
-                      text: ' ﴿$ayahNum﴾ ',
-                      style: TextStyle(
-                        fontSize: 15,
-                        color: isActive
-                            ? widget.primaryColor
-                            : widget.primaryColor.withOpacity(0.65),
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
+      spans.add(WidgetSpan(
+        alignment: PlaceholderAlignment.baseline,
+        baseline: TextBaseline.alphabetic,
+        child: GestureDetector(
+          onTap: () async {
+            setState(() => _isPlaying = true);
+            await _playAyah(gi);
+          },
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            padding: isActive
+                ? const EdgeInsets.symmetric(horizontal: 4, vertical: 2)
+                : EdgeInsets.zero,
+            decoration: isActive
+                ? BoxDecoration(
+                    color: widget.primaryColor.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(
+                        color: widget.primaryColor.withOpacity(0.5), width: 1),
+                  )
+                : null,
+            child: RichText(
+              textDirection: TextDirection.rtl,
+              text: TextSpan(children: [
+                TextSpan(
+                  text: text,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: isActive ? widget.primaryColor : Colors.white,
+                    fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
+                    height: 2.2,
+                  ),
                 ),
-              ),
+                TextSpan(
+                  text: ' ﴿$ayahNum﴾ ',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color:
+                        widget.primaryColor.withOpacity(isActive ? 1.0 : 0.65),
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ]),
             ),
           ),
         ),
-      );
+      ));
     }
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 20, 16, 20),
+      padding: const EdgeInsets.fromLTRB(18, 20, 18, 20),
       child: Text.rich(
         TextSpan(children: spans),
         textDirection: TextDirection.rtl,
-        textAlign: TextAlign.right,
+        textAlign: TextAlign.justify,
       ),
     );
   }
@@ -1121,20 +1498,18 @@ class _QuranReadScreenState extends State<QuranReadScreen> {
                 color: widget.palette.secondary),
             onPressed: () => Navigator.pop(context),
           ),
-          title: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(widget.surah.nameArabic,
-                  style: TextStyle(
-                      color: widget.palette.secondary,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold)),
-              Text(widget.surah.nameKurdish,
-                  style: TextStyle(
-                      color: widget.palette.listText.withOpacity(0.6),
-                      fontSize: 11)),
-            ],
-          ),
+          title:
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(widget.surah.nameArabic,
+                style: TextStyle(
+                    color: widget.palette.secondary,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold)),
+            Text(widget.surah.nameKurdish,
+                style: TextStyle(
+                    color: widget.palette.listText.withOpacity(0.6),
+                    fontSize: 11)),
+          ]),
           actions: [
             PopupMenuButton<int>(
               icon: Icon(Icons.person_outline_rounded,
@@ -1146,22 +1521,24 @@ class _QuranReadScreenState extends State<QuranReadScreen> {
                   _selectedReciterIdx = i;
                   _isPlaying = false;
                 });
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.setInt('quran_reciter_idx', i);
               },
               itemBuilder: (_) => List.generate(
-                _reciters.length,
-                (i) => PopupMenuItem(
-                  value: i,
-                  child: Row(children: [
-                    if (i == _selectedReciterIdx)
-                      Icon(Icons.check, color: widget.primaryColor, size: 16)
-                    else
-                      const SizedBox(width: 16),
-                    const SizedBox(width: 8),
-                    Text(_reciters[i]['name']!,
-                        style: TextStyle(color: widget.palette.listText)),
-                  ]),
-                ),
-              ),
+                  quranReciters.length,
+                  (i) => PopupMenuItem(
+                        value: i,
+                        child: Row(children: [
+                          if (i == _selectedReciterIdx)
+                            Icon(Icons.check,
+                                color: widget.primaryColor, size: 16)
+                          else
+                            const SizedBox(width: 16),
+                          const SizedBox(width: 8),
+                          Text(quranReciters[i].nameKurdish,
+                              style: TextStyle(color: widget.palette.listText)),
+                        ]),
+                      )),
             ),
           ],
           bottom: PreferredSize(
@@ -1169,16 +1546,14 @@ class _QuranReadScreenState extends State<QuranReadScreen> {
             child: Container(height: 1, color: Colors.white24),
           ),
         ),
-
-        // ── بادی ──────────────────────────────────────
         body: _loading
             ? Center(
                 child: CircularProgressIndicator(color: widget.primaryColor))
             : _error.isNotEmpty
                 ? Center(
                     child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
                         Text(_error,
                             style: const TextStyle(color: Colors.white70),
                             textAlign: TextAlign.center),
@@ -1193,104 +1568,105 @@ class _QuranReadScreenState extends State<QuranReadScreen> {
                           },
                           child: const Text("دووبارە هەوڵ بدەرەوە"),
                         ),
-                      ],
-                    ),
-                  )
-                : Column(
-                    children: [
-                      // تێکستی بەردەوامی ئایەتەکان
-                      Expanded(
-                        child: SingleChildScrollView(
-                          controller: _scrollCtrl,
-                          child: _buildContinuousText(),
-                        ),
+                      ]))
+                : Column(children: [
+                    // ── لاپەرەکان ──
+                    Expanded(
+                      child: PageView.builder(
+                        controller: _pageCtrl,
+                        reverse: true, // عەرەبی ڕاست بۆ چەپ
+                        itemCount: _pages.length,
+                        onPageChanged: (p) => setState(() => _currentPage = p),
+                        itemBuilder: (_, pageIdx) => _buildPage(pageIdx),
                       ),
+                    ),
 
-                      // ژمارەی ئایەتی هەڵبژێردراو
-                      if (_currentAyahIdx >= 0 &&
-                          _currentAyahIdx < _ayahs.length)
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 6),
-                          color: widget.palette.cardBg,
-                          child: Text(
-                            'ئایەتی ${_ayahs[_currentAyahIdx]['a']} لە سووره ${widget.surah.nameKurdish}',
+                    // ── بار ی خوارەوە ──
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 5, horizontal: 16),
+                      color: widget.palette.cardBg,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'پەیجی ${_currentPage + 1} / ${_pages.length}',
                             style: TextStyle(
                                 color:
-                                    widget.palette.listText.withOpacity(0.55),
+                                    widget.palette.listText.withOpacity(0.45),
                                 fontSize: 11),
-                            textAlign: TextAlign.right,
                           ),
-                        ),
+                          if (_currentAyahIdx >= 0)
+                            Text(
+                              'ئایەتی ${_ayahs[_currentAyahIdx]['a']}',
+                              style: TextStyle(
+                                  color: widget.primaryColor.withOpacity(0.8),
+                                  fontSize: 11),
+                            ),
+                        ],
+                      ),
+                    ),
 
-                      // پلەیەر
-                      _buildPlayer(),
-                    ],
-                  ),
+                    // ── پلەیەر ──
+                    _buildPlayer(),
+                  ]),
       ),
     );
   }
 
-  // ── پلەیەر ────────────────────────────────────────
   Widget _buildPlayer() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-      decoration: BoxDecoration(
-        color: widget.palette.cardBg,
-        border: Border(
-            top: BorderSide(color: widget.primaryColor.withOpacity(0.2))),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          _playerBtn(icon: Icons.stop_rounded, onTap: _stopPlay, size: 22),
-          _playerBtn(
-            icon: Icons.skip_previous_rounded,
-            onTap: () {
+    return SafeArea(
+      top: false,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        decoration: BoxDecoration(
+          color: widget.palette.cardBg,
+          border: Border(
+              top: BorderSide(color: widget.primaryColor.withOpacity(0.2))),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            _btn(Icons.stop_rounded, _stopPlay, 22),
+            _btn(Icons.skip_previous_rounded, () {
               if (_currentAyahIdx > 0) _playAyah(_currentAyahIdx - 1);
-            },
-            size: 26,
-          ),
-          GestureDetector(
-            onTap: _togglePlay,
-            child: Container(
-              width: 52,
-              height: 52,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: widget.primaryColor.withOpacity(0.2),
-                border: Border.all(
-                    color: widget.primaryColor.withOpacity(0.6), width: 1.5),
-              ),
-              child: Icon(
-                _isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                color: widget.primaryColor,
-                size: 30,
+            }, 26),
+            GestureDetector(
+              onTap: _togglePlay,
+              child: Container(
+                width: 52,
+                height: 52,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: widget.primaryColor.withOpacity(0.2),
+                  border: Border.all(
+                      color: widget.primaryColor.withOpacity(0.6), width: 1.5),
+                ),
+                child: Icon(
+                  _isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                  color: widget.primaryColor,
+                  size: 30,
+                ),
               ),
             ),
-          ),
-          _playerBtn(
-            icon: Icons.skip_next_rounded,
-            onTap: () {
+            _btn(Icons.skip_next_rounded, () {
               if (_currentAyahIdx < _ayahs.length - 1) {
                 _playAyah(_currentAyahIdx + 1);
               }
-            },
-            size: 26,
-          ),
-          Text(
-            _reciters[_selectedReciterIdx]['name']!,
-            style: TextStyle(
-                color: widget.palette.listText.withOpacity(0.6), fontSize: 11),
-          ),
-        ],
+            }, 26),
+            Text(
+              quranReciters[_selectedReciterIdx].nameKurdish,
+              style: TextStyle(
+                  color: widget.palette.listText.withOpacity(0.6),
+                  fontSize: 11),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _playerBtn(
-      {required IconData icon, required VoidCallback onTap, double size = 22}) {
+  Widget _btn(IconData icon, VoidCallback onTap, double size) {
     return GestureDetector(
       onTap: onTap,
       child: Icon(icon, color: widget.palette.secondary, size: size),

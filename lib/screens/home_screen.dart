@@ -904,7 +904,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
   Widget _buildBottomBar(BuildContext context) {
     return SafeArea(
       child: Container(
-        height: 64,
+        height: 56,
         decoration: BoxDecoration(
           color: _palette.background,
           border: Border(
