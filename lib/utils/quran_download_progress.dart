@@ -8,13 +8,13 @@ class QuranDownloadProgress {
     final d = done.clamp(0, total);
     await main_entry.flutterLocalNotificationsPlugin.show(
       kQuranDownloadNotifId,
-      'داگیردانی قورئان',
+      'داگرتنى دەنگ ',
       '$reciterName — $d / $total',
       NotificationDetails(
         android: AndroidNotificationDetails(
           'quran_download',
-          'داگیردانی قورئان',
-          channelDescription: 'پێشەوەیی داگیردانی دێنگی قارەکان',
+          'داگرتنى دەنگ ',
+          channelDescription: 'پێشەوەیی داگرتنى دەنگى قورئانخوین',
           importance: Importance.low,
           priority: Priority.low,
           onlyAlertOnce: true,
@@ -27,7 +27,7 @@ class QuranDownloadProgress {
   }
 
   static Future<void> cancel() async {
-    await main_entry.flutterLocalNotificationsPlugin.cancel(
-        kQuranDownloadNotifId);
+    await main_entry.flutterLocalNotificationsPlugin
+        .cancel(kQuranDownloadNotifId);
   }
 }
