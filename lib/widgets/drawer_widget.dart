@@ -1,9 +1,11 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:vibration/vibration.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:hijri/hijri_calendar.dart';
+import '../utils/app_permissions.dart';
 import '../utils/constants.dart';
 import '../services/prayer_service.dart';
 import 'allah_names_widget.dart';
@@ -213,6 +215,37 @@ class _PrayerDrawerState extends State<PrayerDrawer> {
                               )),
                     ),
                     _divider(pal),
+                    if (Platform.isAndroid)
+                      ListTile(
+                        leading: Icon(Icons.notifications_active_outlined,
+                            color: pal.primary, size: 22),
+                        title: Text(
+                            "مۆڵەتەکانی بانگ و قورئان (ئاگادار + باتری)",
+                            style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: pal.listText)),
+                        subtitle: Text(
+                            "ئەگەر مۆڵەت نەدرابێت داوا دەکرێت (دووبارە داوا ناکرێت)",
+                            textAlign: TextAlign.right,
+                            style: TextStyle(
+                                color: pal.listText.withOpacity(0.5),
+                                fontSize: 11)),
+                        onTap: () async {
+                          await AppPermissions
+                              .requestNotificationAndBatteryIfMissing();
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: const Text("ئەگەر مۆڵەت پێویست بوو داوا کرا"),
+                                backgroundColor: pal.primary.withOpacity(0.5),
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                          }
+                        },
+                      ),
+                    if (Platform.isAndroid) _divider(pal),
                     ListTile(
                       leading: const Icon(Icons.play_circle_fill,
                           color: Colors.red, size: 28),
@@ -494,7 +527,7 @@ class _PrayerDrawerState extends State<PrayerDrawer> {
                   }
                 },
                 child: Text(
-                  "github.com/Bang-Kurdistan",
+                  "Bang-Kurdistan",
                   style: TextStyle(
                       color: pal.primary,
                       fontSize: 12,
@@ -515,15 +548,15 @@ class _PrayerDrawerState extends State<PrayerDrawer> {
             children: [
               InkWell(
                 onTap: () async {
-                  final Uri url = Uri.parse('https://docs.globalquran.com/about'
-                      'https://alquran.cloud/terms-and-conditions');
+                  final Uri url =
+                      Uri.parse('https://docs.globalquran.com/about');
                   if (!await launchUrl(url,
                       mode: LaunchMode.externalApplication)) {
                     debugPrint("کێشەیەک هەیە");
                   }
                 },
                 child: Text(
-                  "globalquran.com" "alquran.cloud",
+                  "globalquran.com",
                   style: TextStyle(
                       color: pal.primary,
                       fontSize: 12,
@@ -532,6 +565,33 @@ class _PrayerDrawerState extends State<PrayerDrawer> {
               ),
               const SizedBox(width: 8),
               Text("تێکستی قورئانی پیرۆز:",
+                  style: TextStyle(
+                      color: pal.listText.withOpacity(0.7), fontSize: 13)),
+            ],
+          ),
+
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              InkWell(
+                onTap: () async {
+                  final Uri url =
+                      Uri.parse('https://alquran.cloud/terms-and-conditions');
+                  if (!await launchUrl(url,
+                      mode: LaunchMode.externalApplication)) {
+                    debugPrint("کێشەیەک هەیە");
+                  }
+                },
+                child: Text(
+                  "alquran.cloud",
+                  style: TextStyle(
+                      color: pal.primary,
+                      fontSize: 12,
+                      decoration: TextDecoration.underline),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text("دەنگى قورئانخوێن:",
                   style: TextStyle(
                       color: pal.listText.withOpacity(0.7), fontSize: 13)),
             ],

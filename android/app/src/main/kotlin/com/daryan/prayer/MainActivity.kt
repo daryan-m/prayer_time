@@ -7,16 +7,83 @@ import android.content.Intent
 import android.os.Build
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
+import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodChannel
+import io.flutter.plugin.common.EventChannel.StreamHandler
 
 class MainActivity : FlutterActivity() {
 
     companion object {
         const val ATHAN_CHANNEL = "com.daryan.prayer/athan"
+        const val QURAN_MEDIA_CHANNEL = "com.daryan.prayer/quran_media"
+        const val QURAN_MEDIA_EVENTS = "com.daryan.prayer/quran_media_events"
     }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+
+        EventChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            QURAN_MEDIA_EVENTS
+        ).setStreamHandler(object : StreamHandler {
+            override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
+                QuranMediaPluginEvents.eventSink = events
+            }
+            override fun onCancel(arguments: Any?) {
+                QuranMediaPluginEvents.eventSink = null
+            }
+        })
+
+        MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            QURAN_MEDIA_CHANNEL
+        ).setMethodCallHandler { call, result ->
+            when (call.method) {
+                "play" -> {
+                    try {
+                        val isFile = call.argument<Boolean>("isFile")!!
+                        val source = call.argument<String>("source")!!
+                        val title = call.argument<String>("title")!!
+                        val i = Intent(this, QuranMediaService::class.java).apply {
+                            action = QuranMediaService.ACTION_PLAY
+                            putExtra(QuranMediaService.EXTRA_IS_FILE, isFile)
+                            putExtra(QuranMediaService.EXTRA_SOURCE, source)
+                            putExtra(QuranMediaService.EXTRA_TITLE, title)
+                        }
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                            startForegroundService(i)
+                        } else {
+                            startService(i)
+                        }
+                        result.success(true)
+                    } catch (e: Exception) {
+                        result.error("QURAN_PLAY", e.message, null)
+                    }
+                }
+                "pause" -> {
+                    startService(
+                        Intent(this, QuranMediaService::class.java)
+                            .setAction(QuranMediaService.ACTION_PAUSE)
+                    )
+                    result.success(true)
+                }
+                "resume" -> {
+                    startService(
+                        Intent(this, QuranMediaService::class.java)
+                            .setAction(QuranMediaService.ACTION_RESUME)
+                    )
+                    result.success(true)
+                }
+                "stop" -> {
+                    startService(
+                        Intent(this, QuranMediaService::class.java)
+                            .setAction(QuranMediaService.ACTION_STOP)
+                    )
+                    result.success(true)
+                }
+                else -> result.notImplemented()
+            }
+        }
 
         MethodChannel(
             flutterEngine.dartExecutor.binaryMessenger,

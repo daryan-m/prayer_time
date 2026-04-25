@@ -51,6 +51,12 @@ void main() async {
       enableVibration: true,
       audioAttributesUsage: AudioAttributesUsage.alarm,
     ),
+    AndroidNotificationChannel(
+      'quran_download',
+      'داگیردانی قورئان',
+      description: 'پێشەوەیی داگیردانی دێنگی قارەکان',
+      importance: Importance.low,
+    ),
   ];
 
   final AndroidFlutterLocalNotificationsPlugin? androidPlugin =

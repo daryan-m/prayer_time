@@ -17,7 +17,9 @@ import '../widgets/prayer_widgets.dart';
 import '../widgets/drawer_widget.dart';
 import '../widgets/tasbih_widget.dart';
 import '../widgets/allah_names_widget.dart';
-import '../widgets/quran_screen.dart';
+import '../widgets/quran_surah_data.dart';
+import '../widgets/quran_read_screen.dart';
+import '../utils/app_permissions.dart';
 import '../utils/constants.dart';
 import '../main.dart';
 
@@ -251,10 +253,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
 
     if (agreed != true) return false;
 
-    final notificationStatus = await Permission.notification.request();
-    if (notificationStatus.isGranted) {
-      await Permission.ignoreBatteryOptimizations.request();
-    }
+    await AppPermissions.requestNotificationAndBatteryIfMissing();
     return await Permission.notification.isGranted;
   }
 
@@ -355,7 +354,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
                 style: TextStyle(
                     color: Colors.white, fontWeight: FontWeight.bold)),
             content: const Text(
-              "تکایە لە ڕێکخستن مۆڵەتی \"ئینستاڵکردنی ئەپ\" بدە بە ئەپەکە، پاشان دووبارە هەوڵ بدەرەوە.",
+              "تکایە لە ڕێکخستن مۆڵەتی \"ئینستاڵکردن\" بدە بە ئەپڵیکەیشنەکە، پاشان دووبارە هەوڵ بدەرەوە.",
               style: TextStyle(color: Colors.white70),
               textAlign: TextAlign.center,
             ),
@@ -456,7 +455,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
             case OtaStatus.DOWNLOADING:
               setDlState?.call(() {
                 dlProgress = double.tryParse(event.value ?? '0') ?? 0;
-                statusText = "تکایە چاوەڕوان بن...";
+                statusText = "تکایە چاوەڕوان بە...";
               });
               break;
             case OtaStatus.INSTALLING:
@@ -917,30 +916,46 @@ class _PrayerHomePageState extends State<PrayerHomePage>
             _buildBottomIcon(
               icon: Icons.menu_book_rounded,
               label: "قورئان",
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => QuranScreen(
-                    primaryColor: primaryColor,
-                    palette: _palette,
+              onTap: () async {
+                final prefs = await SharedPreferences.getInstance();
+                final lastSurah = prefs.getInt('quran_last_surah') ?? 1;
+                final surah = QuranScreenData.surahs.firstWhere(
+                  (s) => s.number == lastSurah,
+                  orElse: () => QuranScreenData.surahs.first,
+                );
+                if (!context.mounted) return;
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => QuranReadScreen(
+                      surah: surah,
+                      primaryColor: primaryColor,
+                      palette: _palette,
+                    ),
                   ),
-                ),
-              ),
+                );
+              },
             ),
             _buildBottomIcon(
               icon: Icons.grain,
               label: "تەسبیح",
               onTap: () => showDialog(
                 context: context,
-                builder: (_) => TasbihDialog(primaryColor: primaryColor),
+                builder: (_) => TasbihDialog(
+                  primaryColor: primaryColor,
+                  dialogBg: _palette.background,
+                ),
               ),
             ),
             _buildBottomIcon(
               icon: Icons.auto_awesome,
-              label: "ناوی خوا",
+              label: "ناوەکانی خودا",
               onTap: () => showDialog(
                 context: context,
-                builder: (_) => AllahNamesDialog(primaryColor: primaryColor),
+                builder: (_) => AllahNamesDialog(
+                  primaryColor: primaryColor,
+                  dialogBg: _palette.background,
+                ),
               ),
             ),
             Builder(

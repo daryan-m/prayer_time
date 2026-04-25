@@ -83,6 +83,11 @@
             android:foregroundServiceType="mediaPlayback"
             android:stopWithTask="false" />
 
+        <service
+            android:name=".QuranMediaService"
+            android:exported="false"
+            android:foregroundServiceType="mediaPlayback" />
+
         <provider
             android:name="sk.fourq.otaupdate.OtaUpdateFileProvider"
             android:authorities="${applicationId}.ota_update_provider"
