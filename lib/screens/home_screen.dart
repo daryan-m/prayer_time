@@ -891,8 +891,9 @@ class _PrayerHomePageState extends State<PrayerHomePage>
         ),
         const Divider(color: Colors.white, height: 14, thickness: 1.5),
         Expanded(
-          child: Column(
-            children: List.generate(6, (i) => _buildPrayerCard(i)),
+          child: ListView.builder(
+            itemCount: 6,
+            itemBuilder: (context, i) => _buildPrayerCard(i),
           ),
         ),
       ],

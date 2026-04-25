@@ -1,11 +1,11 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:bang/utils/quran_audio_bridge.dart';
 import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import '../utils/constants.dart';
+import '../utils/quran_audio_bridge.dart';
 import 'quran_service.dart';
 import 'quran_surah_data.dart';
 import 'quran_download_dialog.dart';
@@ -301,25 +301,57 @@ class _QuranReadScreenState extends State<QuranReadScreen>
     final key = reciter.key;
     final status = await QuranService.reciterDownloadStatus(key);
 
-    // ئەگەر داگیراو نەبێت، دیالۆگ نیشان بدە (لەگەڵ بژاردەی ئۆنلاین)
+    // ئەگەر دەنگەکە دانەگیراوە
     if (status == ReciterDlStatus.none) {
       if (!mounted) return;
-      _showDownloadDialog(reciter, allowOnline: true);
+
+      // نیشاندانی دیالۆگەکە
+      showDialog(
+        context: context,
+        builder: (ctx) => QuranDownloadDialog(
+          reciter: reciter,
+          primaryColor: widget.primaryColor,
+          palette: widget.palette,
+          surahs: QuranScreenData.surahs,
+          allowOnline: true,
+          onDownloadComplete: () {
+            setState(() => _selectedReciterIdx = idx);
+            _playNext(); // دەستپێکردن دوای داگرتن
+          },
+          onUseOnline: () async {
+            // لێرەدا تەنها ناسنامەی قاریئەکە دەگۆڕین بێ ئەوەی لاپەڕەکە دابخەین
+            setState(() {
+              _selectedReciterIdx = idx;
+              _isPlaying = false;
+            });
+            final prefs = await SharedPreferences.getInstance();
+            await prefs.setInt('quran_reciter_idx', idx);
+
+            // دەستپێکردنی لێدانی دەنگ بە شێوەی ئۆنلاین
+            _playNext();
+          },
+        ),
+      );
       return;
     }
 
+    // ئەگەر پێشتر داگیرابوو (ئاسایی)
     if (QuranAudioBridge.isNativeAndroid) {
       await QuranAudioBridge.stop();
     } else {
       await _audioPlayer.stop();
     }
+
     setState(() {
       _selectedReciterIdx = idx;
       _isPlaying = false;
     });
+
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt('quran_reciter_idx', idx);
-    return;
+
+    // لێدانی دەنگی قاریئە نوێیەکە
+    _playNext();
   }
 
   void _showDownloadDialog(QuranReciter reciter, {bool allowOnline = false}) {

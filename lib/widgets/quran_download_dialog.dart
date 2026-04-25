@@ -187,11 +187,15 @@ class _QuranDownloadDialogState extends State<QuranDownloadDialog> {
       icon: Icon(Icons.wifi_rounded, size: 16, color: pc),
       label: const Text("ئۆنلاین"),
       onPressed: () async {
-        Navigator.pop(context);
-        if (widget.onUseOnline != null) {
-          await widget.onUseOnline!();
-        }
-      },
+  // ✅ ئەمە تەنها دیالۆگەکە لادەبات بە دڵنیاییەوە
+  if (Navigator.of(context).canPop()) {
+    Navigator.of(context, rootNavigator: true).pop();
+  }
+
+  if (widget.onUseOnline != null) {
+    await widget.onUseOnline!();
+  }
+},
     ),
 
             const SizedBox(height: 16),
