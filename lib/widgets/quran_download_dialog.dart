@@ -162,7 +162,7 @@ class _QuranDownloadDialogState extends State<QuranDownloadDialog> {
           const SizedBox(height: 10),
           Text(widget.reciter.nameKurdish,
               style: TextStyle(
-                  color: pc, fontSize: 13, fontWeight: FontWeight.bold)),
+                  color: pc, fontSize: 14, fontWeight: FontWeight.bold)),
           Text(widget.reciter.nameArabic,
               style: TextStyle(
                   color: pal.listText.withOpacity(0.5), fontSize: 11)),
@@ -174,9 +174,26 @@ class _QuranDownloadDialogState extends State<QuranDownloadDialog> {
               textAlign: TextAlign.center,
               style: TextStyle(
                   color: pal.listText.withOpacity(0.7),
-                  fontSize: 12,
+                  fontSize: 13,
                   height: 1.6),
             ),
+
+    // ✅ زیادکرا — ئۆنلاین
+    OutlinedButton.icon(
+      style: OutlinedButton.styleFrom(
+        foregroundColor: pc,
+        side: BorderSide(color: pc.withOpacity(0.4)),
+      ),
+      icon: Icon(Icons.wifi_rounded, size: 16, color: pc),
+      label: const Text("ئۆنلاین"),
+      onPressed: () async {
+        Navigator.pop(context);
+        if (widget.onUseOnline != null) {
+          await widget.onUseOnline!();
+        }
+      },
+    ),
+
             const SizedBox(height: 16),
             Row(mainAxisAlignment: MainAxisAlignment.center, children: [
               OutlinedButton(

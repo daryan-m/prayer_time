@@ -1,11 +1,11 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:bang/utils/quran_audio_bridge.dart';
 import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import '../utils/constants.dart';
-import '../utils/quran_audio_bridge.dart';
 import 'quran_service.dart';
 import 'quran_surah_data.dart';
 import 'quran_download_dialog.dart';
@@ -319,6 +319,7 @@ class _QuranReadScreenState extends State<QuranReadScreen>
     });
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt('quran_reciter_idx', idx);
+    return;
   }
 
   void _showDownloadDialog(QuranReciter reciter, {bool allowOnline = false}) {
@@ -333,35 +334,40 @@ class _QuranReadScreenState extends State<QuranReadScreen>
         allowOnline: allowOnline,
         onUseOnline: allowOnline
             ? () async {
+                // Navigator.pop پێش هەر await — بۆئەوەی ctx زیندوو بمێنێتەوە
                 Navigator.pop(ctx);
                 if (QuranAudioBridge.isNativeAndroid) {
-                  await QuranAudioBridge.stop();
+                  QuranAudioBridge.stop();
                 } else {
-                  await _audioPlayer.stop();
+                  _audioPlayer.stop();
                 }
+                final idx = quranReciters.indexOf(reciter);
+                if (!mounted) return;
                 setState(() {
-                  _selectedReciterIdx = quranReciters.indexOf(reciter);
+                  _selectedReciterIdx = idx;
                   _isPlaying = false;
                 });
-                final prefs = await SharedPreferences.getInstance();
-                await prefs.setInt(
-                    'quran_reciter_idx', quranReciters.indexOf(reciter));
+                SharedPreferences.getInstance()
+                    .then((p) => p.setInt('quran_reciter_idx', idx));
+                return;
               }
             : null,
         onDownloadComplete: () async {
           Navigator.pop(ctx);
           if (QuranAudioBridge.isNativeAndroid) {
-            await QuranAudioBridge.stop();
+            QuranAudioBridge.stop();
           } else {
-            await _audioPlayer.stop();
+            _audioPlayer.stop();
           }
+          final idx = quranReciters.indexOf(reciter);
+          if (!mounted) return;
           setState(() {
-            _selectedReciterIdx = quranReciters.indexOf(reciter);
+            _selectedReciterIdx = idx;
             _isPlaying = false;
           });
-          final prefs = await SharedPreferences.getInstance();
-          await prefs.setInt(
-              'quran_reciter_idx', quranReciters.indexOf(reciter));
+          SharedPreferences.getInstance()
+              .then((p) => p.setInt('quran_reciter_idx', idx));
+          return;
         },
       ),
     );
@@ -679,6 +685,10 @@ class _QuranReadScreenState extends State<QuranReadScreen>
 
 // ==================== ناوەرۆکی لاپەرە ====================
 
+// ==================== ناوەرۆکی لاپەرە — نسخەی ڕاستکراو ====================
+// ئەم فایلە تەنها _PageContent ی نوێکراوی تێدایە
+// جێگرەوەی بەشی _PageContent لە quran_read_screen.dart
+
 class _PageContent extends StatefulWidget {
   final List<Map<String, dynamic>> pageAyahs;
   final int pageIdx;
@@ -713,6 +723,30 @@ class _PageContent extends StatefulWidget {
 class _PageContentState extends State<_PageContent> {
   final Map<int, GlobalKey> _ayahKeys = {};
 
+  @override
+  void didUpdateWidget(_PageContent old) {
+    super.didUpdateWidget(old);
+    if (widget.currentAyahIdx != old.currentAyahIdx &&
+        widget.currentAyahIdx >= 0) {
+      _scrollToActive();
+    }
+  }
+
+  void _scrollToActive() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final li = _localIdxOfGlobal(widget.currentAyahIdx);
+      if (li < 0) return;
+      final ctx = _ayahKeys[li]?.currentContext;
+      if (ctx == null) return;
+      Scrollable.ensureVisible(
+        ctx,
+        duration: const Duration(milliseconds: 320),
+        curve: Curves.easeOut,
+        alignment: 0.3,
+      );
+    });
+  }
+
   int _localIdxOfGlobal(int gi) {
     for (int li = 0; li < widget.pageAyahs.length; li++) {
       if (widget.globalIdx(widget.pageIdx, li) == gi) return li;
@@ -720,19 +754,31 @@ class _PageContentState extends State<_PageContent> {
     return -1;
   }
 
+  String _toKurdishDigits(Object value) {
+    const en = '0123456789';
+    const ku = '٠١٢٣٤٥٦٧٨٩';
+    return value.toString().split('').map((ch) {
+      final idx = en.indexOf(ch);
+      return idx >= 0 ? ku[idx] : ch;
+    }).join();
+  }
+
   @override
   Widget build(BuildContext context) {
     final media = MediaQuery.of(context);
-    final textScale = media.textScaleFactor.clamp(0.85, 1.0);
+    // ئەگەر بەکارهێنەر فۆنتی مۆبایلەکەی گەورەکردبوو، بچووک بکەرەوە
+    final textScale = media.textScaler.scale(1.0).clamp(0.8, 1.15);
     final bool isSmall = media.size.shortestSide < 360;
 
-    // ── فۆنتی ئایەت دووجار گەورەتر: 9→15 و 8.5→14 ──
-    final double ayahFontSize = (isSmall ? 17.0 : 18.0) * textScale;
-    final double ayahLineHeight = isSmall ? 1.7 : 1.75;
-    final double ayahBadgeSize = (isSmall ? 14.0 : 15.0) * textScale;
-    final double pageHorizontalPadding = isSmall ? 8 : 10;
-    final double pageVerticalPadding = isSmall ? 6 : 8;
+    // ── فۆنتی ئایەت ──
+    // مەبەست: ١٥ دێر لە لاپەرەیەکدا بگونجێت
+    // بەبێ FittedBox — بەجیاتی fontSize ی ئادابتیڤ
+    final double baseFontSize = isSmall ? 16.5 : 17.5;
+    final double ayahFontSize = baseFontSize / textScale;
+    const double ayahLineHeight = 1.9;
+    final double badgeFontSize = (isSmall ? 13.0 : 14.0) / textScale;
 
+    // ── بینا ئایەتەکان ──
     final List<InlineSpan> spans = [];
 
     for (int li = 0; li < widget.pageAyahs.length; li++) {
@@ -742,9 +788,9 @@ class _PageContentState extends State<_PageContent> {
       final String text = ayah['t'] as String;
       final bool isActive = widget.currentAyahIdx == gi;
       final bool isSajda = ayah['sajda'] == true;
-      final String ayahNumKurdish = _toKurdishDigits(ayahNum);
+      final String ayahNumKu = _toKurdishDigits(ayahNum);
 
-      _ayahKeys[li] = _ayahKeys[li] ?? GlobalKey();
+      _ayahKeys[li] ??= GlobalKey();
 
       spans.add(
         WidgetSpan(
@@ -759,39 +805,54 @@ class _PageContentState extends State<_PageContent> {
                   ? BoxDecoration(
                       color: widget.primaryColor.withOpacity(0.15),
                       borderRadius: BorderRadius.circular(4),
+                      border: Border.all(
+                          color: widget.primaryColor.withOpacity(0.35),
+                          width: 0.8),
                     )
                   : null,
-              child: RichText(
-                textDirection: TextDirection.rtl,
-                text: TextSpan(
+              // تێکستی ئایەت — بە RichText ی جیا بۆ هەر ئایەتێک
+              // ئەمە دووبارەبوونی نیشانەی ئایەت ڕێگری دەکات
+              child: Text.rich(
+                TextSpan(
                   style: TextStyle(
                     fontSize: ayahFontSize,
                     fontFamily: 'Uthmanic',
-                    color: widget.palette.listText,
+                    color: isActive
+                        ? widget.primaryColor
+                        : widget.palette.listText,
                     fontWeight: FontWeight.normal,
                     height: ayahLineHeight,
-                    letterSpacing: 0,
+                    letterSpacing: 0.0,
+                    // چارەسەری تەنوین: wordSpacing کەم
+                    wordSpacing: 0.5,
                   ),
                   children: [
                     TextSpan(text: text),
+                    // نیشانەی ئایەت — تەنها یەک جار
                     TextSpan(
-                      text: ' \u06DD$ayahNumKurdish ',
+                      text: ' \u06DD$ayahNumKu ',
                       style: TextStyle(
-                        fontSize: ayahBadgeSize,
+                        fontSize: badgeFontSize,
                         fontFamily: 'Uthmanic',
                         color: widget.primaryColor
-                            .withOpacity(isActive ? 1.0 : 0.65),
+                            .withOpacity(isActive ? 1.0 : 0.6),
                         fontWeight: FontWeight.normal,
+                        height: ayahLineHeight,
                       ),
                     ),
                     if (isSajda)
                       TextSpan(
                         text: '۩ ',
                         style: TextStyle(
-                            fontSize: 12, color: Colors.amber.withOpacity(0.8)),
+                          fontSize: 12,
+                          color: Colors.amber.withOpacity(0.8),
+                          height: ayahLineHeight,
+                        ),
                       ),
                   ],
                 ),
+                textDirection: TextDirection.rtl,
+                textAlign: TextAlign.justify,
               ),
             ),
           ),
@@ -799,76 +860,78 @@ class _PageContentState extends State<_PageContent> {
       );
     }
 
+    // ── بسم الله — تەنها لە یەکەم لاپەرەی سووره ──
+    final bool showBasmala = widget.isFirstSurahPage &&
+        widget.surahNumber != 1 &&
+        widget.surahNumber != 9;
+
     return LayoutBuilder(
-      builder: (context, c) {
-        final maxH = c.maxHeight;
-        final maxW = c.maxWidth;
-        return Padding(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          // سکرۆل تەنها کاتێک ئایەتی چالاک لەدیدا نییە
+          physics: const ClampingScrollPhysics(),
           padding: EdgeInsets.fromLTRB(
-            pageHorizontalPadding,
-            pageVerticalPadding,
-            pageHorizontalPadding,
-            pageVerticalPadding,
+            isSmall ? 8 : 12,
+            isSmall ? 6 : 8,
+            isSmall ? 8 : 12,
+            isSmall ? 6 : 8,
           ),
-          child: SizedBox(
-            width: maxW,
-            height: maxH > 0 ? maxH : null,
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              alignment: Alignment.topCenter,
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  maxWidth: maxW - pageHorizontalPadding * 2,
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (widget.isFirstSurahPage &&
-                        widget.surahNumber != 1 &&
-                        widget.surahNumber != 9)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 10),
-                        child: Text(
-                          'بِسْمِ اللَّهِ الرَّحْمٰنِ الرَّحِيمِ',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontFamily: 'Uthmanic',
-                            color: widget.primaryColor.withOpacity(0.9),
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    Text.rich(
-                      TextSpan(children: spans),
-                      textDirection: TextDirection.rtl,
-                      textAlign: TextAlign.justify,
-                      strutStyle: StrutStyle(
+          child: ConstrainedBox(
+            // کەمترین بەرزی = بەرزی بەردەستی لاپەرە
+            // ئەمە ئایەتەکان بەرەو خوارەوە فراوان دەکات
+            constraints: BoxConstraints(
+              minHeight: constraints.maxHeight - (isSmall ? 12 : 16),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // بسم الله
+                if (showBasmala)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 12, top: 4),
+                    child: Text(
+                      'بِسْمِ اللَّهِ الرَّحْمٰنِ الرَّحِيمِ',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: ayahFontSize * 0.95,
                         fontFamily: 'Uthmanic',
-                        height: ayahLineHeight,
-                        fontSize: ayahFontSize,
-                        leadingDistribution: TextLeadingDistribution.even,
-                        forceStrutHeight: true,
+                        color: widget.primaryColor.withOpacity(0.9),
+                        fontWeight: FontWeight.bold,
+                        height: 2.0,
                       ),
                     ),
-                  ],
+                  ),
+
+                // ئایەتەکان — بەردەوام و بەبێ بۆشایی نێوان
+                Text.rich(
+                  TextSpan(children: spans),
+                  textDirection: TextDirection.rtl,
+                  textAlign: TextAlign.justify,
+                  strutStyle: StrutStyle(
+                    fontFamily: 'Uthmanic',
+                    height: ayahLineHeight,
+                    fontSize: ayahFontSize,
+                    leadingDistribution: TextLeadingDistribution.even,
+                    forceStrutHeight: true,
+                  ),
                 ),
-              ),
+              ],
             ),
           ),
         );
       },
     );
   }
+}
 
-  String _toKurdishDigits(Object value) {
-    const en = '0123456789';
-    const ku = '٠١٢٣٤٥٦٧٨٩';
-    return value.toString().split('').map((ch) {
-      final idx = en.indexOf(ch);
-      return idx >= 0 ? ku[idx] : ch;
-    }).join();
-  }
+String _toKurdishDigits(Object value) {
+  const en = '0123456789';
+  const ku = '٠١٢٣٤٥٦٧٨٩';
+  return value.toString().split('').map((ch) {
+    final idx = en.indexOf(ch);
+    return idx >= 0 ? ku[idx] : ch;
+  }).join();
 }
 
 // ==================== دراوەری سووراتەکان ====================
@@ -1047,7 +1110,7 @@ class _ReciterDrawerState extends State<_ReciterDrawer> {
           children: [
             Container(
               padding: const EdgeInsets.fromLTRB(16, 48, 16, 12),
-              child: Text("قاریەکان",
+              child: Text("دەنگەکان",
                   style: TextStyle(
                       color: widget.primaryColor,
                       fontSize: 15,
