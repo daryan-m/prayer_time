@@ -178,21 +178,23 @@ class _QuranDownloadDialogState extends State<QuranDownloadDialog> {
                   height: 1.6),
             ),
 
-    // ✅ زیادکرا — ئۆنلاین
-    OutlinedButton.icon(
-      style: OutlinedButton.styleFrom(
-        foregroundColor: pc,
-        side: BorderSide(color: pc.withOpacity(0.4)),
-      ),
-      icon: Icon(Icons.wifi_rounded, size: 16, color: pc),
-      label: const Text("ئۆنلاین"),
-      onPressed: () async {
-        Navigator.pop(context);
-        if (widget.onUseOnline != null) {
-          await widget.onUseOnline!();
-        }
-      },
-    ),
+            // ✅ زیادکرا — ئۆنلاین
+            OutlinedButton.icon(
+              style: OutlinedButton.styleFrom(
+                foregroundColor: pc,
+                side: BorderSide(color: pc.withOpacity(0.4)),
+              ),
+              icon: Icon(Icons.wifi_rounded, size: 16, color: pc),
+              label: const Text("ئۆنلاین"),
+              onPressed: () async {
+                if (Navigator.of(context).canPop()) {
+                  Navigator.of(context, rootNavigator: true).pop();
+                }
+                if (widget.onUseOnline != null) {
+                  await widget.onUseOnline!();
+                }
+              },
+            ),
 
             const SizedBox(height: 16),
             Row(mainAxisAlignment: MainAxisAlignment.center, children: [

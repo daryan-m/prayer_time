@@ -1,12 +1,12 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:bang/main.dart' as main_entry;
+import '../main.dart';
 
 const int kQuranDownloadNotifId = 7402;
 
 class QuranDownloadProgress {
   static Future<void> show(int done, int total, String reciterName) async {
     final d = done.clamp(0, total);
-    await main_entry.flutterLocalNotificationsPlugin.show(
+    await flutterLocalNotificationsPlugin.show(
       kQuranDownloadNotifId,
       'داگرتنى دەنگ ',
       '$reciterName — $d / $total',
@@ -27,7 +27,7 @@ class QuranDownloadProgress {
   }
 
   static Future<void> cancel() async {
-    await main_entry.flutterLocalNotificationsPlugin
+    await flutterLocalNotificationsPlugin
         .cancel(kQuranDownloadNotifId);
   }
 }

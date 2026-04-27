@@ -30,7 +30,9 @@ class MainActivity : FlutterActivity() {
                 QuranMediaPluginEvents.eventSink = events
             }
             override fun onCancel(arguments: Any?) {
-                QuranMediaPluginEvents.eventSink = null
+                if (QuranMediaPluginEvents.eventSink != null) {
+            QuranMediaPluginEvents.eventSink = null
+        }
             }
         })
 
