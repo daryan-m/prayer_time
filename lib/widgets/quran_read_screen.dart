@@ -44,6 +44,7 @@ class _QuranReadScreenState extends State<QuranReadScreen>
 
   bool _surahDrawerOpen = false;
   bool _reciterDrawerOpen = false;
+  int _currentJuz = 1;
   StreamSubscription<dynamic>? _quranNativeSub;
 
   @override
@@ -111,6 +112,10 @@ class _QuranReadScreenState extends State<QuranReadScreen>
           _pages = pages;
           _currentPage = startPage;
           _loading = false;
+          if (pages.isNotEmpty && pages[startPage].isNotEmpty) {
+            _currentJuz =
+                pages[startPage][0]['juz'] as int? ?? widget.surah.juzStart;
+          }
         });
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (_pageCtrl.hasClients && startPage < _pages.length) {
@@ -319,6 +324,7 @@ class _QuranReadScreenState extends State<QuranReadScreen>
       return;
     }
 
+    // ئەگەر پێشتر داگیرابوو (ئاسایی)
     if (QuranAudioBridge.isNativeAndroid) {
       await QuranAudioBridge.stop();
     } else {
@@ -331,6 +337,7 @@ class _QuranReadScreenState extends State<QuranReadScreen>
       _isPlaying = false;
       _currentAyahIdx = -1;
     });
+
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt('quran_reciter_idx', idx);
   }
@@ -457,7 +464,7 @@ class _QuranReadScreenState extends State<QuranReadScreen>
                 ),
               ),
               Text(
-                '${_toKurdishDigits(widget.surah.ayahCount)} ئایەت · ${widget.surah.isMakki ? "مەکی" : "مەدەنی"} · جوزئی ${_toKurdishDigits(widget.surah.juzStart)}',
+                '${_toKurdishDigits(widget.surah.ayahCount)} ئایەت · ${widget.surah.isMakki ? "مەکی" : "مەدەنی"} · جوزئی ${_toKurdishDigits(_currentJuz)}',
                 style: TextStyle(
                     color: pal.listText.withOpacity(0.6), fontSize: 10),
                 textAlign: TextAlign.center,
@@ -501,7 +508,13 @@ class _QuranReadScreenState extends State<QuranReadScreen>
                             reverse: true,
                             itemCount: _pages.length,
                             onPageChanged: (p) {
-                              setState(() => _currentPage = p);
+                              setState(() {
+                                _currentPage = p;
+                                if (_pages[p].isNotEmpty) {
+                                  _currentJuz = _pages[p][0]['juz'] as int? ??
+                                      widget.surah.juzStart;
+                                }
+                              });
                               _saveReadingPosition();
                               if (p == _pages.length - 1) {
                                 _goToNextSurah();
@@ -768,12 +781,11 @@ class _PageContentState extends State<_PageContent> {
 
     final double ayahFontSize = isSmall ? 16.5 : 17.5;
     const double ayahLineHeight = 2.0;
-    final double badgeFontSize = isSmall ? 13.0 : 14.0;
+    final double badgeFontSize = isSmall ? 13.5 : 14.5;
 
     // ── کێشەی ٥: بسم الله تەنها کاتێک ئایەتی یەکەم لەم لاپەرەیەدایە ──
     // و سووره ١ (فاتیحە — خۆی بسمەلە تێدایە) و ٩ (تەوبە — بسمەلەی نییە) نین
     final bool showBasmala = widget.isFirstSurahPage &&
-        widget.surahNumber != 1 &&
         widget.surahNumber != 9 &&
         widget.pageAyahs.isNotEmpty &&
         (widget.pageAyahs[0]['a'] as int) == 1;
@@ -787,16 +799,23 @@ class _PageContentState extends State<_PageContent> {
       final ayah = widget.pageAyahs[li];
       final int ayahNum = ayah['a'] as int;
       String text = (ayah['t'] as String)
-    .replaceAll(RegExp(r'﴿[٠-٩0-9]+﴾'), '')
-    .replaceAll('\uFEFF', '')  // ← BOM لاببە
-    .trim();
+          .replaceAll(RegExp(r'﴿[٠-٩0-9]+﴾'), '')
+          .replaceAll('\uFEFF', '')
+          .trim();
 
-if (ayahNum == 1 && widget.surahNumber != 1 && widget.surahNumber != 9) {
-  text = text.replaceFirst(
-    '\u0628\u0650\u0633\u0652\u0645\u0650 \u0671\u0644\u0644\u0651\u064e\u0647\u0650 \u0671\u0644\u0631\u0651\u064e\u062d\u0652\u0645\u064e\u0670\u0646\u0650 \u0671\u0644\u0631\u0651\u064e\u062d\u0650\u064a\u0645\u0650 ',
-    '',
-  ).trim();
-}
+      // ✅ ئایەتی یەکەمی فاتیحە تەنها بسملەیەکە — مەینووسە
+      if (widget.surahNumber == 1 && ayahNum == 1) continue;
+
+      // ... باقی کۆدەکە
+
+      if (ayahNum == 1 && widget.surahNumber != 9) {
+        text = text
+            .replaceFirst(
+              '\u0628\u0650\u0633\u0652\u0645\u0650 \u0671\u0644\u0644\u0651\u064e\u0647\u0650 \u0671\u0644\u0631\u0651\u064e\u062d\u0652\u0645\u064e\u0670\u0646\u0650 \u0671\u0644\u0631\u0651\u064e\u062d\u0650\u064a\u0645\u0650 ',
+              '',
+            )
+            .trim();
+      }
       final bool isActive = widget.currentAyahIdx == gi;
       final bool isSajda = ayah['sajda'] == true;
       final String ayahNumKu = _toKurdishDigits(ayahNum);
@@ -810,15 +829,16 @@ if (ayahNum == 1 && widget.surahNumber != 1 && widget.surahNumber != 9) {
           style: TextStyle(
             fontSize: ayahFontSize,
             fontFamily: 'Uthmanic',
-            color: isActive ? widget.primaryColor : widget.palette.listText,
-            fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
+            color:
+                isActive ? widget.palette.secondary : widget.palette.listText,
+            fontWeight: FontWeight.normal,
             height: ayahLineHeight,
             letterSpacing: 0.0,
             wordSpacing: 0.5,
             // هایلایت بە باکگراوند — جێگرەوەی AnimatedContainer
             background: isActive
                 ? (Paint()
-                  ..color = widget.primaryColor.withOpacity(0.15)
+                  ..color = widget.palette.secondary.withOpacity(0.15)
                   ..style = PaintingStyle.fill)
                 : null,
           ),
@@ -829,12 +849,12 @@ if (ayahNum == 1 && widget.surahNumber != 1 && widget.surahNumber != 9) {
       // نیشانەی ئایەت — تەنها یەک جار بە \u06DD
       allSpans.add(
         TextSpan(
-          text: ' \u06DD$ayahNumKu ',
+          text: ' ﴿$ayahNumKu﴾ ',
           style: TextStyle(
             fontSize: badgeFontSize,
             fontFamily: 'Uthmanic',
-            color: widget.primaryColor.withOpacity(isActive ? 1.0 : 0.55),
-            fontWeight: FontWeight.normal,
+            color: widget.palette.secondary.withOpacity(isActive ? 1.0 : 0.55),
+            fontWeight: FontWeight.bold,
             height: ayahLineHeight,
           ),
         ),
@@ -879,8 +899,8 @@ if (ayahNum == 1 && widget.surahNumber != 1 && widget.surahNumber != 9) {
                       style: TextStyle(
                         fontSize: ayahFontSize,
                         fontFamily: 'Uthmanic',
-                        color: widget.primaryColor.withOpacity(0.9),
-                        fontWeight: FontWeight.bold,
+                        color: widget.palette.secondary.withOpacity(0.9),
+                        fontWeight: FontWeight.normal,
                         height: ayahLineHeight,
                       ),
                     ),

@@ -48,7 +48,7 @@ flutter:
 
     - family: Uthmanic
       fonts:
-        - asset: assets/fonts/Uthmanic.otf
+        - asset: assets/fonts/ScheherazadeNew-Regular.ttf
 
 flutter_launcher_icons:
   android: true
