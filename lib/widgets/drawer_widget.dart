@@ -237,7 +237,8 @@ class _PrayerDrawerState extends State<PrayerDrawer> {
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: const Text("ئەگەر مۆڵەت پێویست بوو داوا کرا"),
+                                content: const Text(
+                                    "ئەگەر مۆڵەت پێویست بوو داوا کرا"),
                                 backgroundColor: pal.primary.withOpacity(0.5),
                                 behavior: SnackBarBehavior.floating,
                               ),
@@ -364,6 +365,8 @@ class _PrayerDrawerState extends State<PrayerDrawer> {
                           color: pal.listText.withOpacity(0.4), size: 14),
                       onTap: () => _showFeedbackSheet(context, pal),
                     ),
+                    SizedBox(
+                        height: MediaQuery.of(context).padding.bottom + 20),
                   ],
                 ),
               ),

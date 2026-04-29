@@ -963,27 +963,35 @@ class _SurahDrawer extends StatelessWidget {
   }
 
   @override
+  @override
   Widget build(BuildContext context) {
     return Container(
+      // لێرەدا Padding زیاد بکە بۆ ئەوەی خودی دراوەرەکە لە خوارەوە کورت ببێتەوە
+      padding: const EdgeInsets.only(bottom: 100),
       decoration: BoxDecoration(
         color: palette.drawerBg,
         border: Border(
-            left: BorderSide(color: primaryColor.withOpacity(0.3), width: 1.5)),
+            right:
+                BorderSide(color: primaryColor.withOpacity(0.3), width: 1.5)),
       ),
       child: Directionality(
         textDirection: TextDirection.rtl,
         child: Column(children: [
+          // بەشی سەرەوە (ناونیشانی سورەتەکان)
           Container(
-            padding: const EdgeInsets.fromLTRB(16, 48, 16, 12),
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
             child: Text("سورەتەکان",
                 style: TextStyle(
                     color: primaryColor,
                     fontSize: 15,
                     fontWeight: FontWeight.bold)),
           ),
-          Divider(color: primaryColor.withOpacity(0.2), height: 1),
+          Divider(color: primaryColor.withOpacity(0.4), height: 1),
+
+          // لیستەکە
           Expanded(
             child: ListView.builder(
+              padding: EdgeInsets.zero, // لێرەدا پێویستت بە پادینگ نەما
               itemCount: surahs.length,
               itemBuilder: (_, i) {
                 final s = surahs[i];
@@ -998,13 +1006,13 @@ class _SurahDrawer extends StatelessWidget {
                           ? primaryColor.withOpacity(0.15)
                           : Colors.transparent,
                       border: Border(
-                          bottom: BorderSide(
+                          right: BorderSide(
                               color: primaryColor.withOpacity(0.07))),
                     ),
                     child: Row(children: [
                       SizedBox(
                         width: 24,
-                        child: Text('${s.number}',
+                        child: Text(_toKurdishDigits(s.number),
                             style: TextStyle(
                                 color: primaryColor.withOpacity(0.7),
                                 fontSize: 10,
@@ -1046,8 +1054,7 @@ class _SurahDrawer extends StatelessWidget {
   }
 }
 
-// ==================== دراوەری قاریان ====================
-
+// ── FIX: دڵنیابە ئەم کڵاسە بە تەواوی لێرە بوونی هەیە ──
 class _ReciterDrawer extends StatefulWidget {
   final bool isOpen;
   final int selectedIdx;
@@ -1080,7 +1087,6 @@ class _ReciterDrawerState extends State<_ReciterDrawer> {
   @override
   void didUpdateWidget(covariant _ReciterDrawer oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // ── FIX ٨: هەرجارێک دراوەر کرایەوە دووبارە بار دەکات ──
     if (widget.isOpen && !oldWidget.isOpen) _load();
   }
 
@@ -1094,97 +1100,105 @@ class _ReciterDrawerState extends State<_ReciterDrawer> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: widget.palette.drawerBg,
-        border: Border(
-            right: BorderSide(
-                color: widget.primaryColor.withOpacity(0.3), width: 1.5)),
-      ),
-      child: Directionality(
-        textDirection: TextDirection.rtl,
-        child: Column(children: [
-          Container(
-            padding: const EdgeInsets.fromLTRB(16, 48, 16, 12),
-            child: Text("دەنگەکان",
-                style: TextStyle(
-                    color: widget.primaryColor,
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold)),
-          ),
-          Divider(color: widget.primaryColor.withOpacity(0.2), height: 1),
-          if (_loading)
-            const Expanded(
-                child: Center(child: CircularProgressIndicator(strokeWidth: 2)))
-          else
-            Expanded(
-              child: ListView.builder(
-                itemCount: quranReciters.length,
-                itemBuilder: (_, i) {
-                  final r = quranReciters[i];
-                  final selected = i == widget.selectedIdx;
-                  final st = _st[r.key] ?? ReciterDlStatus.none;
-                  return GestureDetector(
-                    onTap: () => widget.onSelect(i),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 10),
-                      decoration: BoxDecoration(
-                        color: selected
-                            ? widget.primaryColor.withOpacity(0.15)
-                            : Colors.transparent,
-                        border: Border(
-                            bottom: BorderSide(
-                                color: widget.primaryColor.withOpacity(0.07))),
-                      ),
-                      child: Row(children: [
-                        Icon(
-                          selected
-                              ? Icons.radio_button_checked_rounded
-                              : Icons.radio_button_unchecked_rounded,
-                          color: selected
-                              ? widget.primaryColor
-                              : widget.palette.listText.withOpacity(0.4),
-                          size: 16,
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(r.nameArabic,
-                                    style: TextStyle(
-                                        color: selected
-                                            ? widget.primaryColor
-                                            : widget.palette.listText,
-                                        fontSize: 13,
-                                        fontFamily: 'Uthmanic')),
-                                const SizedBox(height: 2),
-                                Row(children: [
-                                  if (st != ReciterDlStatus.none)
-                                    _DownloadChip(
-                                        status: st,
-                                        primaryColor: widget.primaryColor,
-                                        palette: widget.palette),
-                                  if (st != ReciterDlStatus.none)
-                                    const SizedBox(width: 6),
-                                  Expanded(
-                                    child: Text(r.nameKurdish,
-                                        style: TextStyle(
-                                            color: widget.palette.listText
-                                                .withOpacity(0.5),
-                                            fontSize: 9)),
-                                  ),
-                                ]),
-                              ]),
-                        ),
-                      ]),
-                    ),
-                  );
-                },
-              ),
+    return Align(
+      alignment: Alignment.topCenter,
+      child: Container(
+        // ئەمە کێشەی ونبوونی ژێر پلەیەرەکە چارەسەر دەکات
+        margin: const EdgeInsets.only(bottom: 110),
+        decoration: BoxDecoration(
+          color: widget.palette.drawerBg,
+          border: Border(
+              left: BorderSide(
+                  color: widget.primaryColor.withOpacity(0.4), width: 1.5)),
+        ),
+        child: Directionality(
+          textDirection: TextDirection.rtl,
+          child: Column(children: [
+            Container(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+              child: Text("دەنگەکان",
+                  style: TextStyle(
+                      color: widget.primaryColor,
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold)),
             ),
-        ]),
+            Divider(color: widget.primaryColor.withOpacity(0.2), height: 1),
+            if (_loading)
+              const Expanded(
+                  child:
+                      Center(child: CircularProgressIndicator(strokeWidth: 2)))
+            else
+              Expanded(
+                child: ListView.builder(
+                  padding: EdgeInsets.zero,
+                  itemCount: quranReciters.length,
+                  itemBuilder: (_, i) {
+                    final r = quranReciters[i];
+                    final selected = i == widget.selectedIdx;
+                    final st = _st[r.key] ?? ReciterDlStatus.none;
+                    return GestureDetector(
+                      onTap: () => widget.onSelect(i),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: selected
+                              ? widget.primaryColor.withOpacity(0.15)
+                              : Colors.transparent,
+                          border: Border(
+                              bottom: BorderSide(
+                                  color:
+                                      widget.primaryColor.withOpacity(0.07))),
+                        ),
+                        child: Row(children: [
+                          Icon(
+                            selected
+                                ? Icons.radio_button_checked_rounded
+                                : Icons.radio_button_unchecked_rounded,
+                            color: selected
+                                ? widget.primaryColor
+                                : widget.palette.listText.withOpacity(0.4),
+                            size: 16,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(r.nameArabic,
+                                      style: TextStyle(
+                                          color: selected
+                                              ? widget.primaryColor
+                                              : widget.palette.listText,
+                                          fontSize: 13,
+                                          fontFamily: 'Uthmanic')),
+                                  const SizedBox(height: 2),
+                                  Row(children: [
+                                    if (st != ReciterDlStatus.none)
+                                      _DownloadChip(
+                                          status: st,
+                                          primaryColor: widget.primaryColor,
+                                          palette: widget.palette),
+                                    if (st != ReciterDlStatus.none)
+                                      const SizedBox(width: 6),
+                                    Expanded(
+                                      child: Text(r.nameKurdish,
+                                          style: TextStyle(
+                                              color: widget.palette.listText
+                                                  .withOpacity(0.5),
+                                              fontSize: 9)),
+                                    ),
+                                  ]),
+                                ]),
+                          ),
+                        ]),
+                      ),
+                    );
+                  },
+                ),
+              ),
+          ]),
+        ),
       ),
     );
   }

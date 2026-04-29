@@ -987,7 +987,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
           Text(
             label,
             style: TextStyle(
-              color: _palette.secondary,
+              color: _palette.listText,
               fontSize: 10,
               fontWeight: FontWeight.w500,
             ),
