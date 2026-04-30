@@ -258,6 +258,16 @@ class _AllahNamesDialogState extends State<AllahNamesDialog> {
     if (_isPlaying) _startAutoPlay();
   }
 
+  String _toKurdish(Object value) {
+    const en = '0123456789';
+    const ku = '٠١٢٣٤٥٦٧٨٩';
+    String input = value.toString();
+    return input.split('').map((ch) {
+      final idx = en.indexOf(ch);
+      return idx >= 0 ? ku[idx] : ch;
+    }).join();
+  }
+
   @override
   Widget build(BuildContext context) {
     final Color pc = widget.primaryColor;
@@ -286,17 +296,11 @@ class _AllahNamesDialogState extends State<AllahNamesDialog> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            // ئەمە بخەرە شوێنەکەی
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
               child: Row(children: [
-                Icon(Icons.auto_awesome, color: pc, size: 16),
-                const SizedBox(width: 8),
-                Text("٩٩ ناوی خوای گەورە",
-                    style: TextStyle(
-                        color: textTheme.bodyLarge?.color,
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold)),
-                const Spacer(),
+                // دوگمەی داخستن کەوتە لای چەپ
                 IconButton(
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
@@ -309,6 +313,15 @@ class _AllahNamesDialogState extends State<AllahNamesDialog> {
                     Navigator.pop(context);
                   },
                 ),
+                const Spacer(),
+                // تێکست و ئایکۆنەکە کەوتنە لای ڕاست
+                Text("٩٩ ناوی خوای گەورە",
+                    style: TextStyle(
+                        color: textTheme.bodyLarge?.color,
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold)),
+                const SizedBox(width: 8),
+                Icon(Icons.auto_awesome, color: pc, size: 16),
               ]),
             ),
             SizedBox(
@@ -383,7 +396,7 @@ class _AllahNamesDialogState extends State<AllahNamesDialog> {
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: Text(
-                              "${i + 1}",
+                              _toKurdish(i + 1),
                               style: TextStyle(
                                 color: isActive
                                     ? Colors.white
@@ -461,7 +474,7 @@ class _AllahNamesDialogState extends State<AllahNamesDialog> {
                             ),
                             alignment: Alignment.center,
                             child: Text(
-                              "${_currentIndex + 1}",
+                              _toKurdish(_currentIndex + 1),
                               style: const TextStyle(
                                 color: Colors.black,
                                 fontWeight: FontWeight.bold,

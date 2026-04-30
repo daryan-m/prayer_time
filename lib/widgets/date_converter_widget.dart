@@ -326,6 +326,16 @@ class _DateConverterDialogState extends State<DateConverterDialog>
     });
   }
 
+  String _toKurdish(Object value) {
+    const en = '0123456789';
+    const ku = '٠١٢٣٤٥٦٧٨٩';
+    String input = value.toString();
+    return input.split('').map((ch) {
+      final idx = en.indexOf(ch);
+      return idx >= 0 ? ku[idx] : ch;
+    }).join();
+  }
+
   @override
   Widget build(BuildContext context) {
     final pc = widget.primaryColor;
@@ -351,33 +361,39 @@ class _DateConverterDialogState extends State<DateConverterDialog>
         ),
         child: Column(children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(14, 10, 6, 6),
-            child: Row(children: [
-              Icon(Icons.calendar_month, color: pc, size: 18),
-              const SizedBox(width: 8),
-              Text("گۆڕینی بەروار و دۆزینەوەى کاتى بانگ",
-                  style: TextStyle(
-                      color: Theme.of(context).textTheme.bodyLarge?.color,
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold)),
-              const Spacer(),
-              IconButton(
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-                icon: Icon(Icons.close,
+            padding: const EdgeInsets.fromLTRB(14, 10, 14, 6),
+            child: Row(
+              children: [
+                IconButton(
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  icon: Icon(
+                    Icons.close,
                     color: Theme.of(context)
                         .textTheme
                         .bodyMedium
                         ?.color
                         ?.withOpacity(0.5),
-                    size: 20),
-                onPressed: () {
-                  _clearConverter();
-                  Navigator.pop(context);
-                },
-              ),
-              const SizedBox(width: 6),
-            ]),
+                    size: 20,
+                  ),
+                  onPressed: () {
+                    _clearConverter();
+                    Navigator.pop(context);
+                  },
+                ),
+                const Spacer(),
+                Text(
+                  "گۆڕینی بەروار و دۆزینەوەى کاتى بانگ",
+                  style: TextStyle(
+                    color: Theme.of(context).textTheme.bodyLarge?.color,
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Icon(Icons.calendar_month, color: pc, size: 18),
+              ],
+            ),
           ),
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 16),
@@ -432,54 +448,20 @@ class _DateConverterDialogState extends State<DateConverterDialog>
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(color: pc.withOpacity(0.2))),
             child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              Icon(Icons.info_outline, color: pc.withOpacity(0.7), size: 12),
-              const SizedBox(width: 6),
-              Text("لەساڵى $_minYear تا $_maxYear ئەتوانیت داخل بکەیت",
+              Text(
+                  "لەساڵى ${_toKurdish(_minYear)} تا ${_toKurdish(_maxYear)} ئەتوانیت داخل بکەیت",
                   style: TextStyle(
                       color: pc.withOpacity(0.85),
                       fontSize: 11,
                       fontWeight: FontWeight.bold)),
+              const SizedBox(width: 6),
+              Icon(Icons.info_outline, color: pc.withOpacity(0.7), size: 12),
             ]),
           ),
-          if (_weekdayResult.isNotEmpty) ...[
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 12),
-              decoration: BoxDecoration(
-                  color: pc.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: pc.withOpacity(0.3))),
-              child:
-                  Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                Icon(Icons.today, color: pc, size: 13),
-                const SizedBox(width: 5),
-                Text("ڕۆژی هەفتە: ",
-                    style: TextStyle(
-                        color: Theme.of(context)
-                            .textTheme
-                            .bodyMedium
-                            ?.color
-                            ?.withOpacity(0.38),
-                        fontSize: 11)),
-                Text(_weekdayResult,
-                    style: TextStyle(
-                        color: pc, fontSize: 12, fontWeight: FontWeight.bold)),
-              ]),
-            ),
-            const SizedBox(height: 7),
-          ] else
-            const SizedBox(height: 2),
-          Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-            Text("میلادی",
-                style: TextStyle(
-                    color: pc,
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1.0)),
-          ]),
-          const SizedBox(height: 3),
+          // ── میلادی — ساڵ لە چەپ، ڕۆژ لە ڕاست ──
           _row3(
               _gregDayCtrl, _gregMonthCtrl, _gregYearCtrl, pc, _convertFromGreg,
-              topLabel: "میلادی"),
+              topLabel: "میلادی", reverseOrder: true),
           const SizedBox(height: 6),
           Row(mainAxisAlignment: MainAxisAlignment.center, children: [
             ElevatedButton.icon(
@@ -493,9 +475,10 @@ class _DateConverterDialogState extends State<DateConverterDialog>
                       const EdgeInsets.symmetric(vertical: 8, horizontal: 18),
                   minimumSize: Size.zero,
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap),
-              icon: const Icon(Icons.swap_horiz, size: 15),
+                  icon: const Icon(Icons.swap_horiz, size: 15),
               label: const Text("بیگۆڕە",
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+              
               onPressed: () {
                 FocusScope.of(context).unfocus();
                 _convertFromGreg();
@@ -523,51 +506,60 @@ class _DateConverterDialogState extends State<DateConverterDialog>
               ),
               icon: const Icon(Icons.delete_outline, size: 14),
               label: const Text("سڕینەوە", style: TextStyle(fontSize: 12)),
+              
               onPressed: _clearConverter,
             ),
           ]),
+          // ── ڕۆژی هەفتە ژێر دوگمەکان ──
+          if (_weekdayResult.isNotEmpty) ...[
+            const SizedBox(height: 6),
+            Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              Text(_weekdayResult,
+                  style: TextStyle(
+                      color: pc, fontSize: 14, fontWeight: FontWeight.bold)),
+              const SizedBox(width: 5),
+              Icon(Icons.today, color: pc, size: 15),
+            ]),
+          ],
+
+          // ── کۆچی ──
           Divider(
               color: Theme.of(context).dividerColor.withOpacity(0.5),
               height: 14,
               thickness: 1.5),
-          _rowLabel("کۆچی", const Color(0xFFF59E0B)),
-          const SizedBox(height: 3),
           _rowDates(const Color(0xFFF59E0B),
               dayCtrl: _hijriDayCtrl,
               monthCtrl: _hijriMonthCtrl,
-              yearCtrl: _hijriYearCtrl),
-          if (_hijriResult.isNotEmpty) ...[
-            const SizedBox(height: 4),
-            _resultLine(_hijriResult, const Color(0xFFF59E0B))
-          ],
+              yearCtrl: _hijriYearCtrl,
+              result: _hijriResult,
+              icon: Icons.nightlight_round,
+              label: "کۆچی"),
+
+          // ── کوردی ──
           Divider(
               color: Theme.of(context).dividerColor.withOpacity(0.5),
               height: 14,
               thickness: 1.5),
-          _rowLabel("کوردی", const Color(0xFF4ADE80)),
-          const SizedBox(height: 3),
           _rowDates(const Color(0xFF4ADE80),
               dayCtrl: _kurdDayCtrl,
               monthCtrl: _kurdMonthCtrl,
-              yearCtrl: _kurdYearCtrl),
-          if (_kurdResult.isNotEmpty) ...[
-            const SizedBox(height: 4),
-            _resultLine(_kurdResult, const Color(0xFF4ADE80))
-          ],
+              yearCtrl: _kurdYearCtrl,
+              result: _kurdResult,
+              icon: Icons.eco_outlined,
+              label: "کوردی"),
+
+          // ── هەتاوی ──
           Divider(
               color: Theme.of(context).dividerColor.withOpacity(0.5),
               height: 14,
               thickness: 1.5),
-          _rowLabel("هەتاوی", const Color(0xFFF97316)),
-          const SizedBox(height: 3),
-          _rowDates(const Color(0xFFF97316),
+          _rowDates(const Color(0xFFF5F916),
               dayCtrl: _shamsiDayCtrl,
               monthCtrl: _shamsiMonthCtrl,
-              yearCtrl: _shamsiYearCtrl),
-          if (_shamsiResult.isNotEmpty) ...[
-            const SizedBox(height: 4),
-            _resultLine(_shamsiResult, const Color(0xFFF97316))
-          ],
+              yearCtrl: _shamsiYearCtrl,
+              result: _shamsiResult,
+              icon: Icons.wb_sunny_outlined,
+              label: "هەتاوی"),
         ]),
       );
     });
@@ -590,31 +582,43 @@ class _DateConverterDialogState extends State<DateConverterDialog>
   Widget _rowDates(Color pc,
       {required TextEditingController dayCtrl,
       required TextEditingController monthCtrl,
-      required TextEditingController yearCtrl}) {
-    return Row(children: [
-      Expanded(
-          child: Column(children: [
-        Text("ڕۆژ", style: TextStyle(color: pc.withOpacity(0.4), fontSize: 9)),
-        const SizedBox(height: 2),
-        _readonlyBox(dayCtrl.text, pc)
-      ])),
-      const SizedBox(width: 5),
-      Expanded(
-          child: Column(children: [
-        Text("مانگ", style: TextStyle(color: pc.withOpacity(0.4), fontSize: 9)),
-        const SizedBox(height: 2),
-        _readonlyBox(monthCtrl.text, pc)
-      ])),
-      const SizedBox(width: 5),
-      Expanded(
-          flex: 2,
-          child: Column(children: [
-            Text("ساڵ",
-                style: TextStyle(color: pc.withOpacity(0.4), fontSize: 9)),
-            const SizedBox(height: 2),
-            _readonlyBox(yearCtrl.text, pc)
-          ])),
-    ]);
+      required TextEditingController yearCtrl,
+      required IconData icon,
+      required String label,
+      required String result}) {
+    // ژمارەی بەروار لە controllerەکانەوە
+    final day = _toKurdish(dayCtrl.text.isEmpty ? '—' : dayCtrl.text);
+    final month = _toKurdish(monthCtrl.text.isEmpty ? '—' : monthCtrl.text);
+    final year = _toKurdish(yearCtrl.text.isEmpty ? '—' : yearCtrl.text);
+    final numericDisplay = '$year - $month - $day';
+
+    return SizedBox(
+      height: 42,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              // ژمارەی بەروار
+              Text(numericDisplay,
+                  style: TextStyle(
+                      color: pc.withOpacity(0.9),
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold)),
+              // ناوی مانگ (result)
+              if (result.isNotEmpty)
+                Text(_toKurdish(result),
+                    style: TextStyle(color: pc.withOpacity(0.6), fontSize: 11)),
+            ],
+          ),
+          const SizedBox(width: 8),
+          Icon(icon, color: pc, size: 18),
+        ],
+      ),
+    );
   }
 
   Widget _readonlyBox(String val, Color pc) {
@@ -633,20 +637,12 @@ class _DateConverterDialogState extends State<DateConverterDialog>
     );
   }
 
-  Widget _rowLabel(String label, Color pc) {
-    return Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-      Text(label,
-          style: TextStyle(
-              color: pc,
-              fontSize: 11,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 1.0)),
-    ]);
-  }
-
   Widget _row3(TextEditingController d, TextEditingController m,
       TextEditingController y, Color pc, VoidCallback? onSubmit,
-      {bool readOnly = false, int maxDay = 31, String? topLabel}) {
+      {bool readOnly = false,
+      int maxDay = 31,
+      String? topLabel,
+      bool reverseOrder = false}) {
     final textColor = Theme.of(context).textTheme.bodyLarge?.color;
     final style = TextStyle(
         color: readOnly ? textColor?.withOpacity(0.12) : textColor,
@@ -681,64 +677,74 @@ class _DateConverterDialogState extends State<DateConverterDialog>
       }
     }
 
-    return Row(children: [
-      Expanded(
-          child: Column(children: [
-        Text(topLabel ?? "ڕۆژ",
-            style: TextStyle(
-                color: topLabel != null
-                    ? pc.withOpacity(0.75)
-                    : pc.withOpacity(readOnly ? 0.2 : 0.55),
-                fontSize: 9,
-                fontWeight:
-                    topLabel != null ? FontWeight.bold : FontWeight.normal)),
-        const SizedBox(height: 2),
-        TextField(
-            controller: d,
-            readOnly: readOnly,
-            keyboardType: TextInputType.number,
-            textAlign: TextAlign.center,
-            maxLength: 2,
-            style: style,
-            decoration: dec("ڕۆژ"),
-            onChanged: readOnly ? null : (_) => clamp(d, maxDay),
-            onSubmitted: readOnly
-                ? null
-                : (_) {
-                    if (onSubmit != null) onSubmit();
-                  }),
-      ])),
-      const SizedBox(width: 5),
-      Expanded(
-          child: Column(children: [
-        Text("مانگ",
-            style: TextStyle(
-                color: pc.withOpacity(readOnly ? 0.2 : 0.55), fontSize: 9)),
-        const SizedBox(height: 2),
-        TextField(
-            controller: m,
-            readOnly: readOnly,
-            keyboardType: TextInputType.number,
-            textAlign: TextAlign.center,
-            maxLength: 2,
-            style: style,
-            decoration: dec("مانگ"),
-            onChanged: readOnly ? null : (_) => clamp(m, 12),
-            onSubmitted: readOnly
-                ? null
-                : (_) {
-                    if (onSubmit != null) onSubmit();
-                  }),
-      ])),
-      const SizedBox(width: 5),
-      Expanded(
-          flex: 2,
-          child: Column(children: [
-            Text("ساڵ",
+    void toKu(TextEditingController ctrl) {
+      final converted = _toKurdish(ctrl.text);
+      if (converted != ctrl.text) {
+        ctrl.value = TextEditingValue(
+          text: converted,
+          selection: TextSelection.collapsed(offset: converted.length),
+        );
+      }
+    }
+
+    // بەشەکانی سەرەوە (لەیبڵ)
+    Widget labelRow = Row(children: [
+      if (reverseOrder) ...[
+        Expanded(
+            flex: 2,
+            child: Text("ساڵ",
+                textAlign: TextAlign.center,
+                style: TextStyle(color: pc.withOpacity(0.55), fontSize: 9))),
+        const SizedBox(width: 5),
+        Expanded(
+            child: Text("مانگ",
+                textAlign: TextAlign.center,
+                style: TextStyle(color: pc.withOpacity(0.55), fontSize: 9))),
+        const SizedBox(width: 5),
+        Expanded(
+            child: Text(topLabel ?? "ڕۆژ",
+                textAlign: TextAlign.center,
                 style: TextStyle(
-                    color: pc.withOpacity(readOnly ? 0.2 : 0.55), fontSize: 9)),
-            const SizedBox(height: 2),
-            TextField(
+                    color: topLabel != null
+                        ? pc.withOpacity(0.75)
+                        : pc.withOpacity(0.55),
+                    fontSize: 9,
+                    fontWeight: topLabel != null
+                        ? FontWeight.bold
+                        : FontWeight.normal))),
+      ] else ...[
+        Expanded(
+            child: Text(topLabel ?? "ڕۆژ",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                    color: topLabel != null
+                        ? pc.withOpacity(0.75)
+                        : pc.withOpacity(0.55),
+                    fontSize: 9,
+                    fontWeight: topLabel != null
+                        ? FontWeight.bold
+                        : FontWeight.normal))),
+        const SizedBox(width: 5),
+        Expanded(
+            child: Text("مانگ",
+                textAlign: TextAlign.center,
+                style: TextStyle(color: pc.withOpacity(0.55), fontSize: 9))),
+        const SizedBox(width: 5),
+        Expanded(
+            flex: 2,
+            child: Text("ساڵ",
+                textAlign: TextAlign.center,
+                style: TextStyle(color: pc.withOpacity(0.55), fontSize: 9))),
+      ]
+    ]);
+
+    // بەشەکانی خوارەوە (فیلدەکان)
+    Widget fieldRow = Row(children: [
+      if (reverseOrder) ...[
+        // ساڵ لە چەپ
+        Expanded(
+            flex: 2,
+            child: TextField(
                 controller: y,
                 readOnly: readOnly,
                 keyboardType: TextInputType.number,
@@ -746,12 +752,122 @@ class _DateConverterDialogState extends State<DateConverterDialog>
                 maxLength: 4,
                 style: style,
                 decoration: dec("ساڵ"),
+                onChanged: readOnly ? null : (_) => toKu(y),
                 onSubmitted: readOnly
                     ? null
                     : (_) {
                         if (onSubmit != null) onSubmit();
-                      }),
-          ])),
+                      })),
+        const SizedBox(width: 5),
+        // مانگ
+        Expanded(
+            child: TextField(
+                controller: m,
+                readOnly: readOnly,
+                keyboardType: TextInputType.number,
+                textAlign: TextAlign.center,
+                maxLength: 2,
+                style: style,
+                decoration: dec("مانگ"),
+                onChanged: readOnly
+                    ? null
+                    : (_) {
+                        toKu(m);
+                        clamp(m, 12);
+                      },
+                onSubmitted: readOnly
+                    ? null
+                    : (_) {
+                        if (onSubmit != null) onSubmit();
+                      })),
+        const SizedBox(width: 5),
+        // ڕۆژ لە ڕاست
+        Expanded(
+            child: TextField(
+                controller: d,
+                readOnly: readOnly,
+                keyboardType: TextInputType.number,
+                textAlign: TextAlign.center,
+                maxLength: 2,
+                style: style,
+                decoration: dec("ڕۆژ"),
+                onChanged: readOnly
+                    ? null
+                    : (_) {
+                        toKu(d);
+                        clamp(d, maxDay);
+                      },
+                onSubmitted: readOnly
+                    ? null
+                    : (_) {
+                        if (onSubmit != null) onSubmit();
+                      })),
+      ] else ...[
+        Expanded(
+            child: TextField(
+                controller: d,
+                readOnly: readOnly,
+                keyboardType: TextInputType.number,
+                textAlign: TextAlign.center,
+                maxLength: 2,
+                style: style,
+                decoration: dec("ڕۆژ"),
+                onChanged: readOnly
+                    ? null
+                    : (_) {
+                        toKu(d);
+                        clamp(d, maxDay);
+                      },
+                onSubmitted: readOnly
+                    ? null
+                    : (_) {
+                        if (onSubmit != null) onSubmit();
+                      })),
+        const SizedBox(width: 5),
+        Expanded(
+            child: TextField(
+                controller: m,
+                readOnly: readOnly,
+                keyboardType: TextInputType.number,
+                textAlign: TextAlign.center,
+                maxLength: 2,
+                style: style,
+                decoration: dec("مانگ"),
+                onChanged: readOnly
+                    ? null
+                    : (_) {
+                        toKu(m);
+                        clamp(m, 12);
+                      },
+                onSubmitted: readOnly
+                    ? null
+                    : (_) {
+                        if (onSubmit != null) onSubmit();
+                      })),
+        const SizedBox(width: 5),
+        Expanded(
+            flex: 2,
+            child: TextField(
+                controller: y,
+                readOnly: readOnly,
+                keyboardType: TextInputType.number,
+                textAlign: TextAlign.center,
+                maxLength: 4,
+                style: style,
+                decoration: dec("ساڵ"),
+                onChanged: readOnly ? null : (_) => toKu(y),
+                onSubmitted: readOnly
+                    ? null
+                    : (_) {
+                        if (onSubmit != null) onSubmit();
+                      })),
+      ]
+    ]);
+
+    return Column(children: [
+      labelRow,
+      const SizedBox(height: 2),
+      fieldRow,
     ]);
   }
 
@@ -769,22 +885,23 @@ class _DateConverterDialogState extends State<DateConverterDialog>
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(color: pc.withOpacity(0.2))),
             child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              Icon(Icons.info_outline, color: pc.withOpacity(0.7), size: 12),
-              const SizedBox(width: 6),
-              Text("لە $_minYear تا $_maxYear ئەتوانیت داخل بکەیت",
+              Text(
+                  "لە ${_toKurdish(_minYear)} تا ${_toKurdish(_maxYear)} ئەتوانیت داخل بکەیت",
                   style: TextStyle(
                       color: pc.withOpacity(0.85),
                       fontSize: 11,
                       fontWeight: FontWeight.bold)),
+              const SizedBox(width: 6),
+              Icon(Icons.info_outline, color: pc.withOpacity(0.7), size: 12),
             ]),
           ),
           Row(children: [
-            Expanded(child: _numField(_prayDayCtrl, "ڕۆژ", pc)),
+            Expanded(
+                flex: 2, child: _numField(_prayYearCtrl, "ساڵ", pc, maxLen: 4)),
             const SizedBox(width: 6),
             Expanded(child: _numField(_prayMonthCtrl, "مانگ", pc)),
             const SizedBox(width: 6),
-            Expanded(
-                flex: 2, child: _numField(_prayYearCtrl, "ساڵ", pc, maxLen: 4)),
+            Expanded(child: _numField(_prayDayCtrl, "ڕۆژ", pc)),
           ]),
           const SizedBox(height: 14),
           Row(children: [
@@ -885,17 +1002,8 @@ class _DateConverterDialogState extends State<DateConverterDialog>
                     Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Row(children: [
-                            Icon(Icons.location_city, color: pc, size: 16),
-                            const SizedBox(width: 6),
-                            Text(_selectedCity ?? "",
-                                style: TextStyle(
-                                    color: pc,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 14))
-                          ]),
                           Text(
-                              "${_prayDayCtrl.text.padLeft(2, '0')}/${_prayMonthCtrl.text.padLeft(2, '0')}/${_prayYearCtrl.text.isNotEmpty ? _prayYearCtrl.text : DateTime.now().year}",
+                              "${_toKurdish(_prayDayCtrl.text.padLeft(2, '0'))}/${_toKurdish(_prayMonthCtrl.text.padLeft(2, '0'))}/${_toKurdish(_prayYearCtrl.text.isNotEmpty ? _prayYearCtrl.text : DateTime.now().year.toString())}",
                               style: TextStyle(
                                   color: Theme.of(context)
                                       .textTheme
@@ -903,6 +1011,15 @@ class _DateConverterDialogState extends State<DateConverterDialog>
                                       ?.color
                                       ?.withOpacity(0.54),
                                   fontSize: 12)),
+                          Row(children: [
+                            Text(_selectedCity ?? "",
+                                style: TextStyle(
+                                    color: pc,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14)),
+                            const SizedBox(width: 6),
+                            Icon(Icons.location_city, color: pc, size: 16),
+                          ]),
                         ]),
                     Divider(
                         color: Theme.of(context).dividerColor.withOpacity(0.1),
@@ -950,12 +1067,18 @@ class _DateConverterDialogState extends State<DateConverterDialog>
                       final icon = row[2] as IconData;
                       final color = row[3] as Color;
                       final ts =
-                          "${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}";
+                          "${_toKurdish(dt.hour.toString().padLeft(2, '0'))}:${_toKurdish(dt.minute.toString().padLeft(2, '0'))}";
                       return Padding(
                         padding: const EdgeInsets.symmetric(vertical: 5),
                         child: Row(children: [
                           Icon(icon, color: color, size: 18),
                           const SizedBox(width: 10),
+                          Text(widget.timeService.formatTo12Hr(ts),
+                              style: TextStyle(
+                                  color: color,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold)),
+                          const Spacer(),
                           Text(name,
                               style: TextStyle(
                                   color: Theme.of(context)
@@ -964,12 +1087,6 @@ class _DateConverterDialogState extends State<DateConverterDialog>
                                       ?.color
                                       ?.withOpacity(0.7),
                                   fontSize: 14)),
-                          const Spacer(),
-                          Text(widget.timeService.formatTo12Hr(ts),
-                              style: TextStyle(
-                                  color: color,
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.bold)),
                         ]),
                       );
                     })),
@@ -1018,14 +1135,22 @@ class _DateConverterDialogState extends State<DateConverterDialog>
       textAlign: TextAlign.center,
       maxLength: maxLen,
       onChanged: onChanged,
-      style: const TextStyle(
-          color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
+      style: TextStyle(
+          color: Theme.of(context).textTheme.bodyLarge?.color,
+          fontSize: 15,
+          fontWeight: FontWeight.bold),
       decoration: InputDecoration(
         counterText: "",
         hintText: hint,
-        hintStyle: const TextStyle(color: Colors.white24, fontSize: 12),
+        hintStyle: TextStyle(
+            color: Theme.of(context)
+                .textTheme
+                .bodyMedium
+                ?.color
+                ?.withOpacity(0.25),
+            fontSize: 12),
         filled: true,
-        fillColor: Colors.white.withOpacity(0.07),
+        fillColor: Theme.of(context).colorScheme.onSurface.withOpacity(0.05),
         border: border,
         enabledBorder: border,
         focusedBorder: OutlineInputBorder(

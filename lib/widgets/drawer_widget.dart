@@ -538,7 +538,7 @@ class _PrayerDrawerState extends State<PrayerDrawer> {
                 ),
               ),
               const SizedBox(width: 8),
-              Text("داتای کاتەکانی بانگ:",
+              Text(":داتای کاتەکانی بانگ",
                   style: TextStyle(
                       color: pal.listText.withOpacity(0.7), fontSize: 13)),
             ],
@@ -567,7 +567,7 @@ class _PrayerDrawerState extends State<PrayerDrawer> {
                 ),
               ),
               const SizedBox(width: 8),
-              Text("تێکستی قورئانی پیرۆز:",
+              Text(":تێکستی قورئانی پیرۆز",
                   style: TextStyle(
                       color: pal.listText.withOpacity(0.7), fontSize: 13)),
             ],
@@ -594,7 +594,7 @@ class _PrayerDrawerState extends State<PrayerDrawer> {
                 ),
               ),
               const SizedBox(width: 8),
-              Text("دەنگى قورئانخوێن:",
+              Text(":دەنگى قورئانخوێن",
                   style: TextStyle(
                       color: pal.listText.withOpacity(0.7), fontSize: 13)),
             ],
@@ -738,7 +738,7 @@ class _PrayerDrawerState extends State<PrayerDrawer> {
                                   ),
                                 ),
                                 child: Text(
-                                  "${r["emoji"]} ${r["label"]}",
+                                  "${r["label"]} ${r["emoji"]}",
                                   style: TextStyle(
                                     color: selected
                                         ? pal.primary

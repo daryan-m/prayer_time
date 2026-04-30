@@ -170,18 +170,12 @@ class _TasbihDialogState extends State<TasbihDialog>
             width: active ? 1.5 : 1.0,
           ),
         ),
-        child: Row(mainAxisSize: MainAxisSize.min, children: [
-          Icon(icon,
-              size: 14,
-              color: active
-                  ? pc
-                  : Theme.of(context)
-                      .textTheme
-                      .bodyMedium
-                      ?.color
-                      ?.withOpacity(0.38)),
-          const SizedBox(width: 5),
-          Text(label,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // ١. سەرەتا تێکستەکە دابنێ (دەکەوێتە لای چەپ)
+            Text(
+              label,
               style: TextStyle(
                 color: active
                     ? pc
@@ -192,13 +186,39 @@ class _TasbihDialogState extends State<TasbihDialog>
                         ?.withOpacity(0.38),
                 fontSize: 12,
                 fontWeight: active ? FontWeight.bold : FontWeight.normal,
-              )),
-        ]),
+              ),
+            ),
+
+            const SizedBox(width: 5),
+
+            // ٢. پاشان ئایکۆنەکە دابنێ (دەکەوێتە لای ڕاست)
+            Icon(
+              icon,
+              size: 14,
+              color: active
+                  ? pc
+                  : Theme.of(context)
+                      .textTheme
+                      .bodyMedium
+                      ?.color
+                      ?.withOpacity(0.38),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  @override
+  String _toKurdish(Object value) {
+    const en = '0123456789';
+    const ku = '٠١٢٣٤٥٦٧٨٩';
+    String input = value.toString();
+    return input.split('').map((ch) {
+      final idx = en.indexOf(ch);
+      return idx >= 0 ? ku[idx] : ch;
+    }).join();
+  }
+
   @override
   Widget build(BuildContext context) {
     final Color pc = widget.primaryColor;
@@ -235,17 +255,18 @@ class _TasbihDialogState extends State<TasbihDialog>
           ],
         ),
         child: Column(children: [
+          // ─── Header چاککراو: زەرب لای چەپ، کۆی لە ناوەڕاست، تەسبیح لای ڕاست ───
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 18, 12, 10),
+            padding: const EdgeInsets.fromLTRB(12, 4, 12, 2),
             child: Row(children: [
-              Icon(Icons.grain, color: pc, size: 22),
-              const SizedBox(width: 10),
-              const Text("تەسبیح",
-                  style: TextStyle(
-                      color: textColor, // ✅
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold)),
+              // لای چەپ: دوگمەی داخستن
+              IconButton(
+                  icon: const Icon(Icons.close, color: textSubColor),
+                  onPressed: () => Navigator.pop(context)),
+
               const Spacer(),
+
+              // ناوەڕاست: لیبڵی کۆی گشتی بە کوردی
               Container(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
@@ -253,18 +274,27 @@ class _TasbihDialogState extends State<TasbihDialog>
                     color: pc.withOpacity(0.15),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(color: pc.withOpacity(0.3))),
-                child: Text("کۆی: $_totalCount",
+                child: Text("کۆی: ${_toKurdish(_totalCount)}",
                     style: TextStyle(color: pc, fontSize: 12)),
               ),
+
+              const Spacer(),
+
+              // لای ڕاست: تێکست و ئایکۆنی تەسبیح
+              const Text("تەسبیح",
+                  style: TextStyle(
+                      color: textColor,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold)),
               const SizedBox(width: 8),
-              IconButton(
-                  icon: const Icon(Icons.close, color: textSubColor), // ✅
-                  onPressed: () => Navigator.pop(context)),
+              Icon(Icons.grain, color: pc, size: 22),
             ]),
           ),
           Divider(color: Colors.white.withOpacity(0.1)),
+
+          // لیستی زیکرەکان
           SizedBox(
-            height: 42,
+            height: 36,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -282,17 +312,15 @@ class _TasbihDialogState extends State<TasbihDialog>
                     padding:
                         const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                     decoration: BoxDecoration(
-                      color:
-                          selected ? pc : Colors.white.withOpacity(0.07), // ✅
+                      color: selected ? pc : Colors.white.withOpacity(0.07),
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                          color: selected
-                              ? pc
-                              : Colors.white.withOpacity(0.24)), // ✅
+                          color:
+                              selected ? pc : Colors.white.withOpacity(0.24)),
                     ),
                     child: Text(_zikrList[i].arabic,
                         style: TextStyle(
-                          color: selected ? Colors.black87 : textSubColor, // ✅
+                          color: selected ? Colors.black87 : textSubColor,
                           fontSize: 13,
                           fontWeight:
                               selected ? FontWeight.bold : FontWeight.normal,
@@ -302,7 +330,10 @@ class _TasbihDialogState extends State<TasbihDialog>
               },
             ),
           ),
-          const SizedBox(height: 14),
+
+          const SizedBox(height: 10),
+
+          // تێکستی زیکرەکە (عەرەبی و کوردی)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Column(children: [
@@ -313,27 +344,26 @@ class _TasbihDialogState extends State<TasbihDialog>
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
                       height: 1.6)),
-              const SizedBox(height: 4),
+              const SizedBox(height: 2),
               Text(_current.kurdish,
                   textAlign: TextAlign.center,
                   style: const TextStyle(
-                      color: textSubColor, // ✅
-                      fontSize: 13,
-                      height: 1.4)),
+                      color: textSubColor, fontSize: 13, height: 1.4)),
             ]),
           ),
-          const SizedBox(height: 20),
+
+          const SizedBox(height: 6),
+
+          // بەشی پڕۆگرێس بار بە ژمارەی کوردی
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 30),
             child: Column(children: [
               Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                Text("$_count",
+                Text(_toKurdish(_count),
                     style: TextStyle(
                         color: pc, fontSize: 13, fontWeight: FontWeight.bold)),
-                Text("$target",
-                    style: const TextStyle(
-                        color: textSubColor, // ✅
-                        fontSize: 13)),
+                Text(_toKurdish(target),
+                    style: const TextStyle(color: textSubColor, fontSize: 13)),
               ]),
               const SizedBox(height: 6),
               ClipRRect(
@@ -341,11 +371,14 @@ class _TasbihDialogState extends State<TasbihDialog>
                   child: LinearProgressIndicator(
                       value: progress,
                       minHeight: 8,
-                      backgroundColor: Colors.white.withOpacity(0.12), // ✅
+                      backgroundColor: Colors.white.withOpacity(0.12),
                       valueColor: AlwaysStoppedAnimation<Color>(pc))),
             ]),
           ),
-          const SizedBox(height: 24),
+
+          const SizedBox(height: 20),
+
+          // بازنەی ژماردن و دوگمە فیدباکەکان
           SizedBox(
             height: 220,
             child: Stack(
@@ -381,12 +414,12 @@ class _TasbihDialogState extends State<TasbihDialog>
                         child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Text("$_count",
+                              Text(_toKurdish(_count),
                                   style: const TextStyle(
-                                      color: textColor, // ✅
+                                      color: textColor,
                                       fontSize: 46,
                                       fontWeight: FontWeight.bold)),
-                              Text("/ $target",
+                              Text("/ ${_toKurdish(target)}",
                                   style: TextStyle(
                                       color: pc.withOpacity(0.7),
                                       fontSize: 15)),
@@ -398,14 +431,21 @@ class _TasbihDialogState extends State<TasbihDialog>
               ],
             ),
           ),
+
           const SizedBox(height: 12),
-          TextButton.icon(
+
+          // دوگمەی ڕیست بە ئایکۆنی لای ڕاست
+          TextButton(
             onPressed: _reset,
-            icon: const Icon(Icons.refresh, color: textSubColor, size: 18), // ✅
-            label: const Text("ڕیست",
-                style: TextStyle(
-                    color: textSubColor, // ✅
-                    fontSize: 13)),
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text("ڕیست",
+                    style: TextStyle(color: textSubColor, fontSize: 13)),
+                SizedBox(width: 6),
+                Icon(Icons.refresh, color: textSubColor, size: 18),
+              ],
+            ),
           ),
           const SizedBox(height: 14),
         ]),

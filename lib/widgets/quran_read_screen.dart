@@ -834,7 +834,7 @@ class _PageContentState extends State<_PageContent> {
             fontWeight: FontWeight.normal,
             height: ayahLineHeight,
             letterSpacing: 0.0,
-            wordSpacing: 0.5,
+            wordSpacing: 0.2,
             // هایلایت بە باکگراوند — جێگرەوەی AnimatedContainer
             background: isActive
                 ? (Paint()
@@ -851,7 +851,7 @@ class _PageContentState extends State<_PageContent> {
         TextSpan(
           text: ' ﴿$ayahNumKu﴾ ',
           style: TextStyle(
-            fontSize: badgeFontSize,
+            fontSize: badgeFontSize + 2,
             fontFamily: 'Uthmanic',
             color: widget.palette.secondary.withOpacity(isActive ? 1.0 : 0.55),
             fontWeight: FontWeight.bold,
@@ -892,12 +892,12 @@ class _PageContentState extends State<_PageContent> {
                 // ── کێشەی ٥: بسم الله لەناوەراست ──
                 if (showBasmala)
                   Padding(
-                    padding: const EdgeInsets.only(bottom: 14, top: 4),
+                    padding: const EdgeInsets.only(bottom: 14, top: 3),
                     child: Text(
                       'بِسْمِ اللَّهِ الرَّحْمٰنِ الرَّحِيمِ',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        fontSize: ayahFontSize,
+                        fontSize: ayahFontSize +1,
                         fontFamily: 'Uthmanic',
                         color: widget.palette.secondary.withOpacity(0.9),
                         fontWeight: FontWeight.normal,
@@ -936,7 +936,7 @@ class _TapRecognizer extends TapGestureRecognizer {
   }
 }
 
-// ==================== دراوەری سووراتەکان ====================
+// ==================== دراوەری سووراتەکان (چاککراو) ====================
 
 class _SurahDrawer extends StatelessWidget {
   final List<QuranSurah> surahs;
@@ -963,92 +963,115 @@ class _SurahDrawer extends StatelessWidget {
   }
 
   @override
-  @override
   Widget build(BuildContext context) {
-    return Container(
-      // لێرەدا Padding زیاد بکە بۆ ئەوەی خودی دراوەرەکە لە خوارەوە کورت ببێتەوە
-      padding: const EdgeInsets.only(bottom: 100),
-      decoration: BoxDecoration(
-        color: palette.drawerBg,
-        border: Border(
-            right:
-                BorderSide(color: primaryColor.withOpacity(0.3), width: 1.5)),
-      ),
-      child: Directionality(
-        textDirection: TextDirection.rtl,
-        child: Column(children: [
-          // بەشی سەرەوە (ناونیشانی سورەتەکان)
-          Container(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
-            child: Text("سورەتەکان",
-                style: TextStyle(
-                    color: primaryColor,
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold)),
-          ),
-          Divider(color: primaryColor.withOpacity(0.4), height: 1),
-
-          // لیستەکە
-          Expanded(
-            child: ListView.builder(
-              padding: EdgeInsets.zero, // لێرەدا پێویستت بە پادینگ نەما
-              itemCount: surahs.length,
-              itemBuilder: (_, i) {
-                final s = surahs[i];
-                final selected = s.number == currentSurah.number;
-                return GestureDetector(
-                  onTap: () => onSelect(s),
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
-                    decoration: BoxDecoration(
-                      color: selected
-                          ? primaryColor.withOpacity(0.15)
-                          : Colors.transparent,
-                      border: Border(
-                          right: BorderSide(
-                              color: primaryColor.withOpacity(0.07))),
-                    ),
-                    child: Row(children: [
-                      SizedBox(
-                        width: 24,
-                        child: Text(_toKurdishDigits(s.number),
-                            style: TextStyle(
-                                color: primaryColor.withOpacity(0.7),
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold)),
-                      ),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(s.nameArabic,
-                                  style: TextStyle(
-                                    color: selected
-                                        ? primaryColor
-                                        : palette.listText,
-                                    fontSize: 13,
-                                    fontFamily: 'Uthmanic',
-                                    fontWeight: selected
-                                        ? FontWeight.bold
-                                        : FontWeight.normal,
-                                  )),
-                              Text(
-                                '${_toKurdishDigits(s.ayahCount)} ئایەت · ${s.isMakki ? "مەکی" : "مەدەنی"}',
-                                style: TextStyle(
-                                    color: palette.listText.withOpacity(0.5),
-                                    fontSize: 9),
-                              ),
-                            ]),
-                      ),
-                    ]),
-                  ),
-                );
-              },
+    // بەکارهێنانی Align بۆ ئەوەی Containerەکە کۆنترۆڵ بکەین
+    return Align(
+      alignment: Alignment.topCenter,
+      child: Container(
+        // لێرەدا Margin بەکاردێنین لەبری Padding بۆ ئەوەی خودی دراوەرەکە لێرەدا بوەستێت
+        margin: const EdgeInsets.only(bottom: 110),
+        decoration: BoxDecoration(
+          color: palette.drawerBg,
+          border: Border(
+            right: BorderSide(
+              color: primaryColor.withOpacity(0.3),
+              width: 1.5,
             ),
           ),
-        ]),
+        ),
+        child: Directionality(
+          textDirection: TextDirection.rtl,
+          child: Column(
+            mainAxisSize: MainAxisSize.min, // بۆ ئەوەی زیادە نەڕوات
+            children: [
+              // بەشی سەرەوە (ناونیشانی سورەتەکان)
+              Container(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+                child: Text(
+                  "سورەتەکان",
+                  style: TextStyle(
+                    color: primaryColor,
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              Divider(color: primaryColor.withOpacity(0.4), height: 1),
+
+              // لیستەکە
+              Expanded(
+                child: ListView.builder(
+                  padding: EdgeInsets.zero,
+                  itemCount: surahs.length,
+                  itemBuilder: (_, i) {
+                    final s = surahs[i];
+                    final selected = s.number == currentSurah.number;
+                    return GestureDetector(
+                      onTap: () => onSelect(s),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 9),
+                        decoration: BoxDecoration(
+                          color: selected
+                              ? primaryColor.withOpacity(0.15)
+                              : Colors.transparent,
+                          border: Border(
+                            bottom: BorderSide(
+                              color: primaryColor.withOpacity(0.07),
+                            ),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            SizedBox(
+                              width: 24,
+                              child: Text(
+                                _toKurdishDigits(s.number),
+                                style: TextStyle(
+                                  color: primaryColor.withOpacity(0.7),
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    s.nameArabic,
+                                    style: TextStyle(
+                                      color: selected
+                                          ? primaryColor
+                                          : palette.listText,
+                                      fontSize: 13,
+                                      fontFamily: 'Uthmanic',
+                                      fontWeight: selected
+                                          ? FontWeight.bold
+                                          : FontWeight.normal,
+                                    ),
+                                  ),
+                                  Text(
+                                    '${_toKurdishDigits(s.ayahCount)} ئایەت · ${s.isMakki ? "مەکی" : "مەدەنی"}',
+                                    style: TextStyle(
+                                      color: palette.listText.withOpacity(0.5),
+                                      fontSize: 9,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
