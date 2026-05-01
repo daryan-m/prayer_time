@@ -9,6 +9,27 @@ import '../utils/constants.dart';
 import '../services/prayer_service.dart';
 
 // ==================== ویدجەتی گۆڕینی بەروار ====================
+
+String _fromKurdish(String input) {
+  const en = '0123456789';
+  const ku = '٠١٢٣٤٥٦٧٨٩';
+
+  return input.split('').map((ch) {
+    final idx = ku.indexOf(ch);
+    return idx >= 0 ? en[idx] : ch;
+  }).join();
+}
+
+String _toKurdish(Object value) {
+  const en = '0123456789';
+  const ku = '٠١٢٣٤٥٦٧٨٩';
+  String input = value.toString();
+  return input.split('').map((ch) {
+    final idx = en.indexOf(ch);
+    return idx >= 0 ? ku[idx] : ch;
+  }).join();
+}
+
 class DateConverterDialog extends StatefulWidget {
   final Color primaryColor;
   final ThemePalette palette;
@@ -100,9 +121,9 @@ class _DateConverterDialogState extends State<DateConverterDialog>
   }
 
   void _convertFromGreg() {
-    final d = int.tryParse(_gregDayCtrl.text.trim());
-    final m = int.tryParse(_gregMonthCtrl.text.trim());
-    final y = int.tryParse(_gregYearCtrl.text.trim());
+    final d = int.tryParse(_fromKurdish(_gregDayCtrl.text.trim()));
+    final m = int.tryParse(_fromKurdish(_gregMonthCtrl.text.trim()));
+    final y = int.tryParse(_fromKurdish(_gregYearCtrl.text.trim()));
     if (d == null ||
         m == null ||
         y == null ||
@@ -180,7 +201,7 @@ class _DateConverterDialogState extends State<DateConverterDialog>
         ? shamsiMonths[shamsi[1] - 1]
         : shamsi[1].toString();
     final String shamsiStr =
-        "${widget.timeService.toKu(shamsi[2].toString())} $mNameـى ${widget.timeService.toKu(shamsi[0].toString())}";
+        "${widget.timeService.toKu(shamsi[2].toString())}ـى $mName${widget.timeService.toKu(shamsi[0].toString())}";
     setState(() {
       _hijriResult = hijriStr;
       _kurdResult = kurdStr;
@@ -271,9 +292,9 @@ class _DateConverterDialogState extends State<DateConverterDialog>
   }
 
   Future<void> _lookupPrayer() async {
-    final d = int.tryParse(_prayDayCtrl.text.trim());
-    final m = int.tryParse(_prayMonthCtrl.text.trim());
-    final y = int.tryParse(_prayYearCtrl.text.trim());
+    final d = int.tryParse(_fromKurdish(_prayDayCtrl.text.trim()));
+    final m = int.tryParse(_fromKurdish(_prayMonthCtrl.text.trim()));
+    final y = int.tryParse(_fromKurdish(_prayYearCtrl.text.trim()));
     if (d == null ||
         d < 1 ||
         d > 31 ||
@@ -324,16 +345,6 @@ class _DateConverterDialogState extends State<DateConverterDialog>
       _prayError = "";
       _selectedCity = widget.currentCity;
     });
-  }
-
-  String _toKurdish(Object value) {
-    const en = '0123456789';
-    const ku = '٠١٢٣٤٥٦٧٨٩';
-    String input = value.toString();
-    return input.split('').map((ch) {
-      final idx = en.indexOf(ch);
-      return idx >= 0 ? ku[idx] : ch;
-    }).join();
   }
 
   @override
@@ -475,10 +486,9 @@ class _DateConverterDialogState extends State<DateConverterDialog>
                       const EdgeInsets.symmetric(vertical: 8, horizontal: 18),
                   minimumSize: Size.zero,
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap),
-                  icon: const Icon(Icons.swap_horiz, size: 15),
+              icon: const Icon(Icons.swap_horiz, size: 15),
               label: const Text("بیگۆڕە",
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-              
               onPressed: () {
                 FocusScope.of(context).unfocus();
                 _convertFromGreg();
@@ -506,7 +516,6 @@ class _DateConverterDialogState extends State<DateConverterDialog>
               ),
               icon: const Icon(Icons.delete_outline, size: 14),
               label: const Text("سڕینەوە", style: TextStyle(fontSize: 12)),
-              
               onPressed: _clearConverter,
             ),
           ]),
@@ -516,9 +525,9 @@ class _DateConverterDialogState extends State<DateConverterDialog>
             Row(mainAxisAlignment: MainAxisAlignment.center, children: [
               Text(_weekdayResult,
                   style: TextStyle(
-                      color: pc, fontSize: 14, fontWeight: FontWeight.bold)),
+                      color: pc, fontSize: 12, fontWeight: FontWeight.bold)),
               const SizedBox(width: 5),
-              Icon(Icons.today, color: pc, size: 15),
+              Icon(Icons.today, color: pc, size: 13),
             ]),
           ],
 
@@ -533,7 +542,7 @@ class _DateConverterDialogState extends State<DateConverterDialog>
               yearCtrl: _hijriYearCtrl,
               result: _hijriResult,
               icon: Icons.nightlight_round,
-              label: "کۆچی"),
+              label: "   : کۆچى     "),
 
           // ── کوردی ──
           Divider(
@@ -546,20 +555,20 @@ class _DateConverterDialogState extends State<DateConverterDialog>
               yearCtrl: _kurdYearCtrl,
               result: _kurdResult,
               icon: Icons.eco_outlined,
-              label: "کوردی"),
+              label: "   : کوردى     "),
 
           // ── هەتاوی ──
           Divider(
               color: Theme.of(context).dividerColor.withOpacity(0.5),
               height: 14,
               thickness: 1.5),
-          _rowDates(const Color(0xFFF5F916),
+          _rowDates(const Color(0xFFF9F516),
               dayCtrl: _shamsiDayCtrl,
               monthCtrl: _shamsiMonthCtrl,
               yearCtrl: _shamsiYearCtrl,
               result: _shamsiResult,
               icon: Icons.wb_sunny_outlined,
-              label: "هەتاوی"),
+              label: "   : هەتاوى     "),
         ]),
       );
     });
@@ -586,38 +595,33 @@ class _DateConverterDialogState extends State<DateConverterDialog>
       required IconData icon,
       required String label,
       required String result}) {
-    // ژمارەی بەروار لە controllerەکانەوە
     final day = _toKurdish(dayCtrl.text.isEmpty ? '—' : dayCtrl.text);
     final month = _toKurdish(monthCtrl.text.isEmpty ? '—' : monthCtrl.text);
     final year = _toKurdish(yearCtrl.text.isEmpty ? '—' : yearCtrl.text);
     final numericDisplay = '$year - $month - $day';
 
-    return SizedBox(
-      height: 42,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              // ژمارەی بەروار
-              Text(numericDisplay,
-                  style: TextStyle(
-                      color: pc.withOpacity(0.9),
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold)),
-              // ناوی مانگ (result)
-              if (result.isNotEmpty)
-                Text(_toKurdish(result),
-                    style: TextStyle(color: pc.withOpacity(0.6), fontSize: 11)),
-            ],
-          ),
-          const SizedBox(width: 8),
-          Icon(icon, color: pc, size: 18),
-        ],
-      ),
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text(numericDisplay,
+                style: TextStyle(
+                    color: pc, fontSize: 15, fontWeight: FontWeight.bold)),
+            if (result.isNotEmpty)
+              Text(_toKurdish(result),
+                  style: TextStyle(color: pc.withOpacity(0.65), fontSize: 12)),
+          ],
+        ),
+        const SizedBox(width: 8),
+        Text(label,
+            style:
+                TextStyle(color: pc, fontSize: 9, fontWeight: FontWeight.bold)),
+        Icon(icon, color: pc, size: 20),
+      ],
     );
   }
 
@@ -670,7 +674,7 @@ class _DateConverterDialogState extends State<DateConverterDialog>
               const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
         );
     void clamp(TextEditingController ctrl, int max) {
-      final v = int.tryParse(ctrl.text);
+      final v = int.tryParse(_fromKurdish(ctrl.text));
       if (v != null && v > max) {
         ctrl.text = max.toString();
         ctrl.selection = TextSelection.collapsed(offset: ctrl.text.length);
@@ -752,7 +756,7 @@ class _DateConverterDialogState extends State<DateConverterDialog>
                 maxLength: 4,
                 style: style,
                 decoration: dec("ساڵ"),
-                onChanged: readOnly ? null : (_) => toKu(y),
+                onChanged: readOnly ? null : (_) {},
                 onSubmitted: readOnly
                     ? null
                     : (_) {
@@ -769,12 +773,7 @@ class _DateConverterDialogState extends State<DateConverterDialog>
                 maxLength: 2,
                 style: style,
                 decoration: dec("مانگ"),
-                onChanged: readOnly
-                    ? null
-                    : (_) {
-                        toKu(m);
-                        clamp(m, 12);
-                      },
+                onChanged: readOnly ? null : (_) => clamp(m, 12),
                 onSubmitted: readOnly
                     ? null
                     : (_) {
@@ -791,12 +790,7 @@ class _DateConverterDialogState extends State<DateConverterDialog>
                 maxLength: 2,
                 style: style,
                 decoration: dec("ڕۆژ"),
-                onChanged: readOnly
-                    ? null
-                    : (_) {
-                        toKu(d);
-                        clamp(d, maxDay);
-                      },
+                onChanged: readOnly ? null : (_) => clamp(d, maxDay),
                 onSubmitted: readOnly
                     ? null
                     : (_) {
@@ -812,12 +806,7 @@ class _DateConverterDialogState extends State<DateConverterDialog>
                 maxLength: 2,
                 style: style,
                 decoration: dec("ڕۆژ"),
-                onChanged: readOnly
-                    ? null
-                    : (_) {
-                        toKu(d);
-                        clamp(d, maxDay);
-                      },
+                onChanged: readOnly ? null : (_) => clamp(d, maxDay),
                 onSubmitted: readOnly
                     ? null
                     : (_) {
@@ -833,12 +822,7 @@ class _DateConverterDialogState extends State<DateConverterDialog>
                 maxLength: 2,
                 style: style,
                 decoration: dec("مانگ"),
-                onChanged: readOnly
-                    ? null
-                    : (_) {
-                        toKu(m);
-                        clamp(m, 12);
-                      },
+                onChanged: readOnly ? null : (_) => clamp(m, 12),
                 onSubmitted: readOnly
                     ? null
                     : (_) {
@@ -855,7 +839,7 @@ class _DateConverterDialogState extends State<DateConverterDialog>
                 maxLength: 4,
                 style: style,
                 decoration: dec("ساڵ"),
-                onChanged: readOnly ? null : (_) => toKu(y),
+                onChanged: readOnly ? null : (_) {},
                 onSubmitted: readOnly
                     ? null
                     : (_) {
@@ -1003,7 +987,7 @@ class _DateConverterDialogState extends State<DateConverterDialog>
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                              "${_toKurdish(_prayDayCtrl.text.padLeft(2, '0'))}/${_toKurdish(_prayMonthCtrl.text.padLeft(2, '0'))}/${_toKurdish(_prayYearCtrl.text.isNotEmpty ? _prayYearCtrl.text : DateTime.now().year.toString())}",
+                              "${_toKurdish(_prayYearCtrl.text.isNotEmpty ? _prayYearCtrl.text : DateTime.now().year.toString())}/${_toKurdish(_prayMonthCtrl.text.padLeft(2, '0'))}/${_toKurdish(_prayDayCtrl.text.padLeft(2, '0'))}",
                               style: TextStyle(
                                   color: Theme.of(context)
                                       .textTheme
@@ -1067,18 +1051,23 @@ class _DateConverterDialogState extends State<DateConverterDialog>
                       final icon = row[2] as IconData;
                       final color = row[3] as Color;
                       final ts =
-                          "${_toKurdish(dt.hour.toString().padLeft(2, '0'))}:${_toKurdish(dt.minute.toString().padLeft(2, '0'))}";
+                          "${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}";
+                      // ... لە ناو مێتۆدی .map((row)دا ئەم بەشە بگۆڕە:
+
                       return Padding(
                         padding: const EdgeInsets.symmetric(vertical: 5),
                         child: Row(children: [
-                          Icon(icon, color: color, size: 18),
-                          const SizedBox(width: 10),
-                          Text(widget.timeService.formatTo12Hr(ts),
+                          // 1. کاتەکە دەخەینە سەرەتا (چونکە RTLـە دەکەوێتە ئەوپەڕی لای ڕاست)
+                          Text(_toKurdish(widget.timeService.formatTo12Hr(ts)),
                               style: TextStyle(
                                   color: color,
                                   fontSize: 15,
                                   fontWeight: FontWeight.bold)),
+
+                          // 2. ئەم سپەیسەرە هەموو شتەکانی تر پاڵ دەنێت بۆ لای چەپ
                           const Spacer(),
+
+                          // 3. ناوی نوێژەکە
                           Text(name,
                               style: TextStyle(
                                   color: Theme.of(context)
@@ -1087,6 +1076,11 @@ class _DateConverterDialogState extends State<DateConverterDialog>
                                       ?.color
                                       ?.withOpacity(0.7),
                                   fontSize: 14)),
+
+                          const SizedBox(width: 8),
+
+                          // 4. ئایکۆنەکە لە کۆتایی هەموویان (ئەوپەڕی لای چەپ)
+                          Icon(icon, color: color, size: 18),
                         ]),
                       );
                     })),

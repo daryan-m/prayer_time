@@ -88,7 +88,10 @@ class PrayerDataService {
       return PrayerTimes(
         fajr: _parseTime(date, todayEntry!['fajr']),
         sunrise: _parseTime(date, todayEntry['sunrise']),
-        dhuhr: _parseTime(date, todayEntry['dhuhr'], isAfternoon: true),
+        dhuhr: _parseTime(date, todayEntry['dhuhr'],
+            // ئەگەر کاتژمێرەکە 12 بوو، isAfternoon دەبێتە false بۆ ئەوەی 12ی بۆ زیاد نەکرێت (بمێنێتەوە بە 12)
+            // ئەگەر کاتژمێرەکە 11 بوو، isAfternoon دەبێتە false بۆ ئەوەی نەبێتە 23 (بمێنێتەوە بە 11)
+            isAfternoon: int.parse(todayEntry['dhuhr'].split(':')[0]) < 11),
         asr: _parseTime(date, todayEntry['asr'], isAfternoon: true),
         maghrib: _parseTime(date, todayEntry['maghrib'], isAfternoon: true),
         isha: _parseTime(date, todayEntry['isha'], isAfternoon: true),
