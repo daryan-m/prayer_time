@@ -21,7 +21,7 @@ class MainActivity : FlutterActivity() {
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
-
+        QuranMediaPlugin().setupChannels(flutterEngine, this)
         EventChannel(
             flutterEngine.dartExecutor.binaryMessenger,
             QURAN_MEDIA_EVENTS

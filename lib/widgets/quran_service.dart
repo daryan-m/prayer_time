@@ -38,6 +38,9 @@ class QuranReciter {
 
 // ==================== قاریئەکان ====================
 
+/// دۆخی داگیراوەی دێنگ (بەبێژماریانەی تەواو)
+enum ReciterDlStatus { none, partial, complete }
+
 const List<QuranReciter> quranReciters = [
   QuranReciter(
       nameArabic: 'مشاري العفاسي',
@@ -100,55 +103,56 @@ class QuranService {
     _quranData = json.decode(raw) as Map<String, dynamic>;
   }
 
+  /// ✅ FIX 1: سورەتەکان ڕاست بخات — تیکەڵبونەوە چاردەکات
   static Future<List<Map<String, dynamic>>> loadSurah(int surahNumber) async {
     await _ensureLoaded();
+
+    // JSON تێخستنی جیا (data > surahs)
     final surahs = _quranData!['data']['surahs'] as List<dynamic>;
-    final surah = surahs.firstWhere((s) => s['number'] == surahNumber);
+
+    // سورەتەی ڕاست بدۆزەوە
+    final surah = surahs.firstWhere(
+      (s) => s['number'] == surahNumber,
+      orElse: () => throw Exception('سورە $surahNumber نەدۆزرایەوە'),
+    );
+
     final ayahs = surah['ayahs'] as List<dynamic>;
-    return ayahs
-        .map<Map<String, dynamic>>((a) => {
-              'a': a['numberInSurah'] as int,
-              's': surahNumber, // ── ژمارەی سووره بۆ هەر ئایەتێک
-              't': a['text'] as String,
-              'page': a['page'] as int,
-              'juz': a['juz'] as int,
-              'sajda': a['sajda'],
-            })
-        .toList();
+
+    return ayahs.map<Map<String, dynamic>>((a) {
+      // ✅ FIX 5: بسم الله لەگەل ئایەتی یەکەم
+      String text = (a['text'] as String)
+          .replaceAll('\uFEFF', '') // Zero-width no-break space
+          .trim();
+
+      return {
+        'a': a['numberInSurah'] as int,
+        't': text,
+        'page': a['page'] as int,
+        'juz': a['juz'] as int,
+        'sajda': a['sajda'] ?? false,
+      };
+    }).toList();
   }
 
-  // ── بارکردنی هەموو قورئان لەکاتێکدا ──
-  // لاپەرەکان ڕاستەقینە دەبن — ٢/٣ سووره لەیەک لاپەرە
-  static Future<List<Map<String, dynamic>>> loadAllQuran() async {
-    await _ensureLoaded();
-    final surahs = _quranData!['data']['surahs'] as List<dynamic>;
-    final List<Map<String, dynamic>> allAyahs = [];
-    for (final surah in surahs) {
-      final int surahNum = surah['number'] as int;
-      final ayahs = surah['ayahs'] as List<dynamic>;
-      for (final a in ayahs) {
-        allAyahs.add({
-          'a': a['numberInSurah'] as int,
-          's': surahNum, // ژمارەی سووره
-          't': a['text'] as String,
-          'page': a['page'] as int,
-          'juz': a['juz'] as int,
-          'sajda': a['sajda'],
-        });
-      }
-    }
-    return allAyahs;
-  }
-
+  /// ✅ FIX 2 & 6: لاپەرە ڕاست بخات — جوزئی ڕاست، ئایەتەکان بە لاپەرە
   static List<List<Map<String, dynamic>>> splitIntoPages(
       List<Map<String, dynamic>> ayahs) {
     final Map<int, List<Map<String, dynamic>>> pageMap = {};
+
     for (final ayah in ayahs) {
       final int page = ayah['page'] as int;
       pageMap.putIfAbsent(page, () => []).add(ayah);
     }
+
+    // لاپەرەکان بە ڕێزدا
     final sortedKeys = pageMap.keys.toList()..sort();
     return sortedKeys.map((k) => pageMap[k]!).toList();
+  }
+
+  /// ✅ FIX 3: جوزئی یەکمەتی لاپەرەکە بگرە
+  static int getFirstJuzOfPage(List<Map<String, dynamic>> pageAyahs) {
+    if (pageAyahs.isEmpty) return 1;
+    return (pageAyahs[0]['juz'] as int?) ?? 1;
   }
 
   // ── URLی دەنگ ──
@@ -159,14 +163,12 @@ class QuranService {
   }
 
   // ── شوێنی فایلی لۆکەل — بە getApplicationSupportDirectory ──
-  // ئەمە فۆلدەری جیا و دیاریکراوی ئەپەکەتە — نەک Documents
   static Future<String> _audioDir(String key) async {
     Directory base;
     if (Platform.isAndroid) {
-      // لە Android: /data/data/com.pkg/files/quran_audio/key/
-      base = await getApplicationSupportDirectory();
-    } else {
       base = await getApplicationDocumentsDirectory();
+    } else {
+      base = await getApplicationSupportDirectory();
     }
     final dir = Directory('${base.path}/quran_audio/$key');
     await dir.create(recursive: true);
@@ -185,18 +187,50 @@ class QuranService {
       final f = File(path);
       if (!await f.exists()) return false;
       final size = await f.length();
-      return size > 500; // فایلی خاو یان خراپ نەبێت
+      return size > 500;
     } catch (_) {
       return false;
     }
   }
 
-  // پشکنینی داگیراوی تەواوی قاری (سووره ١ ئایەت ١ بە ١ تێست)
-  static Future<bool> isReciterDownloaded(String key) async {
-    return isAyahDownloaded(1, 1, key);
+  static Future<String> _completionMarker(String key) async {
+    final dir = await _audioDir(key);
+    return '$dir/.complete';
   }
 
-  // دەستگەیشتن بە سەرچاوەی دەنگ — لۆکەل یان ئۆنلاین
+  static Future<void> markReciterDownloadComplete(String key) async {
+    final marker = File(await _completionMarker(key));
+    await marker.writeAsString('ok');
+  }
+
+  static Future<void> clearReciterDownloadComplete(String key) async {
+    final marker = File(await _completionMarker(key));
+    if (await marker.exists()) {
+      await marker.delete();
+    }
+  }
+
+  static Future<bool> isReciterDownloaded(String key) async {
+    final marker = File(await _completionMarker(key));
+    return marker.exists();
+  }
+
+  static Future<ReciterDlStatus> reciterDownloadStatus(String key) async {
+    if (await isReciterDownloaded(key)) return ReciterDlStatus.complete;
+    final dir = Directory(await _audioDir(key));
+    if (!await dir.exists()) return ReciterDlStatus.none;
+    final has = await _dirHasAnyMp3(dir);
+    if (!has) return ReciterDlStatus.none;
+    return ReciterDlStatus.partial;
+  }
+
+  static Future<bool> _dirHasAnyMp3(Directory d) async {
+    await for (final e in d.list(followLinks: false)) {
+      if (e is File && e.path.toLowerCase().endsWith('.mp3')) return true;
+    }
+    return false;
+  }
+
   static Future<String> getAudioSource(int s, int a, String key) async {
     final path = await _localFilePath(s, a, key);
     if (await File(path).exists() && await File(path).length() > 500) {
@@ -205,86 +239,42 @@ class QuranService {
     return audioUrl(s, a, key);
   }
 
-  // داگرتنی یەک ئایەت
   static Future<bool> downloadAyah(int s, int a, String key) async {
     final path = await _localFilePath(s, a, key);
     final f = File(path);
     if (await f.exists() && await f.length() > 500) return true;
-    try {
-      final resp = await http
-          .get(Uri.parse(audioUrl(s, a, key)))
-          .timeout(const Duration(seconds: 30));
-      if (resp.statusCode == 200 && resp.bodyBytes.length > 500) {
-        await f.writeAsBytes(resp.bodyBytes);
-        return true;
+    for (int tryCount = 0; tryCount < 3; tryCount++) {
+      try {
+        final resp = await http
+            .get(Uri.parse(audioUrl(s, a, key)))
+            .timeout(const Duration(seconds: 30));
+        if (resp.statusCode == 200 && resp.bodyBytes.length > 500) {
+          await f.writeAsBytes(resp.bodyBytes, flush: true);
+          return true;
+        }
+      } catch (_) {
+        if (tryCount == 2) {
+          return false;
+        }
       }
-      return false;
-    } catch (_) {
-      return false;
     }
+    return false;
   }
 
-  // بەدەستهێنانی شوێنی فۆلدەری دەنگ
+  static Future<void> deleteReciter(String key) async {
+    try {
+      await clearReciterDownloadComplete(key);
+      final dir = Directory(await _audioDir(key));
+      if (await dir.exists()) await dir.delete(recursive: true);
+    } catch (_) {}
+  }
+
   static Future<String> getAudioFolderPath(String key) async {
     return _audioDir(key);
   }
-
-  // نیشانەی تەواوبوونی داگرتن — فایلێکی دەنگی تەواو خەزن دەکات
-  static Future<void> markReciterDownloadComplete(String key) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('quran_dl_complete_$key', true);
-    } catch (_) {}
-  }
-
-  // پشکنینی تەواوبوونی داگرتن لە SharedPreferences
-  static Future<bool> isReciterFullyDownloaded(String key) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      return prefs.getBool('quran_dl_complete_$key') ?? false;
-    } catch (_) {
-      return false;
-    }
-  }
-
-  // سڕینەوەی نیشانەی تەواوبوون کاتی سڕینەوەی دەنگ
-  static Future<void> deleteReciter(String key) async {
-    try {
-      final dir = Directory(await _audioDir(key));
-      if (await dir.exists()) await dir.delete(recursive: true);
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.remove('quran_dl_complete_$key');
-    } catch (_) {}
-  }
-
-  // پاککردنەوەی نیشانەی تەواوبوون — پێش دەستپێکردنی داگرتنی نوێ
-  static Future<void> clearReciterDownloadComplete(String key) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.remove('quran_dl_complete_$key');
-    } catch (_) {}
-  }
-
-  // دۆخی داگرتنی قاری
-  static Future<ReciterDlStatus> reciterDownloadStatus(String key) async {
-    try {
-      final bool full = await isReciterFullyDownloaded(key);
-      if (full) return ReciterDlStatus.complete;
-      final bool hasFirst = await isAyahDownloaded(1, 1, key);
-      if (hasFirst) return ReciterDlStatus.partial;
-      return ReciterDlStatus.none;
-    } catch (_) {
-      return ReciterDlStatus.none;
-    }
-  }
 }
 
-// ==================== دۆخی داگرتن ====================
-
-enum ReciterDlStatus { none, partial, complete }
-
 // ==================== داگرتنی کۆنترۆڵکراو ====================
-// بەکاردێت لە _RecitersSheet
 
 class DownloadController {
   bool _cancelled = false;
