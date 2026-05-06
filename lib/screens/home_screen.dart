@@ -1,3 +1,4 @@
+import 'package:bang/quran/quran_main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:async';
@@ -17,11 +18,10 @@ import '../widgets/prayer_widgets.dart';
 import '../widgets/drawer_widget.dart';
 import '../widgets/tasbih_widget.dart';
 import '../widgets/allah_names_widget.dart';
-import '../widgets/quran_surah_data.dart';
-import '../widgets/quran_read_screen.dart';
 import '../utils/app_permissions.dart';
 import '../utils/constants.dart';
 import '../main.dart';
+import '../quran/quran_page_viewer.dart';
 
 // ==================== HOME SCREEN ====================
 
@@ -917,21 +917,11 @@ class _PrayerHomePageState extends State<PrayerHomePage>
             _buildBottomIcon(
               icon: Icons.menu_book_rounded,
               label: "قورئان",
-              onTap: () async {
-                final prefs = await SharedPreferences.getInstance();
-                final lastSurah = prefs.getInt('quran_last_surah') ?? 1;
-                final surah = QuranScreenData.surahs.firstWhere(
-                  (s) => s.number == lastSurah,
-                  orElse: () => QuranScreenData.surahs.first,
-                );
-                if (!context.mounted) return;
+              onTap: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => QuranReadScreen(
-                      surah: surah,
-                      primaryColor: primaryColor,
-                      palette: _palette,
+                    builder: (_) => const QuranMain(
                     ),
                   ),
                 );

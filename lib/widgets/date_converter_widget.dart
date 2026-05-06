@@ -180,7 +180,7 @@ class _DateConverterDialogState extends State<DateConverterDialog>
     final weekday = weekdays[dt.weekday % 7];
     final hijri = HijriCalendar.fromDate(dt);
     final hijriStr =
-        "${widget.timeService.toKu(hijri.hDay.toString())}ـى ${hijri.toFormat("MMMM")} ${widget.timeService.toKu(hijri.hYear.toString())}";
+        "${widget.timeService.toKu(hijri.hDay.toString())} ـى ${hijri.toFormat("MMMM")} ${widget.timeService.toKu(hijri.hYear.toString())}";
     final kurdStr = widget.timeService.kurdishDateString(dt);
     final shamsi = _toShamsi(dt);
     const List<String> shamsiMonths = [
@@ -201,7 +201,7 @@ class _DateConverterDialogState extends State<DateConverterDialog>
         ? shamsiMonths[shamsi[1] - 1]
         : shamsi[1].toString();
     final String shamsiStr =
-        "${widget.timeService.toKu(shamsi[2].toString())}ـى $mName${widget.timeService.toKu(shamsi[0].toString())}";
+        "${widget.timeService.toKu(shamsi[2].toString())} ـى $mName${widget.timeService.toKu(shamsi[0].toString())}";
     setState(() {
       _hijriResult = hijriStr;
       _kurdResult = kurdStr;
@@ -487,8 +487,10 @@ class _DateConverterDialogState extends State<DateConverterDialog>
                   minimumSize: Size.zero,
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap),
               icon: const Icon(Icons.swap_horiz, size: 15),
-              label: const Text("بیگۆڕە",
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+              label: const Text(
+                "بیگۆڕە",
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+              ),
               onPressed: () {
                 FocusScope.of(context).unfocus();
                 _convertFromGreg();
@@ -521,25 +523,25 @@ class _DateConverterDialogState extends State<DateConverterDialog>
           ]),
           // ── ڕۆژی هەفتە ژێر دوگمەکان ──
           if (_weekdayResult.isNotEmpty) ...[
-            const SizedBox(height: 6),
+            const SizedBox(height: 15),
             Row(mainAxisAlignment: MainAxisAlignment.center, children: [
               Text(_weekdayResult,
                   style: TextStyle(
-                      color: pc, fontSize: 12, fontWeight: FontWeight.bold)),
+                      color: pc, fontSize: 15, fontWeight: FontWeight.bold)),
               const SizedBox(width: 5),
-              Icon(Icons.today, color: pc, size: 13),
+              Icon(Icons.today, color: pc, size: 15),
             ]),
           ],
 
           // ── کۆچی ──
           Divider(
               color: Theme.of(context).dividerColor.withOpacity(0.5),
-              height: 14,
+              height: 16,
               thickness: 1.5),
           _rowDates(const Color(0xFFF59E0B),
-              dayCtrl: _hijriDayCtrl,
-              monthCtrl: _hijriMonthCtrl,
               yearCtrl: _hijriYearCtrl,
+              monthCtrl: _hijriMonthCtrl,
+              dayCtrl: _hijriDayCtrl,
               result: _hijriResult,
               icon: Icons.nightlight_round,
               label: "   : کۆچى     "),
@@ -547,7 +549,7 @@ class _DateConverterDialogState extends State<DateConverterDialog>
           // ── کوردی ──
           Divider(
               color: Theme.of(context).dividerColor.withOpacity(0.5),
-              height: 14,
+              height: 16,
               thickness: 1.5),
           _rowDates(const Color(0xFF4ADE80),
               dayCtrl: _kurdDayCtrl,
@@ -560,7 +562,7 @@ class _DateConverterDialogState extends State<DateConverterDialog>
           // ── هەتاوی ──
           Divider(
               color: Theme.of(context).dividerColor.withOpacity(0.5),
-              height: 14,
+              height: 16,
               thickness: 1.5),
           _rowDates(const Color(0xFFF9F516),
               dayCtrl: _shamsiDayCtrl,
@@ -613,14 +615,14 @@ class _DateConverterDialogState extends State<DateConverterDialog>
                     color: pc, fontSize: 15, fontWeight: FontWeight.bold)),
             if (result.isNotEmpty)
               Text(_toKurdish(result),
-                  style: TextStyle(color: pc.withOpacity(0.65), fontSize: 12)),
+                  style: TextStyle(color: pc.withOpacity(0.65), fontSize: 15)),
           ],
         ),
         const SizedBox(width: 8),
         Text(label,
-            style:
-                TextStyle(color: pc, fontSize: 9, fontWeight: FontWeight.bold)),
-        Icon(icon, color: pc, size: 20),
+            style: TextStyle(
+                color: pc, fontSize: 15, fontWeight: FontWeight.bold)),
+        Icon(icon, color: pc, size: 23),
       ],
     );
   }
@@ -636,7 +638,7 @@ class _DateConverterDialogState extends State<DateConverterDialog>
       child: Text(val.isEmpty ? "—" : val,
           style: TextStyle(
               color: pc.withOpacity(0.8),
-              fontSize: 13,
+              fontSize: 15,
               fontWeight: FontWeight.bold)),
     );
   }
@@ -650,7 +652,7 @@ class _DateConverterDialogState extends State<DateConverterDialog>
     final textColor = Theme.of(context).textTheme.bodyLarge?.color;
     final style = TextStyle(
         color: readOnly ? textColor?.withOpacity(0.12) : textColor,
-        fontSize: 13,
+        fontSize: 15,
         fontWeight: FontWeight.bold);
     final BorderRadius br = BorderRadius.circular(8);
     final Color borderColor = readOnly
@@ -661,7 +663,7 @@ class _DateConverterDialogState extends State<DateConverterDialog>
           hintText: readOnly ? "—" : hint,
           hintStyle: TextStyle(
               color: textColor?.withOpacity(readOnly ? 0.06 : 0.2),
-              fontSize: 11),
+              fontSize: 15),
           filled: true,
           fillColor: textColor?.withOpacity(readOnly ? 0.02 : 0.06),
           border: OutlineInputBorder(
@@ -698,24 +700,17 @@ class _DateConverterDialogState extends State<DateConverterDialog>
             flex: 2,
             child: Text("ساڵ",
                 textAlign: TextAlign.center,
-                style: TextStyle(color: pc.withOpacity(0.55), fontSize: 9))),
+                style: TextStyle(color: pc.withOpacity(0.55), fontSize: 10))),
         const SizedBox(width: 5),
         Expanded(
             child: Text("مانگ",
                 textAlign: TextAlign.center,
-                style: TextStyle(color: pc.withOpacity(0.55), fontSize: 9))),
+                style: TextStyle(color: pc.withOpacity(0.55), fontSize: 10))),
         const SizedBox(width: 5),
         Expanded(
-            child: Text(topLabel ?? "ڕۆژ",
+            child: Text("ڕۆژ",
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                    color: topLabel != null
-                        ? pc.withOpacity(0.75)
-                        : pc.withOpacity(0.55),
-                    fontSize: 9,
-                    fontWeight: topLabel != null
-                        ? FontWeight.bold
-                        : FontWeight.normal))),
+                style: TextStyle(color: pc.withOpacity(0.55), fontSize: 10))),
       ] else ...[
         Expanded(
             child: Text(topLabel ?? "ڕۆژ",
@@ -724,7 +719,7 @@ class _DateConverterDialogState extends State<DateConverterDialog>
                     color: topLabel != null
                         ? pc.withOpacity(0.75)
                         : pc.withOpacity(0.55),
-                    fontSize: 9,
+                    fontSize: 10,
                     fontWeight: topLabel != null
                         ? FontWeight.bold
                         : FontWeight.normal))),
@@ -732,13 +727,13 @@ class _DateConverterDialogState extends State<DateConverterDialog>
         Expanded(
             child: Text("مانگ",
                 textAlign: TextAlign.center,
-                style: TextStyle(color: pc.withOpacity(0.55), fontSize: 9))),
+                style: TextStyle(color: pc.withOpacity(0.55), fontSize: 10))),
         const SizedBox(width: 5),
         Expanded(
             flex: 2,
             child: Text("ساڵ",
                 textAlign: TextAlign.center,
-                style: TextStyle(color: pc.withOpacity(0.55), fontSize: 9))),
+                style: TextStyle(color: pc.withOpacity(0.55), fontSize: 10))),
       ]
     ]);
 
