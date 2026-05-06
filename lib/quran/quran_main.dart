@@ -206,7 +206,7 @@ class _QuranSplash extends StatelessWidget {
   const _QuranSplash();
   @override
   Widget build(BuildContext context) => const Scaffold(
-        backgroundColor: Color(0xFF0D0B08),
+        backgroundColor: Color(0xFFFDF6E3),
         body: Center(
           child: Column(mainAxisSize: MainAxisSize.min, children: [
             Icon(Icons.menu_book_outlined, color: Color(0xFFD4A853), size: 52),

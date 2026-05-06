@@ -15,12 +15,12 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-const int kTotalPages = 604;
+import 'package:bang/quran/quran_page_viewer.dart';
 
 // ── URL بنەڕەتی ──────────────────────────────────────────────────
 // ئەمە گۆڕین بۆ raw URL ی ریپۆزیتۆرییەکەت:
-const String _kBase = 'https://daryan-m.github.io/quran_pages';
+const String _kBase =
+    'https://media.githubusercontent.com/media/daryan-m/daryan-m.github.io/refs/heads/main/quran_pages/004.svg';
 
 String _pageUrl(int page) => '$_kBase/${page.toString().padLeft(3, '0')}.svg';
 

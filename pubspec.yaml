@@ -52,6 +52,10 @@ flutter:
       fonts:
         - asset: assets/fonts/ScheherazadeNew-Regular.ttf
 
+    - family: Amiri
+      fonts:
+        - asset: assets/fonts/Amiri-Regular.ttf
+
 flutter_launcher_icons:
   android: true
   ios: true

@@ -20,8 +20,8 @@ String _previewUrl(String id) =>
 //  ReciterSelectorSheet
 // ══════════════════════════════════════════════════════════════════
 class ReciterSelectorSheet extends StatefulWidget {
-  final List<Reciter> reciters;
-  final Reciter current;
+  final List<Reciter>         reciters;
+  final Reciter               current;
   final void Function(Reciter) onSelected;
 
   const ReciterSelectorSheet._({
@@ -32,18 +32,18 @@ class ReciterSelectorSheet extends StatefulWidget {
 
   static void show(
     BuildContext context, {
-    required List<Reciter> reciters,
-    required Reciter current,
+    required List<Reciter>         reciters,
+    required Reciter               current,
     required void Function(Reciter) onSelected,
   }) {
     showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
+      context:             context,
+      backgroundColor:     Colors.transparent,
+      isScrollControlled:  true,
       builder: (_) => ReciterSelectorSheet._(
-        reciters: reciters,
-        current: current,
-        onSelected: onSelected,
+        reciters:    reciters,
+        current:     current,
+        onSelected:  onSelected,
       ),
     );
   }
@@ -55,7 +55,7 @@ class ReciterSelectorSheet extends StatefulWidget {
 class _ReciterSelectorSheetState extends State<ReciterSelectorSheet> {
   final AudioPlayer _audio = AudioPlayer();
   String? _previewingId;
-  bool _audioLoading = false;
+  bool    _audioLoading = false;
 
   @override
   void dispose() {
@@ -68,16 +68,10 @@ class _ReciterSelectorSheetState extends State<ReciterSelectorSheet> {
   Future<void> _togglePreview(Reciter r) async {
     if (_previewingId == r.id) {
       await _audio.stop();
-      setState(() {
-        _previewingId = null;
-        _audioLoading = false;
-      });
+      setState(() { _previewingId = null; _audioLoading = false; });
       return;
     }
-    setState(() {
-      _previewingId = r.id;
-      _audioLoading = true;
-    });
+    setState(() { _previewingId = r.id; _audioLoading = true; });
     try {
       await _audio.stop();
       await _audio.play(UrlSource(_previewUrl(r.id)));
@@ -86,21 +80,16 @@ class _ReciterSelectorSheetState extends State<ReciterSelectorSheet> {
         if (mounted) setState(() => _previewingId = null);
       });
     } catch (_) {
-      if (mounted) {
-        setState(() {
-          _previewingId = null;
-          _audioLoading = false;
-        });
-      }
+      if (mounted) setState(() { _previewingId = null; _audioLoading = false; });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    const gold = Color(0xFFD4A853);
-    final bg = isDark ? const Color(0xFF1C1A14) : Colors.white;
-    final maxH = MediaQuery.of(context).size.height * 0.70;
+    const isDark = false; // هەمیشە ڕووناک بۆ بەشی قورئان
+    const gold   = Color(0xFFD4A853);
+    const bg     = Colors.white;
+    final maxH   = MediaQuery.of(context).size.height * 0.70;
 
     return Container(
       constraints: BoxConstraints(maxHeight: maxH),
@@ -110,49 +99,45 @@ class _ReciterSelectorSheetState extends State<ReciterSelectorSheet> {
         border: Border.all(color: gold.withOpacity(0.25), width: 0.8),
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withOpacity(0.3),
-              blurRadius: 30,
-              offset: const Offset(0, -4))
+            color: Colors.black.withOpacity(0.3),
+            blurRadius: 30, offset: const Offset(0, -4))
         ],
       ),
       child: Column(mainAxisSize: MainAxisSize.min, children: [
         // ─── دەستکێشک ───────────────────────────────────────
-        Center(
-            child: Container(
+        Center(child: Container(
           margin: const EdgeInsets.only(top: 10),
-          width: 36,
-          height: 4,
+          width: 36, height: 4,
           decoration: BoxDecoration(
-              color: Colors.grey.withOpacity(0.3),
-              borderRadius: BorderRadius.circular(2)),
+            color: Colors.grey.withOpacity(0.3),
+            borderRadius: BorderRadius.circular(2)),
         )),
 
         // ─── سەرپۆش ─────────────────────────────────────────
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
           child: Row(children: [
-            const Icon(Icons.headphones_rounded, color: gold, size: 18),
+            const Icon(Icons.headphones_rounded,
+                color: gold, size: 18),
             const SizedBox(width: 8),
-            Text('دەنگی قاریئ',
-                style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: isDark ? Colors.white : Colors.black87)),
+            const Text('دەنگی قاریئ',
+              style: TextStyle(
+                fontSize: 15, fontWeight: FontWeight.w600,
+                color: Colors.black87)),
             const Spacer(),
             // ئاگادارکردنەوەی ئۆنلاین
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                  color: gold.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                  border:
-                      Border.all(color: gold.withOpacity(0.25), width: 0.7)),
+                color: gold.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: gold.withOpacity(0.25), width: 0.7)),
               child: Row(mainAxisSize: MainAxisSize.min, children: [
                 const Icon(Icons.wifi_rounded, color: gold, size: 12),
                 const SizedBox(width: 4),
                 Text('ئۆنلاین',
-                    style:
-                        TextStyle(fontSize: 10, color: gold.withOpacity(0.9))),
+                  style: TextStyle(
+                    fontSize: 10, color: gold.withOpacity(0.9))),
               ]),
             ),
           ]),
@@ -174,10 +159,10 @@ class _ReciterSelectorSheetState extends State<ReciterSelectorSheet> {
   }
 
   Widget _item(Reciter r, bool isDark, Color gold) {
-    final sel = r.id == widget.current.id;
-    final prev = _previewingId == r.id;
-    final txtPrimary = isDark ? Colors.white : Colors.black87;
-    final txtSub = isDark ? Colors.white54 : Colors.black45;
+    final sel       = r.id == widget.current.id;
+    final prev      = _previewingId == r.id;
+    final txtPrimary= isDark ? Colors.white : Colors.black87;
+    final txtSub    = isDark ? Colors.white54 : Colors.black45;
 
     return GestureDetector(
       onTap: () {
@@ -190,46 +175,48 @@ class _ReciterSelectorSheetState extends State<ReciterSelectorSheet> {
         margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
-          color:
-              sel ? gold.withOpacity(isDark ? 0.12 : 0.08) : Colors.transparent,
+          color: sel
+              ? gold.withOpacity(isDark ? 0.12 : 0.08)
+              : Colors.transparent,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-              color: sel
-                  ? gold.withOpacity(0.45)
-                  : Colors.grey.withOpacity(isDark ? 0.12 : 0.10),
-              width: sel ? 0.9 : 0.5),
+            color: sel
+                ? gold.withOpacity(0.45)
+                : Colors.grey.withOpacity(isDark ? 0.12 : 0.10),
+            width: sel ? 0.9 : 0.5),
         ),
         child: Row(children: [
           // ─── چەک بۆکس ──────────────────────────────────
           AnimatedContainer(
             duration: const Duration(milliseconds: 180),
-            width: 22,
-            height: 22,
+            width: 22, height: 22,
             decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: sel ? gold : Colors.transparent,
-              border: Border.all(
-                  color: sel ? gold : Colors.grey.withOpacity(0.4), width: 1.5),
+              shape:      BoxShape.circle,
+              color:      sel ? gold : Colors.transparent,
+              border:     Border.all(
+                color: sel ? gold : Colors.grey.withOpacity(0.4),
+                width: 1.5),
             ),
             child: sel
-                ? const Icon(Icons.check_rounded, color: Colors.white, size: 13)
+                ? const Icon(Icons.check_rounded,
+                    color: Colors.white, size: 13)
                 : null,
           ),
           const SizedBox(width: 12),
 
           // ─── ناوی قاریئ ────────────────────────────────
-          Expanded(
-              child: Column(
+          Expanded(child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(r.name,
-                  style: TextStyle(
-                      fontFamily: 'Amiri',
-                      fontSize: 14,
-                      color: sel ? gold : txtPrimary,
-                      fontWeight: sel ? FontWeight.w600 : FontWeight.normal)),
+                style: TextStyle(
+                  fontFamily: 'Amiri',
+                  fontSize: 14,
+                  color: sel ? gold : txtPrimary,
+                  fontWeight: sel ? FontWeight.w600 : FontWeight.normal)),
               const SizedBox(height: 2),
-              Text(r.nameKu, style: TextStyle(fontSize: 11, color: txtSub)),
+              Text(r.nameKu,
+                style: TextStyle(fontSize: 11, color: txtSub)),
             ],
           )),
 
@@ -239,27 +226,28 @@ class _ReciterSelectorSheetState extends State<ReciterSelectorSheet> {
             behavior: HitTestBehavior.opaque,
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 180),
-              width: 36,
-              height: 36,
+              width: 36, height: 36,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: prev
                     ? gold.withOpacity(0.15)
                     : Colors.grey.withOpacity(isDark ? 0.1 : 0.07),
                 border: Border.all(
-                    color: prev
-                        ? gold.withOpacity(0.5)
-                        : Colors.grey.withOpacity(0.18),
-                    width: 0.8),
+                  color: prev
+                      ? gold.withOpacity(0.5)
+                      : Colors.grey.withOpacity(0.18),
+                  width: 0.8),
               ),
               child: _audioLoading && prev
                   ? Padding(
                       padding: const EdgeInsets.all(9),
                       child: CircularProgressIndicator(
                           strokeWidth: 1.5, color: gold))
-                  : Icon(prev ? Icons.stop_rounded : Icons.play_arrow_rounded,
-                      color: prev
-                          ? gold
+                  : Icon(
+                      prev
+                          ? Icons.stop_rounded
+                          : Icons.play_arrow_rounded,
+                      color: prev ? gold
                           : (isDark ? Colors.white38 : Colors.black26),
                       size: 18),
             ),
