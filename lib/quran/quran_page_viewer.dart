@@ -7,6 +7,7 @@ import 'dart:io';
 import 'dart:collection';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:http/http.dart' as http;
 
@@ -623,9 +624,9 @@ class _QuranPageViewerState extends State<QuranPageViewer>
         final h = bc.maxHeight;
 
         // پێوانەی ناوچەی سپی (ئەمانە وەک خۆی زۆر باشن)
-        final topH = h * 0.085;
-        final botH = h * 0.055;
-        final sideW = w * 0.07;
+        final topH = h * 0.000;
+        final botH = h * 0.000;
+        final sideW = w * 0.000;
 
         final surah = _surahOfPage(page);
         final juz = _juzOfPage(page);
@@ -650,67 +651,13 @@ class _QuranPageViewerState extends State<QuranPageViewer>
             // ٢. SVG ناوەڕۆک
             Positioned(
               top: topH,
-              bottom: botH,
-              left: sideW,
-              right: sideW,
+              bottom: -10,
+              left: 45, 
+              right: -8,
+              child: Transform.scale(
+    scale: 1.3, // ئەم ژمارەیە زیاد بکە بۆ گەورەکردن (بۆ نموونە 1.3 یان 1.5)
               child: _buildSvg(page),
             ),
-
-            // ٣. ناوی سورەت (سەرەوە - ڕاست)
-            Positioned(
-              top: 5, // کەمێک دامانگرت تا تێکەڵ بە لێواری SafeArea نەبێت
-              right: 45,
-              height: topH,
-              child: Align(
-                alignment: Alignment.center,
-                child: Text(
-                  _surahName(surah),
-                  style: TextStyle(
-                    fontFamily: 'Uthmanic',
-                    fontSize: h * 0.022,
-                    color: const Color(0xFF3B2410),
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ),
-
-            // ٤. ناوی جزم (سەرەوە - چەپ)
-            Positioned(
-              top: 5,
-              left: 60,
-              height: topH,
-              child: Align(
-                alignment: Alignment.center,
-                child: Text(
-                  _juzName(juz),
-                  style: TextStyle(
-                    fontFamily: 'Uthmanic',
-                    fontSize: h * 0.022,
-                    color: const Color(0xFF3B2410),
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ),
-
-            // ٥. ژمارەی لاپەڕە (خوارەوە)
-            Positioned(
-              bottom: 5,
-              left: 0,
-              right: 0,
-              height: botH,
-              child: Center(
-                child: Text(
-                  _pageNumAr(page),
-                  style: TextStyle(
-                    fontFamily: 'Uthmanic',
-                    fontSize: h * 0.022,
-                    color: const Color(0xFF3B2410),
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
             ),
           ],
         );
@@ -720,7 +667,6 @@ class _QuranPageViewerState extends State<QuranPageViewer>
 
   // ── سەرەوە: گەڕانەوە (چەپ) + قاریئ (ڕاست) ──────────────────
   Widget _buildTopOverlay() {
-    const gold = Color(0xFFD4A853);
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -736,8 +682,8 @@ class _QuranPageViewerState extends State<QuranPageViewer>
             height: 36,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: Colors.black.withOpacity(0.55),
-              border: Border.all(color: Colors.white30, width: 0.8),
+              color: const Color(0xFFAAA277).withOpacity(0.85),
+              border: Border.all(color: Colors.white, width: 0.8),
             ),
             child: const Icon(Icons.arrow_back_ios_new_rounded,
                 color: Colors.white, size: 16),
@@ -750,25 +696,25 @@ class _QuranPageViewerState extends State<QuranPageViewer>
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
             decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.55),
+              color: const Color(0xFFAAA277).withOpacity(0.85),
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: gold.withOpacity(0.7), width: 0.9),
+              border: Border.all(color: Colors.white, width: 0.8),
             ),
             child: Row(mainAxisSize: MainAxisSize.min, children: [
               const Icon(Icons.record_voice_over_outlined,
-                  color: gold, size: 13),
+                  color: Colors.white, size: 13),
               const SizedBox(width: 5),
               ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 80),
                 child: Text(widget.reciter.nameKu,
                     style: const TextStyle(
-                        color: gold, fontSize: 11, fontFamily: 'Amiri'),
+                        color: Colors.white, fontSize: 12, fontFamily: 'Amiri'),
                     overflow: TextOverflow.ellipsis,
                     maxLines: 1),
               ),
               const SizedBox(width: 3),
               const Icon(Icons.keyboard_arrow_down_rounded,
-                  color: gold, size: 13),
+                color: Colors.white, size: 24),
             ]),
           ),
         ),
@@ -778,7 +724,6 @@ class _QuranPageViewerState extends State<QuranPageViewer>
 
   // ── خوارەوە: تیرەکان + stop + play ──────────────────────────
   Widget _buildBottomOverlay() {
-    const gold = Color(0xFFD4A853);
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -801,12 +746,12 @@ class _QuranPageViewerState extends State<QuranPageViewer>
             height: 52,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: Colors.black.withOpacity(0.55),
-              border: Border.all(color: gold, width: 1.5),
+              color: const Color(0xFFAAA277).withOpacity(0.85),
+               border: Border.all(color: Colors.white, width: 0.8),
             ),
             child: Icon(
               _playing ? Icons.pause_rounded : Icons.play_arrow_rounded,
-              color: gold,
+              color: Colors.white,
               size: 30,
             ),
           ),
@@ -830,14 +775,10 @@ class _QuranPageViewerState extends State<QuranPageViewer>
           height: 40,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: Colors.black.withOpacity(enabled ? 0.55 : 0.25),
-            border: Border.all(
-              color: Colors.white.withOpacity(enabled ? 0.4 : 0.15),
-              width: 0.8,
-            ),
+            color: const Color(0xFFAAA277).withOpacity(enabled ? 0.85 : 0.25),
+             border: Border.all(color: Colors.white, width: 0.8),
           ),
-          child: Icon(icon,
-              color: Colors.white.withOpacity(enabled ? 1.0 : 0.3), size: 24),
+          child: Icon(icon, color: Colors.white, size: 24),
         ),
       );
 
@@ -848,10 +789,10 @@ class _QuranPageViewerState extends State<QuranPageViewer>
           height: 36,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: Colors.black.withOpacity(0.55),
-            border: Border.all(color: Colors.white30, width: 0.8),
+            color: const Color(0xFFAAA277).withOpacity(0.85),
+            border: Border.all(color: Colors.white, width: 0.8),
           ),
-          child: Icon(icon, color: Colors.white70, size: 18),
+          child: Icon(icon, color: Colors.white, size: 18),
         ),
       );
 
