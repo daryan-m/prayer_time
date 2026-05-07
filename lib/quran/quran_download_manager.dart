@@ -20,7 +20,7 @@ import 'package:bang/quran/quran_page_viewer.dart';
 // ── URL بنەڕەتی ──────────────────────────────────────────────────
 // ئەمە گۆڕین بۆ raw URL ی ریپۆزیتۆرییەکەت:
 const String _kBase =
-    'https://media.githubusercontent.com/media/daryan-m/daryan-m.github.io/refs/heads/main/quran_pages/004.svg';
+    'https://github.com/daryan-m/daryan-m.github.io/raw/refs/heads/main/quran_pages/';
 
 String _pageUrl(int page) => '$_kBase/${page.toString().padLeft(3, '0')}.svg';
 
