@@ -1,4 +1,3 @@
-import 'package:bang/quran/quran_main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:async';
@@ -21,7 +20,8 @@ import '../widgets/allah_names_widget.dart';
 import '../utils/app_permissions.dart';
 import '../utils/constants.dart';
 import '../main.dart';
-import '../quran/quran_page_viewer.dart';
+import '../quran/quran_page_view.dart';
+import '../quran/quran_screen.dart';
 
 // ==================== HOME SCREEN ====================
 
@@ -921,8 +921,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => const QuranMain(
-                    ),
+                    builder: (_) => const QuranScreen(),
                   ),
                 );
               },

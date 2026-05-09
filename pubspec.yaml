@@ -27,13 +27,17 @@ dependencies:
   android_intent_plus: ^4.0.3
   vibration: ^3.1.8
   http_parser: ^4.1.2
-  flutter_svg: ^2.2.4
   archive: ^4.0.9
+  sqflite: ^2.3.3+1
+  path: ^1.9.0
+  just_audio: ^0.9.39
+  audio_session: ^0.1.21
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^2.0.0
   flutter_launcher_icons: ^0.14.4
+ 
 
 flutter:
   uses-material-design: true
@@ -52,9 +56,6 @@ flutter:
       fonts:
         - asset: assets/fonts/ScheherazadeNew-Regular.ttf
 
-    - family: Amiri
-      fonts:
-        - asset: assets/fonts/Amiri-Regular.ttf
 
 flutter_launcher_icons:
   android: true
