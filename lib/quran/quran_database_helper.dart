@@ -1,20 +1,8 @@
+// lib/quran/quran_database_helper.dart
 // ═══════════════════════════════════════════════════════════════
-//  lib/quran/quran_database_helper.dart
-//  هەموو کارەکانی خوێندنەوەی داتابەیس و JSON
-// ═══════════════════════════════════════════════════════════════
-//
-//  پێویستە ئەم پاکێجانە لە pubspec.yaml زیاد بکەیت:
-//    sqflite: ^2.3.3+1
-//    path: ^1.9.0
-//    flutter/services.dart  (ناو فلوتەرەوە)
-//
-//  داتابەیسەکان و JSON دابنێ لە: assets/quran/
-//  flutter:
-//    assets:
-//      - assets/quran/qpc-v2-15-lines.db
-//      - assets/quran/qpc-v2-ayah-by-ayah-glyphs.db
-//      - assets/quran/quran-metadata-ayah.sqlite
-//      - assets/quran/ayah-recitation-<reciter>.json
+//  هەموو کارەکانی داتابەیس
+//  + WordMap: word_id → (verse_key, ayah_start, meta_count)
+//  + LineGlyph: گلیفی هەر ریزێک بەپێی word slice
 // ═══════════════════════════════════════════════════════════════
 
 import 'dart:convert';
@@ -25,29 +13,56 @@ import 'package:sqflite/sqflite.dart';
 
 import 'quran_models.dart';
 
+// ─────────────────────────────────────────────────────────────
+//  مۆدێلی زانیاری وشە
+// ─────────────────────────────────────────────────────────────
+
+class WordInfo {
+  final String verseKey;
+  final int ayahStart; // global word_id یەکەمی ئەم ئایەتە
+  final int metaCount; // ژمارەی وشەکان لە metadata
+  const WordInfo(this.verseKey, this.ayahStart, this.metaCount);
+}
+
+/// گلیفی یەک chunk لە ریزێک
+class LineChunk {
+  final String verseKey;
+  final String glyphText; // بەشی گلیفی ئەم ریزە لەم ئایەتەوە
+  const LineChunk(this.verseKey, this.glyphText);
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  QuranDatabaseHelper
+// ═══════════════════════════════════════════════════════════════
+
 class QuranDatabaseHelper {
   QuranDatabaseHelper._();
   static final QuranDatabaseHelper instance = QuranDatabaseHelper._();
 
-  // ── داتابەیسەکان ──────────────────────────────────────────
-  Database? _metaDb; // quran-metadata-ayah.sqlite
-  Database? _glyphDb; // qpc-v2-ayah-by-ayah-glyphs.db
-  Database? _pageDb; // qpc-v2-15-lines.db
+  Database? _metaDb;
+  Database? _glyphDb;
+  Database? _pageDb;
 
-  // ── کاش بۆ دەنگ ───────────────────────────────────────────
+  // ── WordMap cache ──────────────────────────────────────────
+  /// word_id → WordInfo  (بار دەکرێت یەک جار)
+  final Map<int, WordInfo> _wordMap = {};
+  bool _wordMapLoaded = false;
+
+  /// verse_key → گلیفەکانی ئایەت (split بەسپەیس)
+  final Map<String, List<String>> _glyphCache = {};
+
+  // ── Audio cache ────────────────────────────────────────────
   final Map<String, AyahAudio> _audioCache = {};
   bool _audioCacheLoaded = false;
 
   // ─────────────────────────────────────────────────────────────
-  //  کردنەوەی داتابەیس – کۆپی فایل لە assets بۆ ئەندام
+  //  کردنەوەی داتابەیسەکان
   // ─────────────────────────────────────────────────────────────
 
   Future<Database> _openAssetDb(String assetName) async {
     final dbsPath = await getDatabasesPath();
     final path = join(dbsPath, assetName);
-
     if (!File(path).existsSync()) {
-      // کۆپی لە assets
       final data = await rootBundle.load('assets/quran/$assetName');
       final bytes = data.buffer.asUint8List();
       await File(path).writeAsBytes(bytes, flush: true);
@@ -55,26 +70,119 @@ class QuranDatabaseHelper {
     return openDatabase(path, readOnly: true);
   }
 
-  Future<Database> get metaDb async {
-    _metaDb ??= await _openAssetDb('quran-metadata-ayah.sqlite');
-    return _metaDb!;
-  }
+  Future<Database> get metaDb async =>
+      _metaDb ??= await _openAssetDb('quran-metadata-ayah.sqlite');
+  Future<Database> get glyphDb async =>
+      _glyphDb ??= await _openAssetDb('qpc-v2-ayah-by-ayah-glyphs.db');
+  Future<Database> get pageDb async =>
+      _pageDb ??= await _openAssetDb('qpc-v2-15-lines.db');
 
-  Future<Database> get glyphDb async {
-    _glyphDb ??= await _openAssetDb('qpc-v2-ayah-by-ayah-glyphs.db');
-    return _glyphDb!;
-  }
+  // ─────────────────────────────────────────────────────────────
+  //  WordMap — بارکردن یەک جار لە دەستپێکردن
+  // ─────────────────────────────────────────────────────────────
 
-  Future<Database> get pageDb async {
-    _pageDb ??= await _openAssetDb('qpc-v2-15-lines.db');
-    return _pageDb!;
+  /// پێویستە یەک جار لە دەستپێکی ئەپ بانگ بکرێت
+  Future<void> buildWordMap() async {
+    if (_wordMapLoaded) return;
+    final db = await metaDb;
+    final rows = await db.query(
+      'verses',
+      columns: ['verse_key', 'words_count'],
+      orderBy: 'id ASC',
+    );
+    int wc = 0;
+    for (final row in rows) {
+      final vk = row['verse_key'] as String;
+      final cnt = row['words_count'] as int;
+      final start = wc + 1;
+      final info = WordInfo(vk, start, cnt);
+      for (int w = start; w <= wc + cnt; w++) {
+        _wordMap[w] = info;
+      }
+      wc += cnt;
+    }
+    _wordMapLoaded = true;
   }
 
   // ─────────────────────────────────────────────────────────────
-  //  خوێندنەوەی مێتاداتا
+  //  گلیف Cache
   // ─────────────────────────────────────────────────────────────
 
-  /// هەموو ئایەتەکانی یەک سورە
+  Future<List<String>> _getGlyphWords(String verseKey) async {
+    if (_glyphCache.containsKey(verseKey)) return _glyphCache[verseKey]!;
+    final db = await glyphDb;
+    final rows = await db.query(
+      'verses',
+      columns: ['text'],
+      where: 'verse_key = ?',
+      whereArgs: [verseKey],
+      limit: 1,
+    );
+    if (rows.isEmpty) {
+      _glyphCache[verseKey] = [];
+      return [];
+    }
+    final words = (rows.first['text'] as String).split(' ');
+    _glyphCache[verseKey] = words;
+    return words;
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  //  ریزبەندی لاپەرە — بناو WordMap و گلیف Slice
+  // ─────────────────────────────────────────────────────────────
+
+  /// گلیفەکانی هەر ریزێک لاپەرەیەک بەشێوەی [LineChunk]
+  ///
+  /// ئەلگۆریزم:
+  ///  1. هەر ریز first_word_id و last_word_id هەیەتی
+  ///  2. بەپێی _wordMap بزانە کام ئایەتەکانی ئەو ریزەن
+  ///  3. بۆ هەر ئایەت: glyph[local_start..local_end] بگرە
+  ///     (local_idx = word_id - ayah_start)
+  Future<List<LineChunk>> getLineChunks(QuranPageLine line) async {
+    if (line.lineType != 'ayah') return [];
+    final fw = int.tryParse(line.firstWordId) ?? 0;
+    final lw = int.tryParse(line.lastWordId) ?? 0;
+    if (fw == 0 || lw == 0) return [];
+
+    await buildWordMap();
+
+    final result = <LineChunk>[];
+    int i = fw;
+    while (i <= lw) {
+      final info = _wordMap[i];
+      if (info == null) {
+        i++;
+        continue;
+      }
+
+      final vk = info.verseKey;
+      final ayahStart = info.ayahStart;
+      final metaCount = info.metaCount;
+      final lastOfAyah = ayahStart + metaCount - 1;
+      final sliceEnd = lw < lastOfAyah ? lw : lastOfAyah;
+
+      final gStart = i - ayahStart; // 0-based
+      final gEnd = sliceEnd - ayahStart; // inclusive
+
+      final gWords = await _getGlyphWords(vk);
+      // تەنها [0..metaCount-1] وشەکانی ئاسایین، بەدواییەکان مارکەرن
+      final safeEnd = (gEnd + 1).clamp(0, metaCount).clamp(0, gWords.length);
+      final safeStart = gStart.clamp(0, safeEnd);
+
+      if (safeStart < safeEnd) {
+        final chunk = gWords.sublist(safeStart, safeEnd).join(' ');
+        result.add(LineChunk(vk, chunk));
+      }
+
+      i = sliceEnd + 1;
+    }
+    return result;
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  //  API-ی ئاسایی
+  // ─────────────────────────────────────────────────────────────
+
   Future<List<QuranAyah>> getAyahsOfSurah(int surahNumber) async {
     final db = await metaDb;
     final rows = await db.query(
@@ -86,46 +194,6 @@ class QuranDatabaseHelper {
     return rows.map(QuranAyah.fromMap).toList();
   }
 
-  /// ئایەتێکی دیاریکراو
-  Future<QuranAyah?> getAyah(int surah, int ayah) async {
-    final db = await metaDb;
-    final rows = await db.query(
-      'verses',
-      where: 'surah_number = ? AND ayah_number = ?',
-      whereArgs: [surah, ayah],
-      limit: 1,
-    );
-    return rows.isEmpty ? null : QuranAyah.fromMap(rows.first);
-  }
-
-  /// گەڕان لە نووسینی قورئان (عەرەبی)
-  Future<List<QuranAyah>> searchAyahs(String query) async {
-    final db = await metaDb;
-    final rows = await db.query(
-      'verses',
-      where: 'text LIKE ?',
-      whereArgs: ['%$query%'],
-    );
-    return rows.map(QuranAyah.fromMap).toList();
-  }
-
-  // ─────────────────────────────────────────────────────────────
-  //  خوێندنەوەی گلیفی QPC V2
-  // ─────────────────────────────────────────────────────────────
-
-  /// گلیفی ئایەتێک (بۆ نیشاندان بە فۆنتی قورئان)
-  Future<QuranGlyph?> getGlyph(int surah, int ayah) async {
-    final db = await glyphDb;
-    final rows = await db.query(
-      'verses',
-      where: 'surah = ? AND ayah = ?',
-      whereArgs: [surah, ayah],
-      limit: 1,
-    );
-    return rows.isEmpty ? null : QuranGlyph.fromMap(rows.first);
-  }
-
-  /// هەموو گلیفەکانی یەک لاپەرە
   Future<List<QuranGlyph>> getGlyphsOfPage(int pageNumber) async {
     final db = await glyphDb;
     final rows = await db.query(
@@ -137,7 +205,6 @@ class QuranDatabaseHelper {
     return rows.map(QuranGlyph.fromMap).toList();
   }
 
-  /// هەموو گلیفەکانی یەک سورە
   Future<List<QuranGlyph>> getGlyphsOfSurah(int surahNumber) async {
     final db = await glyphDb;
     final rows = await db.query(
@@ -149,11 +216,6 @@ class QuranDatabaseHelper {
     return rows.map(QuranGlyph.fromMap).toList();
   }
 
-  // ─────────────────────────────────────────────────────────────
-  //  خوێندنەوەی زانیاری لاپەرە (15-line)
-  // ─────────────────────────────────────────────────────────────
-
-  /// هەموو ریزەکانی لاپەرەیەک
   Future<List<QuranPageLine>> getPageLines(int pageNumber) async {
     final db = await pageDb;
     final rows = await db.query(
@@ -165,7 +227,6 @@ class QuranDatabaseHelper {
     return rows.map(QuranPageLine.fromMap).toList();
   }
 
-  /// ژمارەی لاپەرەی یەک سورە
   Future<int> getSurahStartPage(int surahNumber) async {
     final db = await pageDb;
     final rows = await db.query(
@@ -178,7 +239,6 @@ class QuranDatabaseHelper {
     return rows.isEmpty ? 1 : rows.first['page_number'] as int;
   }
 
-  /// کام لاپەرەیە ئەو ئایەتەیە
   Future<int?> getPageOfAyah(int surah, int ayah) async {
     final db = await glyphDb;
     final rows = await db.query(
@@ -192,48 +252,26 @@ class QuranDatabaseHelper {
   }
 
   // ─────────────────────────────────────────────────────────────
-  //  خوێندنەوەی JSON دەنگ
+  //  Audio Cache
   // ─────────────────────────────────────────────────────────────
 
-  /// بارکردنی هەموو JSON یەک بۆ کاش (یەک جار تەنها)
   Future<void> loadAudioCache(String assetPath) async {
     if (_audioCacheLoaded) return;
     final raw = await rootBundle.loadString(assetPath);
-    final Map<String, dynamic> decoded = json.decode(raw);
+    final decoded = json.decode(raw) as Map<String, dynamic>;
     for (final entry in decoded.entries) {
-      _audioCache[entry.key] = AyahAudio.fromMap(
-        entry.key,
-        Map<String, dynamic>.from(entry.value),
-      );
+      _audioCache[entry.key] =
+          AyahAudio.fromMap(entry.key, Map<String, dynamic>.from(entry.value));
     }
     _audioCacheLoaded = true;
   }
 
-  /// زانیاری دەنگی ئایەتێک
-  AyahAudio? getAyahAudio(int surah, int ayah) {
-    return _audioCache['$surah:$ayah'];
-  }
-
-  /// گەرانەوەی کاتی دەستپێکردن و کۆتایی ئایەتێک (ms) لە فایلی دەنگ
-  /// ئەمەش بۆ پلەیەر لازمە بۆ سلێکتکردنی ئایەت بە ئایەت
-  ({int start, int end})? getAyahTimestamp(int surah, int ayah) {
-    final audio = getAyahAudio(surah, ayah);
-    if (audio == null || audio.segments.isEmpty) return null;
-    final firstSeg = audio.segments.first;
-    final lastSeg = audio.segments.last;
-    return (start: firstSeg[1], end: lastSeg[2]);
-  }
-
-  // ─────────────────────────────────────────────────────────────
-  //  داخستنی داتابەیسەکان
-  // ─────────────────────────────────────────────────────────────
+  AyahAudio? getAyahAudio(int surah, int ayah) => _audioCache['$surah:$ayah'];
 
   Future<void> closeAll() async {
     await _metaDb?.close();
     await _glyphDb?.close();
     await _pageDb?.close();
-    _metaDb = null;
-    _glyphDb = null;
-    _pageDb = null;
+    _metaDb = _glyphDb = _pageDb = null;
   }
 }

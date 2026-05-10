@@ -37,8 +37,7 @@ class QuranAudioService extends ChangeNotifier {
   static final QuranAudioService instance = QuranAudioService._();
 
   // ── Kotlin Channels ──────────────────────────────────────────
-  static const _methodChannel =
-      MethodChannel('com.daryan.prayer/quran_media');
+  static const _methodChannel = MethodChannel('com.daryan.prayer/quran_media');
   static const _eventChannel =
       EventChannel('com.daryan.prayer/quran_media_events');
 
@@ -46,18 +45,18 @@ class QuranAudioService extends ChangeNotifier {
 
   // ── دۆخی ئێستا ───────────────────────────────────────────────
   QuranPlayState _state = QuranPlayState.idle;
-  String? _currentVerseKey;   // "2:255"
-  int? _activeWordIndex;      // وشەی هایلایتکراو (لە segments)
+  String? _currentVerseKey; // "2:255"
+  int? _activeWordIndex; // وشەی هایلایتکراو (لە segments)
   bool _repeatAyah = false;
   bool _autoNextAyah = true;
 
   // ── گیتەرەکان ─────────────────────────────────────────────────
-  QuranPlayState get state          => _state;
-  String?        get currentVerseKey => _currentVerseKey;
-  int?           get activeWordIndex => _activeWordIndex;
-  bool           get repeatAyah     => _repeatAyah;
-  bool           get autoNextAyah   => _autoNextAyah;
-  bool           get isPlaying      => _state == QuranPlayState.playing;
+  QuranPlayState get state => _state;
+  String? get currentVerseKey => _currentVerseKey;
+  int? get activeWordIndex => _activeWordIndex;
+  bool get repeatAyah => _repeatAyah;
+  bool get autoNextAyah => _autoNextAyah;
+  bool get isPlaying => _state == QuranPlayState.playing;
 
   // ─────────────────────────────────────────────────────────────
   //  دەستپێکردن — گوێگرتن لە ئیڤێنتی Kotlin
@@ -127,7 +126,7 @@ class QuranAudioService extends ChangeNotifier {
       // QuranMediaService.kt → playNew(isFile=false, source=url, title=...)
       await _methodChannel.invokeMethod<void>('play', {
         'isFile': false,
-        'source': audio.audioUrl,   // https://audio-cdn.tarteel.ai/...
+        'source': audio.audioUrl, // https://audio-cdn.tarteel.ai/...
         'title': _buildTitle(surah, ayah),
       });
       _setState(QuranPlayState.playing);
@@ -196,7 +195,7 @@ class QuranAudioService extends ChangeNotifier {
     if (_currentVerseKey == null) return;
     final p = _currentVerseKey!.split(':');
     final surah = int.parse(p[0]);
-    final ayah  = int.parse(p[1]);
+    final ayah = int.parse(p[1]);
     final info = kSurahList.firstWhere(
       (s) => s.number == surah,
       orElse: () => kSurahList.first,
@@ -214,7 +213,7 @@ class QuranAudioService extends ChangeNotifier {
     if (_currentVerseKey == null) return;
     final p = _currentVerseKey!.split(':');
     final surah = int.parse(p[0]);
-    final ayah  = int.parse(p[1]);
+    final ayah = int.parse(p[1]);
     if (ayah > 1) {
       await playAyah(surah, ayah - 1);
     } else if (surah > 1) {
@@ -225,8 +224,15 @@ class QuranAudioService extends ChangeNotifier {
 
   // ── ئۆپشنەکان ───────────────────────────────────────────────
 
-  void setRepeatAyah(bool v)   { _repeatAyah   = v; notifyListeners(); }
-  void setAutoNextAyah(bool v) { _autoNextAyah = v; notifyListeners(); }
+  void setRepeatAyah(bool v) {
+    _repeatAyah = v;
+    notifyListeners();
+  }
+
+  void setAutoNextAyah(bool v) {
+    _autoNextAyah = v;
+    notifyListeners();
+  }
 
   // ─────────────────────────────────────────────────────────────
   //  هایلایتی وشە  —  بەپێی segments-ی JSON
@@ -239,15 +245,15 @@ class QuranAudioService extends ChangeNotifier {
   //  playAyah() دەست دەکات و elapsed time چیک دەکات.
   // ─────────────────────────────────────────────────────────────
 
-  Timer?          _highlightTimer;
-  DateTime?       _playStartTime;
+  Timer? _highlightTimer;
+  DateTime? _playStartTime;
   List<List<int>>? _activeSegments;
 
   void _startWordHighlight(AyahAudio audio) {
     _stopWordHighlight();
     if (audio.segments.isEmpty) return;
     _activeSegments = audio.segments;
-    _playStartTime  = DateTime.now();
+    _playStartTime = DateTime.now();
 
     // هەر 80ms یەکجار چیک دەکات (خێرای بەسەر بدوز)
     _highlightTimer = Timer.periodic(
@@ -257,7 +263,7 @@ class QuranAudioService extends ChangeNotifier {
   }
 
   void _checkWordHighlight() {
-    final segs  = _activeSegments;
+    final segs = _activeSegments;
     final start = _playStartTime;
     if (segs == null || start == null) return;
 
@@ -277,9 +283,9 @@ class QuranAudioService extends ChangeNotifier {
 
   void _stopWordHighlight() {
     _highlightTimer?.cancel();
-    _highlightTimer  = null;
-    _playStartTime   = null;
-    _activeSegments  = null;
+    _highlightTimer = null;
+    _playStartTime = null;
+    _activeSegments = null;
   }
 
   // ─────────────────────────────────────────────────────────────
