@@ -1,326 +1,351 @@
-// ═══════════════════════════════════════════════════════════════
-//  lib/quran/quran_audio_service.dart
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// quran_audio_service.dart
 //
-//  پەیوەندی Flutter ↔ Kotlin لە ڕێگەی MethodChannel و EventChannel
+// بەڕێوەبردنی دەنگ + هایلایتی وشە بۆ قورئانی پیرۆز
 //
-//  Kotlin ChannelNames:
-//    METHOD  →  com.daryan.prayer/quran_media
-//    EVENT   →  com.daryan.prayer/quran_media_events
+// تایبەتمەندیەکان:
+//   ✓ لیدانی ئۆنلاین (streaming) لە cdn.islamic.network
+//   ✓ دابەزاندن و لیدانی ئۆفلاین
+//   ✓ هایلایتی وشە بە تایمینگی api.quran.com
+//   ✓ بەردەوامبوونی ئۆتۆماتیکی بۆ ئایەتی داهاتوو
+//   ✓ کنترۆلی play/pause/stop/next/prev
 //
-//  Kotlin emit()  دەنێرێت:  "complete" | "stopped" | "error"
-//
-//  pubspec.yaml پێویستی:
-//    just_audio   ❌  پێویست نییە
-//    audio_session ❌  پێویست نییە
-//    — هەموو کار لە Kotlin QuranMediaService دەکرێت
-// ═══════════════════════════════════════════════════════════════
+// پاکێجەکان:
+//   just_audio: ^0.9.37
+//   http: ^1.2.1
+//   path_provider: ^2.1.2
+//   path: ^1.9.0
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 import 'dart:async';
-import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
+import 'dart:convert';
+import 'dart:io';
 
-import 'quran_database_helper.dart';
+import 'package:http/http.dart' as http;
+import 'package:just_audio/just_audio.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
+
 import 'quran_models.dart';
 
-// ─────────────────────────────────────────────────────────────
-//  دۆخی پلەیەر
-// ─────────────────────────────────────────────────────────────
+// ──────────────────────────────────────────
+// ثابتەکان
+// ──────────────────────────────────────────
 
-enum QuranPlayState { idle, loading, playing, paused, stopped, error }
+const String _kTimingBaseUrl = 'https://api.quran.com/api/v4';
+const String _kAudioCacheFolder = 'quran_audio_cache';
 
-// ═══════════════════════════════════════════════════════════════
-//  QuranAudioService  —  سینگلتۆن
-// ═══════════════════════════════════════════════════════════════
+// نەقشەی ئایدی ڕیسایتەشن لە api.quran.com بۆ هەر قاریئێک
+const Map<String, int> _kReciterTimingIds = {
+  'ar.alafasy': 7,
+  'ar.abdurrahmaansudais': 2,
+  'ar.husary': 5,
+  'ar.mahermuaiqly': 9,
+  'ar.minshawi': 3,
+  'ar.shaatree': 1,
+};
 
-class QuranAudioService extends ChangeNotifier {
-  QuranAudioService._();
-  static final QuranAudioService instance = QuranAudioService._();
+// ──────────────────────────────────────────
+// سێرڤیسی دەنگ
+// ──────────────────────────────────────────
 
-  // ── Kotlin Channels ──────────────────────────────────────────
-  static const _methodChannel = MethodChannel('com.daryan.prayer/quran_media');
-  static const _eventChannel =
-      EventChannel('com.daryan.prayer/quran_media_events');
+class QuranAudioService {
+  static final QuranAudioService _instance = QuranAudioService._internal();
+  factory QuranAudioService() => _instance;
+  QuranAudioService._internal();
 
-  StreamSubscription? _eventSub;
+  // ── پلەیەر
+  final AudioPlayer _player = AudioPlayer();
 
-  // ── دۆخی ئێستا ───────────────────────────────────────────────
-  QuranPlayState _state = QuranPlayState.idle;
-  String? _currentVerseKey; // "2:255"
-  int? _activeWordIndex; // وشەی هایلایتکراو (لە segments)
-  bool _repeatAyah = false;
-  bool _autoNextAyah = true;
+  // ── دۆخ
+  final _stateController = StreamController<AudioState>.broadcast();
+  AudioState _state = const AudioState();
 
-  // ── گیتەرەکان ─────────────────────────────────────────────────
-  QuranPlayState get state => _state;
-  String? get currentVerseKey => _currentVerseKey;
-  int? get activeWordIndex => _activeWordIndex;
-  bool get repeatAyah => _repeatAyah;
-  bool get autoNextAyah => _autoNextAyah;
-  bool get isPlaying => _state == QuranPlayState.playing;
+  // ── تایمینگی هایلایت
+  List<AyahTiming> _timings = [];
+  Timer? _highlightTimer;
+  int _timingReciterId = 7; // بازمانی: العفاسی
 
-  // ─────────────────────────────────────────────────────────────
-  //  دەستپێکردن — گوێگرتن لە ئیڤێنتی Kotlin
-  // ─────────────────────────────────────────────────────────────
+  // ── داتای ئێستا
+  Reciter _currentReciter = Reciter.defaults.first;
+  int _currentSurahId = 1;
+  int _currentAyahNumber = 1;
+  int _totalAyahs = 7; // بۆ بەردەوامبوونی ئۆتۆماتیک
 
-  void init() {
-    if (_eventSub != null) return; // دووجار نەکرێتەوە
-    _eventSub = _eventChannel
-        .receiveBroadcastStream()
-        .listen(_onKotlinEvent, onError: _onKotlinError);
+  // ── ستریمی گوێگرتن
+  Stream<AudioState> get stateStream => _stateController.stream;
+  AudioState get currentState => _state;
+
+  // ════════════════════════════════════════
+  // دەستپێکردن
+  // ════════════════════════════════════════
+
+  Future<void> init() async {
+    // گوێگرتن لە تەواوبوونی ئایەت → بچۆ بۆ داهاتوو
+    _player.playerStateStream.listen((playerState) {
+      if (playerState.processingState == ProcessingState.completed) {
+        _onAyahCompleted();
+      }
+    });
+
+    // نوێکردنەوەی position بۆ هایلایت
+    _player.positionStream.listen((pos) {
+      _updateHighlight(pos.inMilliseconds);
+      _emit(_state.copyWith(position: pos));
+    });
+
+    _player.durationStream.listen((dur) {
+      if (dur != null) _emit(_state.copyWith(duration: dur));
+    });
   }
 
-  // ─────────────────────────────────────────────────────────────
-  //  گوێگرتن لە ئیڤێنتی Kotlin
-  //    "complete" → ئایەتی دواتر یان تکرار
-  //    "stopped"  → ڕاگرتنی تەواو
-  //    "error"    → هەڵە
-  // ─────────────────────────────────────────────────────────────
+  // ════════════════════════════════════════
+  // دانانی قاریئ
+  // ════════════════════════════════════════
 
-  void _onKotlinEvent(dynamic event) {
-    switch (event as String) {
-      case 'complete':
-        if (_repeatAyah && _currentVerseKey != null) {
-          _replayCurrentAyah();
-        } else if (_autoNextAyah) {
-          nextAyah();
-        } else {
-          _setState(QuranPlayState.stopped);
-        }
-        break;
-      case 'stopped':
-        _stopWordHighlight();
-        _setState(QuranPlayState.stopped);
-        _activeWordIndex = null;
-        notifyListeners();
-        break;
-      case 'error':
-        _stopWordHighlight();
-        _setState(QuranPlayState.error);
-        break;
-    }
+  void setReciter(Reciter reciter) {
+    _currentReciter = reciter;
+    _timingReciterId = _kReciterTimingIds[reciter.id] ?? 7;
+    _emit(_state.copyWith(reciter: reciter));
   }
 
-  void _onKotlinError(Object err) {
-    debugPrint('QuranAudioService EventChannel error: $err');
-    _setState(QuranPlayState.error);
-  }
+  // ════════════════════════════════════════
+  // لیدان — ئۆنلاین
+  // ════════════════════════════════════════
 
-  // ─────────────────────────────────────────────────────────────
-  //  پلەی ئایەت
-  // ─────────────────────────────────────────────────────────────
+  /// لیدانی ئایەتێک بە ئۆنلاین streaming
+  Future<void> playOnline(int surahId, int ayahNumber,
+      {int totalAyahs = 7}) async {
+    _currentSurahId = surahId;
+    _currentAyahNumber = ayahNumber;
+    _totalAyahs = totalAyahs;
 
-  /// پلەی ئایەتێک — URL لە JSON cache دەهێنرێت
-  Future<void> playAyah(int surah, int ayah) async {
-    final audio = QuranDatabaseHelper.instance.getAyahAudio(surah, ayah);
-    if (audio == null) {
-      debugPrint('QuranAudioService: no audio for $surah:$ayah');
-      return;
-    }
-
-    _currentVerseKey = '$surah:$ayah';
-    _activeWordIndex = null;
-    _stopWordHighlight();
-    _setState(QuranPlayState.loading);
+    _emit(_state.copyWith(
+      status: AudioPlaybackState.loading,
+      currentSurahId: surahId,
+      currentAyahNumber: ayahNumber,
+      highlightedWordIndex: null,
+    ));
 
     try {
-      // QuranMediaService.kt → playNew(isFile=false, source=url, title=...)
-      await _methodChannel.invokeMethod<void>('play', {
-        'isFile': false,
-        'source': audio.audioUrl, // https://audio-cdn.tarteel.ai/...
-        'title': _buildTitle(surah, ayah),
-      });
-      _setState(QuranPlayState.playing);
-      _startWordHighlight(audio);
-    } on PlatformException catch (e) {
-      debugPrint('QuranAudioService play error: ${e.message}');
-      _setState(QuranPlayState.error);
+      final url = _currentReciter.onlineAudioUrl(surahId, ayahNumber);
+      await _player.setAudioSource(AudioSource.uri(Uri.parse(url)));
+
+      // فێچی تایمینگ بۆ هایلایت
+      _fetchTimings(surahId, ayahNumber);
+
+      await _player.play();
+      _emit(_state.copyWith(status: AudioPlaybackState.playing));
+    } catch (e) {
+      _emit(_state.copyWith(
+        status: AudioPlaybackState.error,
+        errorMessage: 'کێشەی لیدان: $e',
+      ));
     }
   }
 
-  // ─────────────────────────────────────────────────────────────
-  //  کۆنترۆڵەکان
-  // ─────────────────────────────────────────────────────────────
+  // ════════════════════════════════════════
+  // لیدان — ئۆفلاین
+  // ════════════════════════════════════════
+
+  /// ئایا فایلی MP3 پێش دابەزراوە
+  Future<bool> isDownloaded(int surahId, int ayahNumber) async {
+    final path = await _ayahFilePath(surahId, ayahNumber);
+    return File(path).exists();
+  }
+
+  /// دابەزاندنی یەک ئایەت
+  Future<void> downloadAyah(int surahId, int ayahNumber) async {
+    final url = _currentReciter.onlineAudioUrl(surahId, ayahNumber);
+    final path = await _ayahFilePath(surahId, ayahNumber);
+    final file = File(path);
+    if (await file.exists()) return;
+
+    try {
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        await file.parent.create(recursive: true);
+        await file.writeAsBytes(response.bodyBytes);
+      }
+    } catch (_) {}
+  }
+
+  /// لیدانی ئۆفلاین — ئەگەر نەبوو ئۆنلاین دەکات
+  Future<void> playOfflineOrOnline(int surahId, int ayahNumber,
+      {int totalAyahs = 7}) async {
+    _currentSurahId = surahId;
+    _currentAyahNumber = ayahNumber;
+    _totalAyahs = totalAyahs;
+
+    _emit(_state.copyWith(
+      status: AudioPlaybackState.loading,
+      currentSurahId: surahId,
+      currentAyahNumber: ayahNumber,
+    ));
+
+    try {
+      final filePath = await _ayahFilePath(surahId, ayahNumber);
+      final file = File(filePath);
+
+      AudioSource source;
+      if (await file.exists()) {
+        source = AudioSource.file(filePath);
+      } else {
+        final url = _currentReciter.onlineAudioUrl(surahId, ayahNumber);
+        source = AudioSource.uri(Uri.parse(url));
+      }
+
+      await _player.setAudioSource(source);
+      _fetchTimings(surahId, ayahNumber);
+      await _player.play();
+      _emit(_state.copyWith(status: AudioPlaybackState.playing));
+    } catch (e) {
+      _emit(_state.copyWith(
+        status: AudioPlaybackState.error,
+        errorMessage: 'کێشەی لیدان: $e',
+      ));
+    }
+  }
+
+  // ════════════════════════════════════════
+  // کنترۆلەکان
+  // ════════════════════════════════════════
 
   Future<void> pause() async {
-    if (_state != QuranPlayState.playing) return;
-    _stopWordHighlight();
-    try {
-      await _methodChannel.invokeMethod<void>('pause');
-    } on PlatformException catch (e) {
-      debugPrint('pause error: ${e.message}');
-    }
-    _setState(QuranPlayState.paused);
+    await _player.pause();
+    _emit(_state.copyWith(status: AudioPlaybackState.paused));
   }
 
   Future<void> resume() async {
-    if (_state != QuranPlayState.paused) return;
-    try {
-      await _methodChannel.invokeMethod<void>('resume');
-    } on PlatformException catch (e) {
-      debugPrint('resume error: ${e.message}');
-      return;
-    }
-    _setState(QuranPlayState.playing);
-    // هایلایت دووبارە دەستی پێ بکا لە شوێنی ماوەتەوە
-    final vk = _currentVerseKey;
-    if (vk != null) {
-      final p = vk.split(':');
-      final audio = QuranDatabaseHelper.instance
-          .getAyahAudio(int.parse(p[0]), int.parse(p[1]));
-      if (audio != null) _startWordHighlight(audio);
-    }
+    await _player.play();
+    _emit(_state.copyWith(status: AudioPlaybackState.playing));
+  }
+
+  Future<void> stop() async {
+    _highlightTimer?.cancel();
+    await _player.stop();
+    _timings = [];
+    _emit(const AudioState());
   }
 
   Future<void> togglePlayPause() async {
-    if (isPlaying) {
+    if (_state.isPlaying) {
       await pause();
-    } else if (_state == QuranPlayState.paused) {
+    } else if (_state.status == AudioPlaybackState.paused) {
       await resume();
     }
   }
 
-  Future<void> stop() async {
-    _stopWordHighlight();
-    try {
-      await _methodChannel.invokeMethod<void>('stop');
-    } on PlatformException catch (e) {
-      debugPrint('stop error: ${e.message}');
-    }
-    _currentVerseKey = null;
-    _activeWordIndex = null;
-    _setState(QuranPlayState.stopped);
-  }
-
+  /// بڕۆ بۆ ئایەتی داهاتوو
   Future<void> nextAyah() async {
-    if (_currentVerseKey == null) return;
-    final p = _currentVerseKey!.split(':');
-    final surah = int.parse(p[0]);
-    final ayah = int.parse(p[1]);
-    final info = kSurahList.firstWhere(
-      (s) => s.number == surah,
-      orElse: () => kSurahList.first,
-    );
-    if (ayah < info.totalAyahs) {
-      await playAyah(surah, ayah + 1);
-    } else if (surah < 114) {
-      await playAyah(surah + 1, 1);
-    } else {
-      await stop();
+    if (_currentAyahNumber < _totalAyahs) {
+      await playOfflineOrOnline(
+        _currentSurahId,
+        _currentAyahNumber + 1,
+        totalAyahs: _totalAyahs,
+      );
     }
   }
 
+  /// بڕۆ بۆ ئایەتی پێشوو
   Future<void> prevAyah() async {
-    if (_currentVerseKey == null) return;
-    final p = _currentVerseKey!.split(':');
-    final surah = int.parse(p[0]);
-    final ayah = int.parse(p[1]);
-    if (ayah > 1) {
-      await playAyah(surah, ayah - 1);
-    } else if (surah > 1) {
-      final prev = kSurahList.firstWhere((s) => s.number == surah - 1);
-      await playAyah(surah - 1, prev.totalAyahs);
+    if (_currentAyahNumber > 1) {
+      await playOfflineOrOnline(
+        _currentSurahId,
+        _currentAyahNumber - 1,
+        totalAyahs: _totalAyahs,
+      );
     }
   }
 
-  // ── ئۆپشنەکان ───────────────────────────────────────────────
+  // ════════════════════════════════════════
+  // تایمینگی هایلایت
+  // api.quran.com/api/v4/recitations/{id}/by_ayah/{surah}:{ayah}
+  // ════════════════════════════════════════
 
-  void setRepeatAyah(bool v) {
-    _repeatAyah = v;
-    notifyListeners();
+  Future<void> _fetchTimings(int surahId, int ayahNumber) async {
+    _timings = [];
+    _highlightTimer?.cancel();
+
+    try {
+      final ayahKey = '$surahId:$ayahNumber';
+      final url =
+          '$_kTimingBaseUrl/recitations/$_timingReciterId/by_ayah/$ayahKey?words=true';
+
+      final response =
+          await http.get(Uri.parse(url)).timeout(const Duration(seconds: 8));
+
+      if (response.statusCode == 200) {
+        final json = jsonDecode(response.body);
+        final ayahData = json['audio_files']?[0];
+        if (ayahData != null) {
+          _timings = [AyahTiming.fromJson(ayahData)];
+        }
+      }
+    } catch (_) {
+      // تایمینگ نەبوو — هایلایت نادرێت
+    }
   }
 
-  void setAutoNextAyah(bool v) {
-    _autoNextAyah = v;
-    notifyListeners();
-  }
+  /// نوێکردنەوەی هایلایت بەپێی position ی ئێستا
+  void _updateHighlight(int posMs) {
+    if (_timings.isEmpty) return;
 
-  // ─────────────────────────────────────────────────────────────
-  //  هایلایتی وشە  —  بەپێی segments-ی JSON
-  //
-  //  segments فۆرمات:  [[wordIndex, startMs, endMs], ...]
-  //  نموونە:  [1, 0, 840]  →  وشەی 1  لە 0ms بۆ 840ms
-  //
-  //  چونکە Kotlin MediaPlayer هیچ position callback نەدەنێرێت بۆ
-  //  Flutter، تایمەرێکی ناوخۆ بەکار دەهێنین کە لە دەستپێکی
-  //  playAyah() دەست دەکات و elapsed time چیک دەکات.
-  // ─────────────────────────────────────────────────────────────
+    final timing = _timings.first;
+    for (int i = 0; i < timing.words.length; i++) {
+      final word = timing.words[i];
+      final isLast = i == timing.words.length - 1;
+      final nextStart = isLast ? timing.endMs : timing.words[i + 1].startMs;
 
-  Timer? _highlightTimer;
-  DateTime? _playStartTime;
-  List<List<int>>? _activeSegments;
-
-  void _startWordHighlight(AyahAudio audio) {
-    _stopWordHighlight();
-    if (audio.segments.isEmpty) return;
-    _activeSegments = audio.segments;
-    _playStartTime = DateTime.now();
-
-    // هەر 80ms یەکجار چیک دەکات (خێرای بەسەر بدوز)
-    _highlightTimer = Timer.periodic(
-      const Duration(milliseconds: 80),
-      (_) => _checkWordHighlight(),
-    );
-  }
-
-  void _checkWordHighlight() {
-    final segs = _activeSegments;
-    final start = _playStartTime;
-    if (segs == null || start == null) return;
-
-    final elapsed = DateTime.now().difference(start).inMilliseconds;
-    int? newWord;
-    for (final seg in segs) {
-      if (elapsed >= seg[1] && elapsed <= seg[2]) {
-        newWord = seg[0] - 1; // 1-based → 0-based index
-        break;
+      if (posMs >= word.startMs && posMs < nextStart) {
+        if (_state.highlightedWordIndex != i) {
+          _emit(_state.copyWith(highlightedWordIndex: i));
+        }
+        return;
       }
     }
-    if (newWord != _activeWordIndex) {
-      _activeWordIndex = newWord;
-      notifyListeners();
+  }
+
+  // ════════════════════════════════════════
+  // بەردەوامبوونی ئۆتۆماتیک
+  // ════════════════════════════════════════
+
+  void _onAyahCompleted() {
+    if (_currentAyahNumber < _totalAyahs) {
+      Future.delayed(const Duration(milliseconds: 300), () {
+        playOfflineOrOnline(
+          _currentSurahId,
+          _currentAyahNumber + 1,
+          totalAyahs: _totalAyahs,
+        );
+      });
+    } else {
+      _emit(_state.copyWith(status: AudioPlaybackState.idle));
     }
   }
 
-  void _stopWordHighlight() {
+  // ════════════════════════════════════════
+  // یارمەتیدەرەکان
+  // ════════════════════════════════════════
+
+  Future<String> _ayahFilePath(int surahId, int ayahNumber) async {
+    final dir = await getApplicationDocumentsDirectory();
+    final fileName = _currentReciter.offlineFileName(surahId, ayahNumber);
+    return p.join(dir.path, _kAudioCacheFolder, _currentReciter.id, fileName);
+  }
+
+  void _emit(AudioState state) {
+    _state = state;
+    _stateController.add(state);
+  }
+
+  // ════════════════════════════════════════
+  // داخستن
+  // ════════════════════════════════════════
+
+  Future<void> dispose() async {
     _highlightTimer?.cancel();
-    _highlightTimer = null;
-    _playStartTime = null;
-    _activeSegments = null;
-  }
-
-  // ─────────────────────────────────────────────────────────────
-  //  یارمەتیدەرەکانی ناوخۆ
-  // ─────────────────────────────────────────────────────────────
-
-  Future<void> _replayCurrentAyah() async {
-    final vk = _currentVerseKey;
-    if (vk == null) return;
-    final p = vk.split(':');
-    await playAyah(int.parse(p[0]), int.parse(p[1]));
-  }
-
-  void _setState(QuranPlayState s) {
-    _state = s;
-    notifyListeners();
-  }
-
-  /// ناوی ئایەت بۆ نۆتیفیکەیشنی Kotlin
-  String _buildTitle(int surah, int ayah) {
-    final info = kSurahList.firstWhere(
-      (s) => s.number == surah,
-      orElse: () => kSurahList.first,
-    );
-    return '${info.name}  —  ئایەت $ayah';
-  }
-
-  // ─────────────────────────────────────────────────────────────
-  //  داخستن
-  // ─────────────────────────────────────────────────────────────
-
-  @override
-  void dispose() {
-    _stopWordHighlight();
-    _eventSub?.cancel();
-    super.dispose();
+    await _stateController.close();
+    await _player.dispose();
   }
 }

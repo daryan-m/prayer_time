@@ -1,273 +1,331 @@
-// ═══════════════════════════════════════════════════════════════
-//  lib/quran/quran_models.dart
-//  مۆدێلەکانی داتای قورئان
-// ═══════════════════════════════════════════════════════════════
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// quran_models.dart
+// هەموو مۆدێلەکانی داتای ئەپی قورئانی پیرۆز
+//
+// سەرچاوەکان:
+//   دەق عوسمانی  → tanzil.net  (SQLite .db)
+//   وەرگێڕانی کوردی → tanzil.net/trans/ku.bamoki (TXT/SQLite)
+//   دەنگ (ئۆنلاین) → cdn.islamic.network/quran/audio/
+//   دەنگ (ئۆفلاین) → دابەزاندن و پاشەکەوتکردن لە storage
+//   تایمینگ هایلایت → api.quran.com/api/v4
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-/// زانیاری هەر ئایەتێک لە داتابەیسی مێتاداتا
-class QuranAyah {
+// ══════════════════════════════════════════
+// ١. سورە
+// ══════════════════════════════════════════
+
+class Surah {
   final int id;
-  final int surahNumber;
-  final int ayahNumber;
-  final String verseKey; // "1:1"
-  final int wordsCount;
-  final String text; // نووسینی عەرەبی
+  final String nameArabic;
+  final String nameSimple;
+  final String nameKurdish;
+  final int versesCount;
+  final String revelationPlace; // makkah / madinah
+  final int pageStart;
+  final int juzStart;
 
-  const QuranAyah({
+  const Surah({
     required this.id,
-    required this.surahNumber,
-    required this.ayahNumber,
-    required this.verseKey,
-    required this.wordsCount,
-    required this.text,
+    required this.nameArabic,
+    required this.nameSimple,
+    required this.nameKurdish,
+    required this.versesCount,
+    required this.revelationPlace,
+    required this.pageStart,
+    required this.juzStart,
   });
 
-  factory QuranAyah.fromMap(Map<String, dynamic> m) => QuranAyah(
+  factory Surah.fromMap(Map<String, dynamic> m) => Surah(
         id: m['id'] as int,
-        surahNumber: m['surah_number'] as int,
-        ayahNumber: m['ayah_number'] as int,
-        verseKey: m['verse_key'] as String,
-        wordsCount: m['words_count'] as int,
-        text: m['text'] as String,
+        nameArabic: m['name_arabic'] as String? ?? '',
+        nameSimple: m['name_simple'] as String? ?? '',
+        nameKurdish: m['name_kurdish'] as String? ?? '',
+        versesCount: m['verses_count'] as int? ?? 0,
+        revelationPlace: m['revelation_place'] as String? ?? '',
+        pageStart: m['page_start'] as int? ?? 1,
+        juzStart: m['juz_start'] as int? ?? 1,
       );
+
+  Map<String, dynamic> toMap() => {
+        'id': id,
+        'name_arabic': nameArabic,
+        'name_simple': nameSimple,
+        'name_kurdish': nameKurdish,
+        'verses_count': versesCount,
+        'revelation_place': revelationPlace,
+        'page_start': pageStart,
+        'juz_start': juzStart,
+      };
+
+  bool get isMakki => revelationPlace == 'makkah';
+  String get displayName => nameKurdish.isNotEmpty ? nameKurdish : nameArabic;
 }
 
-/// گلیفی QPC V2 بۆ نیشاندانی فۆنتی قورئان
-class QuranGlyph {
-  final int id;
-  final String verseKey;
-  final int surah;
-  final int ayah;
-  final String text; // کاراکتەرەکانی فۆنت
-  final int pageNumber;
+// ══════════════════════════════════════════
+// ٢. ئایەت
+// ══════════════════════════════════════════
 
-  const QuranGlyph({
+class Ayah {
+  final int id; // ناسنامەی گشتی ١-٦٢٣٦
+  final int surahId;
+  final int numberInSurah;
+  final String textUthmani; // دەقی عوسمانی
+  final String? textKurdish; // وەرگێڕانی کوردی بامۆکی
+  final int page;
+  final int juz;
+  final bool sajda;
+
+  const Ayah({
     required this.id,
-    required this.verseKey,
-    required this.surah,
-    required this.ayah,
-    required this.text,
-    required this.pageNumber,
+    required this.surahId,
+    required this.numberInSurah,
+    required this.textUthmani,
+    this.textKurdish,
+    required this.page,
+    required this.juz,
+    this.sajda = false,
   });
 
-  factory QuranGlyph.fromMap(Map<String, dynamic> m) => QuranGlyph(
+  factory Ayah.fromMap(Map<String, dynamic> m) => Ayah(
         id: m['id'] as int,
-        verseKey: m['verse_key'] as String,
-        surah: m['surah'] as int,
-        ayah: m['ayah'] as int,
-        text: m['text'] as String,
-        pageNumber: m['page_number'] as int,
+        surahId: m['surah_id'] as int,
+        numberInSurah: m['number_in_surah'] as int,
+        textUthmani: m['text_uthmani'] as String? ?? '',
+        textKurdish: m['text_kurdish'] as String?,
+        page: m['page'] as int? ?? 1,
+        juz: m['juz'] as int? ?? 1,
+        sajda: (m['sajda'] as int? ?? 0) == 1,
       );
+
+  Map<String, dynamic> toMap() => {
+        'id': id,
+        'surah_id': surahId,
+        'number_in_surah': numberInSurah,
+        'text_uthmani': textUthmani,
+        'text_kurdish': textKurdish,
+        'page': page,
+        'juz': juz,
+        'sajda': sajda ? 1 : 0,
+      };
+
+  /// کلیدی MP3: مەسەلەن "002003" بۆ بقرە:٣
+  String get audioKey =>
+      '${surahId.toString().padLeft(3, '0')}${numberInSurah.toString().padLeft(3, '0')}';
 }
 
-/// زانیاری هەر لاپەرەیەک (15 ریز)
-class QuranPageLine {
-  final int pageNumber;
-  final int lineNumber;
-  final String lineType; // 'ayah' | 'surah_name' | 'basmallah'
-  final bool isCentered;
-  final String firstWordId;
-  final String lastWordId;
-  final String surahNumber;
+// ══════════════════════════════════════════
+// ٣. قاریئ
+// ══════════════════════════════════════════
 
-  const QuranPageLine({
-    required this.pageNumber,
-    required this.lineNumber,
-    required this.lineType,
-    required this.isCentered,
-    required this.firstWordId,
-    required this.lastWordId,
-    required this.surahNumber,
+class Reciter {
+  final String id;
+  final String nameArabic;
+  final String nameEnglish;
+  final String style; // Murattal / Mujawwad
+  final int bitrate; // 64 / 128
+
+  const Reciter({
+    required this.id,
+    required this.nameArabic,
+    required this.nameEnglish,
+    required this.style,
+    required this.bitrate,
   });
 
-  factory QuranPageLine.fromMap(Map<String, dynamic> m) => QuranPageLine(
-        pageNumber: m['page_number'] as int,
-        lineNumber: m['line_number'] as int,
-        lineType: m['line_type'] as String,
-        isCentered: (m['is_centered'] as int) == 1,
-        firstWordId: m['first_word_id']?.toString() ?? '',
-        lastWordId: m['last_word_id']?.toString() ?? '',
-        surahNumber: m['surah_number']?.toString() ?? '',
-      );
-}
-
-/// زانیاری دەنگی ئایەتێک لە JSON
-class AyahAudio {
-  final int surahNumber;
-  final int ayahNumber;
-  final String audioUrl;
-  final int? duration; // milliseconds
-  /// segments: [[word_index, start_ms, end_ms], ...]
-  final List<List<int>> segments;
-
-  const AyahAudio({
-    required this.surahNumber,
-    required this.ayahNumber,
-    required this.audioUrl,
-    this.duration,
-    required this.segments,
-  });
-
-  factory AyahAudio.fromMap(String key, Map<String, dynamic> m) {
-    final rawSegs = (m['segments'] as List<dynamic>? ?? []);
-    final segs = rawSegs
-        .map<List<int>>(
-            (s) => (s as List<dynamic>).map<int>((e) => e as int).toList())
-        .toList();
-    return AyahAudio(
-      surahNumber: m['surah_number'] as int,
-      ayahNumber: m['ayah_number'] as int,
-      audioUrl: m['audio_url'] as String,
-      duration: m['duration'] as int?,
-      segments: segs,
-    );
+  /// URL ی یەک ئایەت — ئۆنلاین
+  String onlineAudioUrl(int surahId, int ayahNumber) {
+    final s = surahId.toString().padLeft(3, '0');
+    final a = ayahNumber.toString().padLeft(3, '0');
+    return 'https://cdn.islamic.network/quran/audio/$bitrate/$id/$s$a.mp3';
   }
 
-  String get verseKey => '$surahNumber:$ayahNumber';
+  /// ناوی فایلی ئۆفلاین بۆ پاشەکەوتکردن
+  String offlineFileName(int surahId, int ayahNumber) =>
+      '${id}_${surahId.toString().padLeft(3, '0')}_${ayahNumber.toString().padLeft(3, '0')}.mp3';
+
+  static const List<Reciter> defaults = [
+    Reciter(
+      id: 'ar.alafasy',
+      nameArabic: 'مشاری راشد العفاسی',
+      nameEnglish: 'Mishary Rashid Alafasy',
+      style: 'Murattal',
+      bitrate: 128,
+    ),
+    Reciter(
+      id: 'ar.abdurrahmaansudais',
+      nameArabic: 'عبدالرحمن السديس',
+      nameEnglish: 'Abdurrahmaan As-Sudais',
+      style: 'Murattal',
+      bitrate: 128,
+    ),
+    Reciter(
+      id: 'ar.husary',
+      nameArabic: 'محمود خليل الحصری',
+      nameEnglish: 'Mahmoud Khalil Al-Husary',
+      style: 'Murattal',
+      bitrate: 64,
+    ),
+    Reciter(
+      id: 'ar.mahermuaiqly',
+      nameArabic: 'ماهر المعيقلی',
+      nameEnglish: 'Maher Al Muaiqly',
+      style: 'Murattal',
+      bitrate: 128,
+    ),
+    Reciter(
+      id: 'ar.minshawi',
+      nameArabic: 'محمد صديق المنشاوی',
+      nameEnglish: 'Mohamed Siddiq al-Minshawi',
+      style: 'Murattal',
+      bitrate: 64,
+    ),
+    Reciter(
+      id: 'ar.shaatree',
+      nameArabic: 'أبو بكر الشاطری',
+      nameEnglish: 'Abu Bakr Ash-Shaatree',
+      style: 'Murattal',
+      bitrate: 64,
+    ),
+  ];
 }
 
-/// ئایەتێک کە ئێستا هەڵبژێردراوە (بۆ هایلایت)
-class SelectedAyah {
-  final String verseKey;
-  final int? activeWordIndex; // ئێستا کام وشە دەخوێنرێ
+// ══════════════════════════════════════════
+// ٤. تایمینگی هایلایت (api.quran.com)
+// ══════════════════════════════════════════
 
-  const SelectedAyah({required this.verseKey, this.activeWordIndex});
+class WordTiming {
+  final int position; // ژمارەی وشە لە ئایەتەکەدا
+  final int startMs; // دەستپێکردن (ms)
+  final int endMs; // کۆتایی (ms)
+  final String text;
 
-  SelectedAyah copyWith({String? verseKey, int? activeWordIndex}) =>
-      SelectedAyah(
-        verseKey: verseKey ?? this.verseKey,
-        activeWordIndex: activeWordIndex ?? this.activeWordIndex,
+  const WordTiming({
+    required this.position,
+    required this.startMs,
+    required this.endMs,
+    required this.text,
+  });
+
+  factory WordTiming.fromJson(Map<String, dynamic> j) => WordTiming(
+        position: j['position'] as int? ?? 0,
+        startMs: ((j['timestamp_from'] as num?) ?? 0).toInt(),
+        endMs: ((j['timestamp_to'] as num?) ?? 0).toInt(),
+        text: j['text_uthmani'] as String? ?? '',
       );
 }
 
-/// ئایەتەکانی یەک سورە
-class SurahInfo {
-  final int number;
-  final String name;
-  final int totalAyahs;
-  final bool isMakki; // مەکی یان مەدەنی
+class AyahTiming {
+  final int ayahId;
+  final int surahId;
+  final int numberInSurah;
+  final List<WordTiming> words;
 
-  const SurahInfo({
-    required this.number,
-    required this.name,
-    required this.totalAyahs,
-    required this.isMakki,
+  const AyahTiming({
+    required this.ayahId,
+    required this.surahId,
+    required this.numberInSurah,
+    required this.words,
   });
+
+  int get startMs => words.isNotEmpty ? words.first.startMs : 0;
+  int get endMs => words.isNotEmpty ? words.last.endMs : 0;
+
+  factory AyahTiming.fromJson(Map<String, dynamic> j) {
+    final wordList = (j['words'] as List<dynamic>? ?? [])
+        .map((w) => WordTiming.fromJson(w as Map<String, dynamic>))
+        .toList();
+    return AyahTiming(
+      ayahId: j['id'] as int? ?? 0,
+      surahId: j['surah_id'] as int? ?? 0,
+      numberInSurah: j['ayah_number'] as int? ?? 0,
+      words: wordList,
+    );
+  }
 }
 
-// لیستی سورەکان - بریتی 114 سورە
-const List<SurahInfo> kSurahList = [
-  SurahInfo(number: 1, name: 'الفاتحة', totalAyahs: 7, isMakki: true),
-  SurahInfo(number: 2, name: 'البقرة', totalAyahs: 286, isMakki: false),
-  SurahInfo(number: 3, name: 'آل عمران', totalAyahs: 200, isMakki: false),
-  SurahInfo(number: 4, name: 'النساء', totalAyahs: 176, isMakki: false),
-  SurahInfo(number: 5, name: 'المائدة', totalAyahs: 120, isMakki: false),
-  SurahInfo(number: 6, name: 'الأنعام', totalAyahs: 165, isMakki: true),
-  SurahInfo(number: 7, name: 'الأعراف', totalAyahs: 206, isMakki: true),
-  SurahInfo(number: 8, name: 'الأنفال', totalAyahs: 75, isMakki: false),
-  SurahInfo(number: 9, name: 'التوبة', totalAyahs: 129, isMakki: false),
-  SurahInfo(number: 10, name: 'يونس', totalAyahs: 109, isMakki: true),
-  SurahInfo(number: 11, name: 'هود', totalAyahs: 123, isMakki: true),
-  SurahInfo(number: 12, name: 'يوسف', totalAyahs: 111, isMakki: true),
-  SurahInfo(number: 13, name: 'الرعد', totalAyahs: 43, isMakki: false),
-  SurahInfo(number: 14, name: 'إبراهيم', totalAyahs: 52, isMakki: true),
-  SurahInfo(number: 15, name: 'الحجر', totalAyahs: 99, isMakki: true),
-  SurahInfo(number: 16, name: 'النحل', totalAyahs: 128, isMakki: true),
-  SurahInfo(number: 17, name: 'الإسراء', totalAyahs: 111, isMakki: true),
-  SurahInfo(number: 18, name: 'الكهف', totalAyahs: 110, isMakki: true),
-  SurahInfo(number: 19, name: 'مريم', totalAyahs: 98, isMakki: true),
-  SurahInfo(number: 20, name: 'طه', totalAyahs: 135, isMakki: true),
-  SurahInfo(number: 21, name: 'الأنبياء', totalAyahs: 112, isMakki: true),
-  SurahInfo(number: 22, name: 'الحج', totalAyahs: 78, isMakki: false),
-  SurahInfo(number: 23, name: 'المؤمنون', totalAyahs: 118, isMakki: true),
-  SurahInfo(number: 24, name: 'النور', totalAyahs: 64, isMakki: false),
-  SurahInfo(number: 25, name: 'الفرقان', totalAyahs: 77, isMakki: true),
-  SurahInfo(number: 26, name: 'الشعراء', totalAyahs: 227, isMakki: true),
-  SurahInfo(number: 27, name: 'النمل', totalAyahs: 93, isMakki: true),
-  SurahInfo(number: 28, name: 'القصص', totalAyahs: 88, isMakki: true),
-  SurahInfo(number: 29, name: 'العنكبوت', totalAyahs: 69, isMakki: true),
-  SurahInfo(number: 30, name: 'الروم', totalAyahs: 60, isMakki: true),
-  SurahInfo(number: 31, name: 'لقمان', totalAyahs: 34, isMakki: true),
-  SurahInfo(number: 32, name: 'السجدة', totalAyahs: 30, isMakki: true),
-  SurahInfo(number: 33, name: 'الأحزاب', totalAyahs: 73, isMakki: false),
-  SurahInfo(number: 34, name: 'سبأ', totalAyahs: 54, isMakki: true),
-  SurahInfo(number: 35, name: 'فاطر', totalAyahs: 45, isMakki: true),
-  SurahInfo(number: 36, name: 'يس', totalAyahs: 83, isMakki: true),
-  SurahInfo(number: 37, name: 'الصافات', totalAyahs: 182, isMakki: true),
-  SurahInfo(number: 38, name: 'ص', totalAyahs: 88, isMakki: true),
-  SurahInfo(number: 39, name: 'الزمر', totalAyahs: 75, isMakki: true),
-  SurahInfo(number: 40, name: 'غافر', totalAyahs: 85, isMakki: true),
-  SurahInfo(number: 41, name: 'فصلت', totalAyahs: 54, isMakki: true),
-  SurahInfo(number: 42, name: 'الشورى', totalAyahs: 53, isMakki: true),
-  SurahInfo(number: 43, name: 'الزخرف', totalAyahs: 89, isMakki: true),
-  SurahInfo(number: 44, name: 'الدخان', totalAyahs: 59, isMakki: true),
-  SurahInfo(number: 45, name: 'الجاثية', totalAyahs: 37, isMakki: true),
-  SurahInfo(number: 46, name: 'الأحقاف', totalAyahs: 35, isMakki: true),
-  SurahInfo(number: 47, name: 'محمد', totalAyahs: 38, isMakki: false),
-  SurahInfo(number: 48, name: 'الفتح', totalAyahs: 29, isMakki: false),
-  SurahInfo(number: 49, name: 'الحجرات', totalAyahs: 18, isMakki: false),
-  SurahInfo(number: 50, name: 'ق', totalAyahs: 45, isMakki: true),
-  SurahInfo(number: 51, name: 'الذاريات', totalAyahs: 60, isMakki: true),
-  SurahInfo(number: 52, name: 'الطور', totalAyahs: 49, isMakki: true),
-  SurahInfo(number: 53, name: 'النجم', totalAyahs: 62, isMakki: true),
-  SurahInfo(number: 54, name: 'القمر', totalAyahs: 55, isMakki: true),
-  SurahInfo(number: 55, name: 'الرحمن', totalAyahs: 78, isMakki: false),
-  SurahInfo(number: 56, name: 'الواقعة', totalAyahs: 96, isMakki: true),
-  SurahInfo(number: 57, name: 'الحديد', totalAyahs: 29, isMakki: false),
-  SurahInfo(number: 58, name: 'المجادلة', totalAyahs: 22, isMakki: false),
-  SurahInfo(number: 59, name: 'الحشر', totalAyahs: 24, isMakki: false),
-  SurahInfo(number: 60, name: 'الممتحنة', totalAyahs: 13, isMakki: false),
-  SurahInfo(number: 61, name: 'الصف', totalAyahs: 14, isMakki: false),
-  SurahInfo(number: 62, name: 'الجمعة', totalAyahs: 11, isMakki: false),
-  SurahInfo(number: 63, name: 'المنافقون', totalAyahs: 11, isMakki: false),
-  SurahInfo(number: 64, name: 'التغابن', totalAyahs: 18, isMakki: false),
-  SurahInfo(number: 65, name: 'الطلاق', totalAyahs: 12, isMakki: false),
-  SurahInfo(number: 66, name: 'التحريم', totalAyahs: 12, isMakki: false),
-  SurahInfo(number: 67, name: 'الملك', totalAyahs: 30, isMakki: true),
-  SurahInfo(number: 68, name: 'القلم', totalAyahs: 52, isMakki: true),
-  SurahInfo(number: 69, name: 'الحاقة', totalAyahs: 52, isMakki: true),
-  SurahInfo(number: 70, name: 'المعارج', totalAyahs: 44, isMakki: true),
-  SurahInfo(number: 71, name: 'نوح', totalAyahs: 28, isMakki: true),
-  SurahInfo(number: 72, name: 'الجن', totalAyahs: 28, isMakki: true),
-  SurahInfo(number: 73, name: 'المزمل', totalAyahs: 20, isMakki: true),
-  SurahInfo(number: 74, name: 'المدثر', totalAyahs: 56, isMakki: true),
-  SurahInfo(number: 75, name: 'القيامة', totalAyahs: 40, isMakki: true),
-  SurahInfo(number: 76, name: 'الإنسان', totalAyahs: 31, isMakki: false),
-  SurahInfo(number: 77, name: 'المرسلات', totalAyahs: 50, isMakki: true),
-  SurahInfo(number: 78, name: 'النبأ', totalAyahs: 40, isMakki: true),
-  SurahInfo(number: 79, name: 'النازعات', totalAyahs: 46, isMakki: true),
-  SurahInfo(number: 80, name: 'عبس', totalAyahs: 42, isMakki: true),
-  SurahInfo(number: 81, name: 'التكوير', totalAyahs: 29, isMakki: true),
-  SurahInfo(number: 82, name: 'الإنفطار', totalAyahs: 19, isMakki: true),
-  SurahInfo(number: 83, name: 'المطففين', totalAyahs: 36, isMakki: true),
-  SurahInfo(number: 84, name: 'الإنشقاق', totalAyahs: 25, isMakki: true),
-  SurahInfo(number: 85, name: 'البروج', totalAyahs: 22, isMakki: true),
-  SurahInfo(number: 86, name: 'الطارق', totalAyahs: 17, isMakki: true),
-  SurahInfo(number: 87, name: 'الأعلى', totalAyahs: 19, isMakki: true),
-  SurahInfo(number: 88, name: 'الغاشية', totalAyahs: 26, isMakki: true),
-  SurahInfo(number: 89, name: 'الفجر', totalAyahs: 30, isMakki: true),
-  SurahInfo(number: 90, name: 'البلد', totalAyahs: 20, isMakki: true),
-  SurahInfo(number: 91, name: 'الشمس', totalAyahs: 15, isMakki: true),
-  SurahInfo(number: 92, name: 'الليل', totalAyahs: 21, isMakki: true),
-  SurahInfo(number: 93, name: 'الضحى', totalAyahs: 11, isMakki: true),
-  SurahInfo(number: 94, name: 'الشرح', totalAyahs: 8, isMakki: true),
-  SurahInfo(number: 95, name: 'التين', totalAyahs: 8, isMakki: true),
-  SurahInfo(number: 96, name: 'العلق', totalAyahs: 19, isMakki: true),
-  SurahInfo(number: 97, name: 'القدر', totalAyahs: 5, isMakki: true),
-  SurahInfo(number: 98, name: 'البينة', totalAyahs: 8, isMakki: false),
-  SurahInfo(number: 99, name: 'الزلزلة', totalAyahs: 8, isMakki: false),
-  SurahInfo(number: 100, name: 'العاديات', totalAyahs: 11, isMakki: true),
-  SurahInfo(number: 101, name: 'القارعة', totalAyahs: 11, isMakki: true),
-  SurahInfo(number: 102, name: 'التكاثر', totalAyahs: 8, isMakki: true),
-  SurahInfo(number: 103, name: 'العصر', totalAyahs: 3, isMakki: true),
-  SurahInfo(number: 104, name: 'الهمزة', totalAyahs: 9, isMakki: true),
-  SurahInfo(number: 105, name: 'الفيل', totalAyahs: 5, isMakki: true),
-  SurahInfo(number: 106, name: 'قريش', totalAyahs: 4, isMakki: true),
-  SurahInfo(number: 107, name: 'الماعون', totalAyahs: 7, isMakki: true),
-  SurahInfo(number: 108, name: 'الكوثر', totalAyahs: 3, isMakki: true),
-  SurahInfo(number: 109, name: 'الكافرون', totalAyahs: 6, isMakki: true),
-  SurahInfo(number: 110, name: 'النصر', totalAyahs: 3, isMakki: false),
-  SurahInfo(number: 111, name: 'المسد', totalAyahs: 5, isMakki: true),
-  SurahInfo(number: 112, name: 'الإخلاص', totalAyahs: 4, isMakki: true),
-  SurahInfo(number: 113, name: 'الفلق', totalAyahs: 5, isMakki: true),
-  SurahInfo(number: 114, name: 'الناس', totalAyahs: 6, isMakki: true),
-];
+// ══════════════════════════════════════════
+// ٥. دۆخی خوێندنەوە و دەنگ
+// ══════════════════════════════════════════
+
+class QuranReadingState {
+  final int surahId;
+  final int ayahNumber;
+  final int page;
+
+  const QuranReadingState({
+    required this.surahId,
+    required this.ayahNumber,
+    required this.page,
+  });
+
+  factory QuranReadingState.initial() =>
+      const QuranReadingState(surahId: 1, ayahNumber: 1, page: 1);
+
+  QuranReadingState copyWith({int? surahId, int? ayahNumber, int? page}) =>
+      QuranReadingState(
+        surahId: surahId ?? this.surahId,
+        ayahNumber: ayahNumber ?? this.ayahNumber,
+        page: page ?? this.page,
+      );
+
+  Map<String, dynamic> toMap() =>
+      {'surah_id': surahId, 'ayah_number': ayahNumber, 'page': page};
+
+  factory QuranReadingState.fromMap(Map<String, dynamic> m) =>
+      QuranReadingState(
+        surahId: m['surah_id'] as int? ?? 1,
+        ayahNumber: m['ayah_number'] as int? ?? 1,
+        page: m['page'] as int? ?? 1,
+      );
+}
+
+enum AudioPlaybackState { idle, loading, playing, paused, error }
+
+class AudioState {
+  final AudioPlaybackState status;
+  final int? currentSurahId;
+  final int? currentAyahNumber;
+  final int? highlightedWordIndex; // ئایندێکسی وشەی ئێستا
+  final Duration position;
+  final Duration duration;
+  final Reciter? reciter;
+  final String? errorMessage;
+
+  const AudioState({
+    this.status = AudioPlaybackState.idle,
+    this.currentSurahId,
+    this.currentAyahNumber,
+    this.highlightedWordIndex,
+    this.position = Duration.zero,
+    this.duration = Duration.zero,
+    this.reciter,
+    this.errorMessage,
+  });
+
+  bool get isPlaying => status == AudioPlaybackState.playing;
+  bool get isLoading => status == AudioPlaybackState.loading;
+  bool get hasError => status == AudioPlaybackState.error;
+
+  AudioState copyWith({
+    AudioPlaybackState? status,
+    int? currentSurahId,
+    int? currentAyahNumber,
+    int? highlightedWordIndex,
+    Duration? position,
+    Duration? duration,
+    Reciter? reciter,
+    String? errorMessage,
+  }) =>
+      AudioState(
+        status: status ?? this.status,
+        currentSurahId: currentSurahId ?? this.currentSurahId,
+        currentAyahNumber: currentAyahNumber ?? this.currentAyahNumber,
+        highlightedWordIndex: highlightedWordIndex ?? this.highlightedWordIndex,
+        position: position ?? this.position,
+        duration: duration ?? this.duration,
+        reciter: reciter ?? this.reciter,
+        errorMessage: errorMessage ?? this.errorMessage,
+      );
+
+  AudioState get idle => const AudioState();
+}
