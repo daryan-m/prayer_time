@@ -32,6 +32,8 @@ dependencies:
   path: ^1.9.0
   just_audio: ^0.9.39
   audio_session: ^0.1.21
+  qcf_quran: ^0.0.4      # مصحف + فۆنت
+  quran: ^1.2.4          # داتای سورەت/لاپەرە/جوزء
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -47,8 +49,6 @@ flutter:
     - assets/data/
     - assets/audio/allah_names/
     - assets/quran/
-    - assets/db/
-    - assets/translation/
   fonts:
     - family: NotoNaskh
       fonts:
@@ -57,6 +57,12 @@ flutter:
     - family: Uthmanic
       fonts:
         - asset: assets/fonts/ScheherazadeNew-Regular.ttf
+
+    - family: Amiri
+      fonts:
+        - asset: assets/fonts/Amiri-Regular.ttf
+        - asset: assets/fonts/Amiri-Bold.ttf
+
 
 
 flutter_launcher_icons:

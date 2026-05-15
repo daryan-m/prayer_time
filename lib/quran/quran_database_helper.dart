@@ -178,6 +178,7 @@ class QuranDatabaseHelper {
       final lines = raw.split('\n');
 
       final batch = db.batch();
+      // ignore: unused_local_variable
       int imported = 0;
 
       for (final line in lines) {

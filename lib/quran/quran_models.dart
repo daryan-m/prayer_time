@@ -1,17 +1,9 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // quran_models.dart
-// هەموو مۆدێلەکانی داتای ئەپی قورئانی پیرۆز
-//
-// سەرچاوەکان:
-//   دەق عوسمانی  → tanzil.net  (SQLite .db)
-//   وەرگێڕانی کوردی → tanzil.net/trans/ku.bamoki (TXT/SQLite)
-//   دەنگ (ئۆنلاین) → cdn.islamic.network/quran/audio/
-//   دەنگ (ئۆفلاین) → دابەزاندن و پاشەکەوتکردن لە storage
-//   تایمینگ هایلایت → api.quran.com/api/v4
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 // ══════════════════════════════════════════
-// ١. سورە
+// سورە
 // ══════════════════════════════════════════
 
 class Surah {
@@ -20,7 +12,7 @@ class Surah {
   final String nameSimple;
   final String nameKurdish;
   final int versesCount;
-  final String revelationPlace; // makkah / madinah
+  final String revelationPlace;
   final int pageStart;
   final int juzStart;
 
@@ -41,36 +33,27 @@ class Surah {
         nameSimple: m['name_simple'] as String? ?? '',
         nameKurdish: m['name_kurdish'] as String? ?? '',
         versesCount: m['verses_count'] as int? ?? 0,
-        revelationPlace: m['revelation_place'] as String? ?? '',
+        revelationPlace: m['revelation_place'] as String? ?? 'makkah',
         pageStart: m['page_start'] as int? ?? 1,
         juzStart: m['juz_start'] as int? ?? 1,
       );
-
-  Map<String, dynamic> toMap() => {
-        'id': id,
-        'name_arabic': nameArabic,
-        'name_simple': nameSimple,
-        'name_kurdish': nameKurdish,
-        'verses_count': versesCount,
-        'revelation_place': revelationPlace,
-        'page_start': pageStart,
-        'juz_start': juzStart,
-      };
 
   bool get isMakki => revelationPlace == 'makkah';
   String get displayName => nameKurdish.isNotEmpty ? nameKurdish : nameArabic;
 }
 
 // ══════════════════════════════════════════
-// ٢. ئایەت
+// ئایەت — بە schema ی tanzil
+// quran_text: index, sura, aya, text
+// kurdish_translation: sura, aya, text
 // ══════════════════════════════════════════
 
 class Ayah {
-  final int id; // ناسنامەی گشتی ١-٦٢٣٦
-  final int surahId;
-  final int numberInSurah;
-  final String textUthmani; // دەقی عوسمانی
-  final String? textKurdish; // وەرگێڕانی کوردی بامۆکی
+  final int id; // index لە quran_text
+  final int surahId; // sura
+  final int numberInSurah; // aya
+  final String textUthmani; // text لە quran_text
+  final String? textKurdish; // text لە kurdish_translation
   final int page;
   final int juz;
   final bool sajda;
@@ -81,48 +64,37 @@ class Ayah {
     required this.numberInSurah,
     required this.textUthmani,
     this.textKurdish,
-    required this.page,
-    required this.juz,
+    this.page = 0,
+    this.juz = 0,
     this.sajda = false,
   });
 
   factory Ayah.fromMap(Map<String, dynamic> m) => Ayah(
-        id: m['id'] as int,
-        surahId: m['surah_id'] as int,
-        numberInSurah: m['number_in_surah'] as int,
+        id: m['id'] as int? ?? 0,
+        surahId: m['surah_id'] as int? ?? 0,
+        numberInSurah: m['number_in_surah'] as int? ?? 0,
         textUthmani: m['text_uthmani'] as String? ?? '',
         textKurdish: m['text_kurdish'] as String?,
-        page: m['page'] as int? ?? 1,
-        juz: m['juz'] as int? ?? 1,
+        page: m['page'] as int? ?? 0,
+        juz: m['juz'] as int? ?? 0,
         sajda: (m['sajda'] as int? ?? 0) == 1,
       );
 
-  Map<String, dynamic> toMap() => {
-        'id': id,
-        'surah_id': surahId,
-        'number_in_surah': numberInSurah,
-        'text_uthmani': textUthmani,
-        'text_kurdish': textKurdish,
-        'page': page,
-        'juz': juz,
-        'sajda': sajda ? 1 : 0,
-      };
-
-  /// کلیدی MP3: مەسەلەن "002003" بۆ بقرە:٣
+  /// کلیدی MP3: مەسەلەن "002003"
   String get audioKey =>
       '${surahId.toString().padLeft(3, '0')}${numberInSurah.toString().padLeft(3, '0')}';
 }
 
 // ══════════════════════════════════════════
-// ٣. قاریئ
+// قاریئ
 // ══════════════════════════════════════════
 
 class Reciter {
   final String id;
   final String nameArabic;
   final String nameEnglish;
-  final String style; // Murattal / Mujawwad
-  final int bitrate; // 64 / 128
+  final String style;
+  final int bitrate;
 
   const Reciter({
     required this.id,
@@ -132,71 +104,59 @@ class Reciter {
     required this.bitrate,
   });
 
-  /// URL ی یەک ئایەت — ئۆنلاین
+  /// URL ی یەک ئایەت — cdn.islamic.network
   String onlineAudioUrl(int surahId, int ayahNumber) {
     final s = surahId.toString().padLeft(3, '0');
     final a = ayahNumber.toString().padLeft(3, '0');
     return 'https://cdn.islamic.network/quran/audio/$bitrate/$id/$s$a.mp3';
   }
 
-  /// ناوی فایلی ئۆفلاین بۆ پاشەکەوتکردن
-  String offlineFileName(int surahId, int ayahNumber) =>
-      '${id}_${surahId.toString().padLeft(3, '0')}_${ayahNumber.toString().padLeft(3, '0')}.mp3';
+  String offlineFileName(int surahId, int ayahNumber) {
+    final s = surahId.toString().padLeft(3, '0');
+    final a = ayahNumber.toString().padLeft(3, '0');
+    return '${id}_$s$a.mp3';
+  }
 
-  static const List<Reciter> defaults = [
-    Reciter(
+  static List<Reciter> defaults = [
+    const Reciter(
       id: 'ar.alafasy',
       nameArabic: 'مشاری راشد العفاسی',
-      nameEnglish: 'Mishary Rashid Alafasy',
+      nameEnglish: 'Mishary Alafasy',
       style: 'Murattal',
       bitrate: 128,
     ),
-    Reciter(
-      id: 'ar.abdurrahmaansudais',
-      nameArabic: 'عبدالرحمن السديس',
+    const Reciter(
+      id: 'ar.abdulbasitmurattal',
+      nameArabic: 'عبد الباسط عبد الصمد',
+      nameEnglish: 'Abdul Basit Murattal',
+      style: 'Murattal',
+      bitrate: 192,
+    ),
+    const Reciter(
+      id: 'ar.sudalsshais',
+      nameArabic: 'عبدالرحمن السدیس',
       nameEnglish: 'Abdurrahmaan As-Sudais',
       style: 'Murattal',
-      bitrate: 128,
+      bitrate: 192,
     ),
-    Reciter(
-      id: 'ar.husary',
-      nameArabic: 'محمود خليل الحصری',
-      nameEnglish: 'Mahmoud Khalil Al-Husary',
-      style: 'Murattal',
-      bitrate: 64,
-    ),
-    Reciter(
-      id: 'ar.mahermuaiqly',
-      nameArabic: 'ماهر المعيقلی',
-      nameEnglish: 'Maher Al Muaiqly',
-      style: 'Murattal',
-      bitrate: 128,
-    ),
-    Reciter(
-      id: 'ar.minshawi',
-      nameArabic: 'محمد صديق المنشاوی',
-      nameEnglish: 'Mohamed Siddiq al-Minshawi',
-      style: 'Murattal',
-      bitrate: 64,
-    ),
-    Reciter(
+    const Reciter(
       id: 'ar.shaatree',
       nameArabic: 'أبو بكر الشاطری',
       nameEnglish: 'Abu Bakr Ash-Shaatree',
       style: 'Murattal',
-      bitrate: 64,
+      bitrate: 128,
     ),
   ];
 }
 
 // ══════════════════════════════════════════
-// ٤. تایمینگی هایلایت (api.quran.com)
+// تایمینگی هایلایت — api.quran.com
 // ══════════════════════════════════════════
 
 class WordTiming {
-  final int position; // ژمارەی وشە لە ئایەتەکەدا
-  final int startMs; // دەستپێکردن (ms)
-  final int endMs; // کۆتایی (ms)
+  final int position;
+  final int startMs;
+  final int endMs;
   final String text;
 
   const WordTiming({
@@ -215,13 +175,11 @@ class WordTiming {
 }
 
 class AyahTiming {
-  final int ayahId;
   final int surahId;
   final int numberInSurah;
   final List<WordTiming> words;
 
   const AyahTiming({
-    required this.ayahId,
     required this.surahId,
     required this.numberInSurah,
     required this.words,
@@ -235,7 +193,6 @@ class AyahTiming {
         .map((w) => WordTiming.fromJson(w as Map<String, dynamic>))
         .toList();
     return AyahTiming(
-      ayahId: j['id'] as int? ?? 0,
       surahId: j['surah_id'] as int? ?? 0,
       numberInSurah: j['ayah_number'] as int? ?? 0,
       words: wordList,
@@ -244,7 +201,7 @@ class AyahTiming {
 }
 
 // ══════════════════════════════════════════
-// ٥. دۆخی خوێندنەوە و دەنگ
+// دۆخی خوێندنەوە و دەنگ
 // ══════════════════════════════════════════
 
 class QuranReadingState {
@@ -268,9 +225,6 @@ class QuranReadingState {
         page: page ?? this.page,
       );
 
-  Map<String, dynamic> toMap() =>
-      {'surah_id': surahId, 'ayah_number': ayahNumber, 'page': page};
-
   factory QuranReadingState.fromMap(Map<String, dynamic> m) =>
       QuranReadingState(
         surahId: m['surah_id'] as int? ?? 1,
@@ -285,7 +239,7 @@ class AudioState {
   final AudioPlaybackState status;
   final int? currentSurahId;
   final int? currentAyahNumber;
-  final int? highlightedWordIndex; // ئایندێکسی وشەی ئێستا
+  final int? highlightedWordIndex;
   final Duration position;
   final Duration duration;
   final Reciter? reciter;
@@ -305,12 +259,14 @@ class AudioState {
   bool get isPlaying => status == AudioPlaybackState.playing;
   bool get isLoading => status == AudioPlaybackState.loading;
   bool get hasError => status == AudioPlaybackState.error;
+  bool get isActive => status != AudioPlaybackState.idle;
 
   AudioState copyWith({
     AudioPlaybackState? status,
     int? currentSurahId,
     int? currentAyahNumber,
     int? highlightedWordIndex,
+    bool clearHighlight = false,
     Duration? position,
     Duration? duration,
     Reciter? reciter,
@@ -320,12 +276,12 @@ class AudioState {
         status: status ?? this.status,
         currentSurahId: currentSurahId ?? this.currentSurahId,
         currentAyahNumber: currentAyahNumber ?? this.currentAyahNumber,
-        highlightedWordIndex: highlightedWordIndex ?? this.highlightedWordIndex,
+        highlightedWordIndex: clearHighlight
+            ? null
+            : (highlightedWordIndex ?? this.highlightedWordIndex),
         position: position ?? this.position,
         duration: duration ?? this.duration,
         reciter: reciter ?? this.reciter,
         errorMessage: errorMessage ?? this.errorMessage,
       );
-
-  AudioState get idle => const AudioState();
 }

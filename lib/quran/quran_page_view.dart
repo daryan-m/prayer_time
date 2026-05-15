@@ -18,6 +18,8 @@ import 'quran_models.dart';
 // ویجێتی لاپەرەی سورە
 // ──────────────────────────────────────────
 
+
+
 class QuranPageView extends StatelessWidget {
   final List<Ayah> ayahs;
   final Surah surah;
@@ -105,7 +107,7 @@ class _SurahHeader extends StatelessWidget {
           Text(
             surah.nameArabic,
             style: const TextStyle(
-              fontFamily: 'Uthmanic',
+              fontFamily: 'Amiri',
               fontSize: 28,
               color: Color(0xFFD4A853),
               fontWeight: FontWeight.bold,
@@ -153,7 +155,7 @@ class _SurahHeader extends StatelessWidget {
             const Text(
               'بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ',
               style: TextStyle(
-                fontFamily: 'Uthmanic',
+                fontFamily: 'Amiri',
                 fontSize: 20,
                 color: Color(0xFFD4A853),
                 height: 1.8,
@@ -315,7 +317,7 @@ class _AyahCard extends StatelessWidget {
       return Text(
         ayah.textUthmani,
         style: const TextStyle(
-          fontFamily: 'Uthmanic',
+          fontFamily: 'Amiri',
           fontSize: 22,
           color: Color(0xFF1A1A1A),
           height: 2.0,
@@ -351,7 +353,7 @@ class _AyahCard extends StatelessWidget {
                   child: Text(
                     i < words.length - 1 ? '$word ' : word,
                     style: TextStyle(
-                      fontFamily: 'Uthmanic',
+                      fontFamily: 'Amiri',
                       fontSize: 22,
                       height: 2.0,
                       color: isHighlighted
