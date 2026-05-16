@@ -1,28 +1,3 @@
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// quran_database_helper.dart
-//
-// بەڕێوەبردنی داتابەیسی SQLite بۆ قورئانی پیرۆز
-//
-// schema ی ڕاستەقینەی tanzil:
-//   تەیبڵ: quran_text
-//   ستوونەکان: index (PK), sura, aya, text
-//
-// وەرگێڕانی کوردی (ku.asan):
-//   فایل: assets/translation/ku_asan.txt
-//   فۆرمات: surah|ayah|دەق (هەر ئایەتێک لە هێڵێکدا)
-//
-// پرۆسەی دروستکردنی DB:
-//   ١. quran.sql دابگرە لە tanzil.net
-//   ٢. sqlite3 quran.db < quran.sql  (لە terminal)
-//   ٣. quran.db بخەرە assets/db/
-//   ٤. ku_asan.txt بخەرە assets/translation/
-//
-// پاکێجەکان:
-//   sqflite: ^2.3.0
-//   path: ^1.9.0
-//   path_provider: ^2.1.2
-//   shared_preferences: ^2.2.2
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 import 'dart:io';
 
