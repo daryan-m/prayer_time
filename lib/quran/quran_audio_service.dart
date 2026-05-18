@@ -1,15 +1,30 @@
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// quran_audio_service.dart
+// ============================================================
+//  quran_audio_service.dart
 //
-// دەنگ: cdn.islamic.network (global ayah number)
-// تایمینگ: JSON asset (segments بۆ هایلایتی وشە)
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+//  بەرپرسێتییەکان:
+//    • لیدانی دەنگ ئایەت بە ئایەت
+//    • هایلایتی وشە بەپێی segments
+//    • بەردەوام بوون بۆ ئایەتی دواتر
+//    • ئۆفلاین cache
+//
+//  سەرچاوەی دەنگ:
+//    ئۆنلاین: cdn.islamic.network/quran/audio/128/{id}/{n}.mp3
+//    ئۆفلاین: ApplicationDocuments/quran_audio/{n}.mp3
+//    n = global ayah number (1:1=1, 2:1=8, ..., 114:6=6236)
+//
+//  تایمینگ:
+//    assets/quran/ayah-recitation-...json
+//    فۆرمات: { "1:1": { segments: [[pos,startMs,endMs], ...] } }
+//
+//  pubspec:
+//    just_audio, http, path, path_provider
+// ============================================================
 
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:just_audio/just_audio.dart';
@@ -18,17 +33,11 @@ import 'package:path_provider/path_provider.dart';
 
 import 'quran_models.dart';
 
-const String _kAudioCacheFolder = 'quran_audio';
-const String _kTimingAsset =
-    'assets/quran/ayah-recitation-muhammad-siddiq-al-minshawi-murattal-hafs-959.json';
+// ── global ayah number ──────────────────────────────────────
+// global(surah, ayah) = _kStart[surah] + ayah
+// دڵنیابووە: 1:1=1, 1:7=7, 2:1=8, 114:6=6236
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// global ayah number
-// global(surah, ayah) = _kSurahStart[surah] + ayah
-// 1:1=1 ... 1:7=7 | 2:1=8 ... 114:6=6236
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-const List<int> _kSurahStart = [
+const List<int> _kStart = [
   0,
   0,
   7,
@@ -151,98 +160,105 @@ const List<int> _kSurahStart = [
   5645,
 ];
 
-int _globalAyah(int surah, int ayah) {
-  if (surah < 1 || surah >= _kSurahStart.length) return ayah;
-  return _kSurahStart[surah] + ayah;
+int _globalN(int surah, int ayah) {
+  assert(surah >= 1 && surah <= 114, 'surah out of range');
+  return _kStart[surah] + ayah;
 }
 
-String _onlineUrl(String reciterId, int surah, int ayah) =>
-    'https://cdn.islamic.network/quran/audio/128/$reciterId/${_globalAyah(surah, ayah)}.mp3';
+String _cdnUrl(String reciterId, int surah, int ayah) =>
+    'https://cdn.islamic.network/quran/audio/128/'
+    '$reciterId/${_globalN(surah, ayah)}.mp3';
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// _Segment
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const String _kTimingAsset =
+    'assets/quran/ayah-recitation-muhammad-siddiq-al-minshawi-murattal-hafs-959.json';
+const String _kAudioDir = 'quran_audio';
 
-class _Segment {
-  final int wordPos; // 1-based
+// ────────────────────────────────────────────────────────────
+//  _Seg  —  تایمینگی یەک وشە
+// ────────────────────────────────────────────────────────────
+
+class _Seg {
+  final int pos; // 1-based word position
   final int startMs;
   final int endMs;
-  const _Segment(this.wordPos, this.startMs, this.endMs);
+  const _Seg(this.pos, this.startMs, this.endMs);
 }
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// _TimingCache
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ────────────────────────────────────────────────────────────
+//  _TimingCache  —  JSON asset بارکردن یەکجار
+// ────────────────────────────────────────────────────────────
 
 class _TimingCache {
-  static final _TimingCache _i = _TimingCache._();
-  factory _TimingCache() => _i;
+  static final _TimingCache _instance = _TimingCache._();
+  factory _TimingCache() => _instance;
   _TimingCache._();
 
   bool _loaded = false;
-  final Map<String, List<_Segment>> _segs = {};
+  final Map<String, List<_Seg>> _data = {};
 
-  Future<void> load() async {
+  Future<void> ensure() async {
     if (_loaded) return;
     try {
       final raw = await rootBundle.loadString(_kTimingAsset);
       final root = jsonDecode(raw) as Map<String, dynamic>;
       for (final e in root.entries) {
-        final val = e.value as Map<String, dynamic>;
-        final rawSegs = val['segments'] as List<dynamic>?;
-        if (rawSegs != null) {
-          _segs[e.key] = rawSegs.map<_Segment>((s) {
-            final seg = s as List<dynamic>;
-            return _Segment(
-              (seg[0] as num).toInt(),
-              (seg[1] as num).toInt(),
-              (seg[2] as num).toInt(),
-            );
-          }).toList();
-        }
+        final rawSegs = e.value['segments'] as List<dynamic>?;
+        if (rawSegs == null || rawSegs.isEmpty) continue;
+        _data[e.key] = rawSegs.map<_Seg>((s) {
+          final a = s as List<dynamic>;
+          return _Seg(
+            (a[0] as num).toInt(),
+            (a[1] as num).toInt(),
+            (a[2] as num).toInt(),
+          );
+        }).toList();
       }
       _loaded = true;
+      debugPrint('[Timing] loaded ${_data.length} ayahs');
     } catch (e) {
-      debugPrint('[Timing] $e');
+      debugPrint('[Timing] error: $e');
     }
   }
 
-  List<_Segment> segsFor(int surah, int ayah) =>
-      _segs['$surah:$ayah'] ?? const [];
+  List<_Seg> segsFor(int surah, int ayah) => _data['$surah:$ayah'] ?? const [];
 }
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// QuranAudioService
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ────────────────────────────────────────────────────────────
+//  QuranAudioService  —  singleton
+// ────────────────────────────────────────────────────────────
 
 class QuranAudioService {
-  static final QuranAudioService _instance = QuranAudioService._internal();
-  factory QuranAudioService() => _instance;
-  QuranAudioService._internal();
+  QuranAudioService._();
+  static final QuranAudioService instance = QuranAudioService._();
+  factory QuranAudioService() => instance;
 
-  final AudioPlayer _player = AudioPlayer();
-  final _stateCtrl = StreamController<AudioState>.broadcast();
+  final _player = AudioPlayer();
   final _timing = _TimingCache();
+  final _ctrl = StreamController<AudioState>.broadcast();
 
   AudioState _state = const AudioState();
   Reciter _reciter = Reciter.defaults.first;
-  int _surahId = 1;
-  int _ayahNumber = 1;
-  int _totalAyahs = 7;
-  List<_Segment> _curSegs = [];
+  int _surah = 1;
+  int _ayah = 1;
+  int _total = 7;
+  List<_Seg> _segs = [];
 
-  Stream<AudioState> get stateStream => _stateCtrl.stream;
-  AudioState get currentState => _state;
+  Stream<AudioState> get stream => _ctrl.stream;
+  AudioState get current => _state;
+
+  // ── راستکردنەوە ─────────────────────────────────────────
 
   Future<void> init() async {
-    await _timing.load();
+    await _timing.ensure();
 
     _player.playerStateStream.listen((ps) {
-      if (ps.processingState == ProcessingState.completed) _onCompleted();
+      if (ps.processingState == ProcessingState.completed) {
+        _onComplete();
+      }
     });
 
     _player.positionStream.listen((pos) {
-      _updateHighlight(pos.inMilliseconds);
+      _tick(pos.inMilliseconds);
       _emit(_state.copyWith(position: pos));
     });
 
@@ -251,45 +267,51 @@ class QuranAudioService {
     });
   }
 
-  void setReciter(Reciter reciter) {
-    _reciter = reciter;
-    _emit(_state.copyWith(reciter: reciter));
+  // ── قاریئ ───────────────────────────────────────────────
+
+  void setReciter(Reciter r) {
+    _reciter = r;
+    _emit(_state.copyWith(reciter: r));
   }
 
-  Future<void> play(int surahId, int ayahNumber, {int totalAyahs = 7}) async {
-    _surahId = surahId;
-    _ayahNumber = ayahNumber;
-    _totalAyahs = totalAyahs;
-    _curSegs = _timing.segsFor(surahId, ayahNumber);
+  // ── لیدان ───────────────────────────────────────────────
+
+  Future<void> play(int surah, int ayah, {required int totalAyahs}) async {
+    _surah = surah;
+    _ayah = ayah;
+    _total = totalAyahs;
+    _segs = _timing.segsFor(surah, ayah);
 
     _emit(_state.copyWith(
       status: AudioPlaybackState.loading,
-      currentSurahId: surahId,
-      currentAyahNumber: ayahNumber,
+      currentSurahId: surah,
+      currentAyahNumber: ayah,
       clearHighlight: true,
       reciter: _reciter,
     ));
 
     try {
-      final source = await _resolveSource(surahId, ayahNumber);
-      await _player.setAudioSource(source);
+      await _player.setAudioSource(await _buildSource(surah, ayah));
       await _player.play();
       _emit(_state.copyWith(status: AudioPlaybackState.playing));
     } catch (e) {
-      debugPrint('[Audio] $e');
+      debugPrint('[Audio] play error: $e');
       _emit(_state.copyWith(
         status: AudioPlaybackState.error,
-        errorMessage: '$e',
+        errorMessage: e.toString(),
       ));
     }
   }
 
-  Future<AudioSource> _resolveSource(int surahId, int ayahNumber) async {
-    final filePath = await _localPath(surahId, ayahNumber);
-    if (await File(filePath).exists()) return AudioSource.file(filePath);
-    final url = _onlineUrl(_reciter.id, surahId, ayahNumber);
-    return AudioSource.uri(Uri.parse(url));
+  Future<AudioSource> _buildSource(int surah, int ayah) async {
+    final path = await _localPath(surah, ayah);
+    if (await File(path).exists()) {
+      return AudioSource.file(path);
+    }
+    return AudioSource.uri(Uri.parse(_cdnUrl(_reciter.id, surah, ayah)));
   }
+
+  // ── کنترۆڵ ──────────────────────────────────────────────
 
   Future<void> pause() async {
     await _player.pause();
@@ -301,88 +323,93 @@ class QuranAudioService {
     _emit(_state.copyWith(status: AudioPlaybackState.playing));
   }
 
-  Future<void> stop() async {
-    _curSegs = [];
-    await _player.stop();
-    _emit(const AudioState());
-  }
-
   Future<void> togglePlayPause() async {
     if (_state.isPlaying) {
       await pause();
-    } else if (_state.status == AudioPlaybackState.paused) {
+    } else if (_state.isPaused) {
       await resume();
     }
   }
 
+  Future<void> stop() async {
+    _segs = [];
+    await _player.stop();
+    _emit(const AudioState());
+  }
+
   Future<void> nextAyah() async {
-    if (_ayahNumber < _totalAyahs) {
-      await play(_surahId, _ayahNumber + 1, totalAyahs: _totalAyahs);
-    }
+    if (_ayah < _total) await play(_surah, _ayah + 1, totalAyahs: _total);
   }
 
   Future<void> prevAyah() async {
-    if (_ayahNumber > 1) {
-      await play(_surahId, _ayahNumber - 1, totalAyahs: _totalAyahs);
-    }
+    if (_ayah > 1) await play(_surah, _ayah - 1, totalAyahs: _total);
   }
 
-  void _updateHighlight(int posMs) {
-    if (_curSegs.isEmpty) return;
-    for (int i = 0; i < _curSegs.length; i++) {
-      final s = _curSegs[i];
-      final nextStart =
-          i < _curSegs.length - 1 ? _curSegs[i + 1].startMs : s.endMs + 1000;
-      if (posMs >= s.startMs && posMs < nextStart) {
-        final wordIdx = s.wordPos - 1;
-        if (_state.highlightedWordIndex != wordIdx) {
-          _emit(_state.copyWith(highlightedWordIndex: wordIdx));
+  // ── هایلایتی وشە ────────────────────────────────────────
+
+  void _tick(int posMs) {
+    if (_segs.isEmpty) return;
+    for (int i = 0; i < _segs.length; i++) {
+      final s = _segs[i];
+      final nextMs =
+          i < _segs.length - 1 ? _segs[i + 1].startMs : s.endMs + 1000;
+      if (posMs >= s.startMs && posMs < nextMs) {
+        final idx = s.pos - 1; // convert to 0-based
+        if (_state.highlightedWordIndex != idx) {
+          _emit(_state.copyWith(highlightedWordIndex: idx));
         }
         return;
       }
     }
   }
 
-  Future<bool> isDownloaded(int surahId, int ayahNumber) async =>
-      File(await _localPath(surahId, ayahNumber)).exists();
+  // ── بەردەوامبوون ────────────────────────────────────────
 
-  Future<void> downloadAyah(int surahId, int ayahNumber) async {
-    final path = await _localPath(surahId, ayahNumber);
-    final file = File(path);
-    if (await file.exists()) return;
-    try {
-      final url = _onlineUrl(_reciter.id, surahId, ayahNumber);
-      final resp = await http.get(Uri.parse(url));
-      if (resp.statusCode == 200) {
-        await file.parent.create(recursive: true);
-        await file.writeAsBytes(resp.bodyBytes);
-      }
-    } catch (_) {}
-  }
-
-  void _onCompleted() {
-    if (_ayahNumber < _totalAyahs) {
-      Future.delayed(const Duration(milliseconds: 300), () {
-        play(_surahId, _ayahNumber + 1, totalAyahs: _totalAyahs);
-      });
+  void _onComplete() {
+    if (_ayah < _total) {
+      Future.delayed(
+        const Duration(milliseconds: 300),
+        () => play(_surah, _ayah + 1, totalAyahs: _total),
+      );
     } else {
       _emit(const AudioState());
     }
   }
 
-  Future<String> _localPath(int surahId, int ayahNumber) async {
-    final dir = await getApplicationDocumentsDirectory();
-    final n = _globalAyah(surahId, ayahNumber);
-    return p.join(dir.path, _kAudioCacheFolder, '$n.mp3');
+  // ── ئۆفلاین ─────────────────────────────────────────────
+
+  Future<bool> isDownloaded(int surah, int ayah) async =>
+      File(await _localPath(surah, ayah)).exists();
+
+  Future<void> downloadAyah(int surah, int ayah) async {
+    final path = await _localPath(surah, ayah);
+    final file = File(path);
+    if (await file.exists()) return;
+    try {
+      final resp = await http.get(Uri.parse(_cdnUrl(_reciter.id, surah, ayah)));
+      if (resp.statusCode == 200) {
+        await file.parent.create(recursive: true);
+        await file.writeAsBytes(resp.bodyBytes);
+      }
+    } catch (e) {
+      debugPrint('[Audio] download error: $e');
+    }
   }
 
-  void _emit(AudioState state) {
-    _state = state;
-    if (!_stateCtrl.isClosed) _stateCtrl.add(state);
+  // ── یارمەتیدەر ──────────────────────────────────────────
+
+  Future<String> _localPath(int surah, int ayah) async {
+    final dir = await getApplicationDocumentsDirectory();
+    return p.join(dir.path, _kAudioDir, '${_globalN(surah, ayah)}.mp3');
+  }
+
+  void _emit(AudioState s) {
+    _state = s;
+    if (!_ctrl.isClosed) _ctrl.add(s);
   }
 
   Future<void> dispose() async {
-    await _stateCtrl.close();
+    await _ctrl.close();
     await _player.dispose();
   }
 }

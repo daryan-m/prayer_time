@@ -20,7 +20,6 @@ import '../widgets/allah_names_widget.dart';
 import '../utils/app_permissions.dart';
 import '../utils/constants.dart';
 import '../main.dart';
-import '../quran/quran_page_view.dart';
 import '../quran/quran_screen.dart';
 
 // ==================== HOME SCREEN ====================

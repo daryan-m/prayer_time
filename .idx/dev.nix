@@ -11,6 +11,7 @@
     pkgs.unzip
     pkgs.gh
     pkgs.ffmpeg
+    pkgs.zip
   ];
   # Sets environment variables in the workspace
   env = { };

@@ -1,10 +1,11 @@
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// quran_models.dart
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ============================================================
+//  quran_models.dart
+//  تەنها مۆدێلەکانی داتا — هیچ لۆجیک تێدا نییە
+// ============================================================
 
-// ══════════════════════════════════════════
-// سورە
-// ══════════════════════════════════════════
+// ─────────────────────────────────────────────────────────
+//  Surah
+// ─────────────────────────────────────────────────────────
 
 class Surah {
   final int id;
@@ -12,7 +13,7 @@ class Surah {
   final String nameSimple;
   final String nameKurdish;
   final int versesCount;
-  final String revelationPlace;
+  final String revelationPlace; // 'makkah' | 'madinah'
   final int pageStart;
   final int juzStart;
 
@@ -27,67 +28,13 @@ class Surah {
     required this.juzStart,
   });
 
-  factory Surah.fromMap(Map<String, dynamic> m) => Surah(
-        id: m['id'] as int,
-        nameArabic: m['name_arabic'] as String? ?? '',
-        nameSimple: m['name_simple'] as String? ?? '',
-        nameKurdish: m['name_kurdish'] as String? ?? '',
-        versesCount: m['verses_count'] as int? ?? 0,
-        revelationPlace: m['revelation_place'] as String? ?? 'makkah',
-        pageStart: m['page_start'] as int? ?? 1,
-        juzStart: m['juz_start'] as int? ?? 1,
-      );
-
   bool get isMakki => revelationPlace == 'makkah';
   String get displayName => nameKurdish.isNotEmpty ? nameKurdish : nameArabic;
 }
 
-// ══════════════════════════════════════════
-// ئایەت — بە schema ی tanzil
-// quran_text: index, sura, aya, text
-// kurdish_translation: sura, aya, text
-// ══════════════════════════════════════════
-
-class Ayah {
-  final int id; // index لە quran_text
-  final int surahId; // sura
-  final int numberInSurah; // aya
-  final String textUthmani; // text لە quran_text
-  final String? textKurdish; // text لە kurdish_translation
-  final int page;
-  final int juz;
-  final bool sajda;
-
-  const Ayah({
-    required this.id,
-    required this.surahId,
-    required this.numberInSurah,
-    required this.textUthmani,
-    this.textKurdish,
-    this.page = 0,
-    this.juz = 0,
-    this.sajda = false,
-  });
-
-  factory Ayah.fromMap(Map<String, dynamic> m) => Ayah(
-        id: m['id'] as int? ?? 0,
-        surahId: m['surah_id'] as int? ?? 0,
-        numberInSurah: m['number_in_surah'] as int? ?? 0,
-        textUthmani: m['text_uthmani'] as String? ?? '',
-        textKurdish: m['text_kurdish'] as String?,
-        page: m['page'] as int? ?? 0,
-        juz: m['juz'] as int? ?? 0,
-        sajda: (m['sajda'] as int? ?? 0) == 1,
-      );
-
-  /// کلیدی MP3: مەسەلەن "002003"
-  String get audioKey =>
-      '${surahId.toString().padLeft(3, '0')}${numberInSurah.toString().padLeft(3, '0')}';
-}
-
-// ══════════════════════════════════════════
-// قاریئ
-// ══════════════════════════════════════════
+// ─────────────────────────────────────────────────────────
+//  Reciter
+// ─────────────────────────────────────────────────────────
 
 class Reciter {
   final String id;
@@ -101,108 +48,46 @@ class Reciter {
     required this.nameArabic,
     required this.nameEnglish,
     required this.style,
-    required this.bitrate,
+    this.bitrate = 128,
   });
 
-  /// URL ی یەک ئایەت — cdn.islamic.network
-  String onlineAudioUrl(int surahId, int ayahNumber) {
-    final s = surahId.toString().padLeft(3, '0');
-    final a = ayahNumber.toString().padLeft(3, '0');
-    return 'https://cdn.islamic.network/quran/audio/$bitrate/$id/$s$a.mp3';
-  }
-
-  String offlineFileName(int surahId, int ayahNumber) {
-    final s = surahId.toString().padLeft(3, '0');
-    final a = ayahNumber.toString().padLeft(3, '0');
-    return '${id}_$s$a.mp3';
-  }
-
-  static List<Reciter> defaults = [
-    const Reciter(
+  static const List<Reciter> defaults = [
+    Reciter(
       id: 'ar.alafasy',
       nameArabic: 'مشاری راشد العفاسی',
       nameEnglish: 'Mishary Alafasy',
       style: 'Murattal',
-      bitrate: 128,
     ),
-    const Reciter(
+    Reciter(
       id: 'ar.abdulbasitmurattal',
       nameArabic: 'عبد الباسط عبد الصمد',
       nameEnglish: 'Abdul Basit Murattal',
       style: 'Murattal',
-      bitrate: 192,
     ),
-    const Reciter(
-      id: 'ar.sudalsshais',
-      nameArabic: 'عبدالرحمن السدیس',
-      nameEnglish: 'Abdurrahmaan As-Sudais',
+    Reciter(
+      id: 'ar.husary',
+      nameArabic: 'محمود خلیل الحصری',
+      nameEnglish: 'Mahmoud Khalil Al-Husary',
       style: 'Murattal',
-      bitrate: 192,
     ),
-    const Reciter(
+    Reciter(
       id: 'ar.shaatree',
       nameArabic: 'أبو بكر الشاطری',
       nameEnglish: 'Abu Bakr Ash-Shaatree',
       style: 'Murattal',
-      bitrate: 128,
+    ),
+    Reciter(
+      id: 'ar.minshawi',
+      nameArabic: 'محمد صدیق المنشاوی',
+      nameEnglish: 'Mohamed Siddiq Al-Minshawi',
+      style: 'Murattal',
     ),
   ];
 }
 
-// ══════════════════════════════════════════
-// تایمینگی هایلایت — api.quran.com
-// ══════════════════════════════════════════
-
-class WordTiming {
-  final int position;
-  final int startMs;
-  final int endMs;
-  final String text;
-
-  const WordTiming({
-    required this.position,
-    required this.startMs,
-    required this.endMs,
-    required this.text,
-  });
-
-  factory WordTiming.fromJson(Map<String, dynamic> j) => WordTiming(
-        position: j['position'] as int? ?? 0,
-        startMs: ((j['timestamp_from'] as num?) ?? 0).toInt(),
-        endMs: ((j['timestamp_to'] as num?) ?? 0).toInt(),
-        text: j['text_uthmani'] as String? ?? '',
-      );
-}
-
-class AyahTiming {
-  final int surahId;
-  final int numberInSurah;
-  final List<WordTiming> words;
-
-  const AyahTiming({
-    required this.surahId,
-    required this.numberInSurah,
-    required this.words,
-  });
-
-  int get startMs => words.isNotEmpty ? words.first.startMs : 0;
-  int get endMs => words.isNotEmpty ? words.last.endMs : 0;
-
-  factory AyahTiming.fromJson(Map<String, dynamic> j) {
-    final wordList = (j['words'] as List<dynamic>? ?? [])
-        .map((w) => WordTiming.fromJson(w as Map<String, dynamic>))
-        .toList();
-    return AyahTiming(
-      surahId: j['surah_id'] as int? ?? 0,
-      numberInSurah: j['ayah_number'] as int? ?? 0,
-      words: wordList,
-    );
-  }
-}
-
-// ══════════════════════════════════════════
-// دۆخی خوێندنەوە و دەنگ
-// ══════════════════════════════════════════
+// ─────────────────────────────────────────────────────────
+//  QuranReadingState
+// ─────────────────────────────────────────────────────────
 
 class QuranReadingState {
   final int surahId;
@@ -224,22 +109,23 @@ class QuranReadingState {
         ayahNumber: ayahNumber ?? this.ayahNumber,
         page: page ?? this.page,
       );
-
-  factory QuranReadingState.fromMap(Map<String, dynamic> m) =>
-      QuranReadingState(
-        surahId: m['surah_id'] as int? ?? 1,
-        ayahNumber: m['ayah_number'] as int? ?? 1,
-        page: m['page'] as int? ?? 1,
-      );
 }
 
+// ─────────────────────────────────────────────────────────
+//  AudioPlaybackState
+// ─────────────────────────────────────────────────────────
+
 enum AudioPlaybackState { idle, loading, playing, paused, error }
+
+// ─────────────────────────────────────────────────────────
+//  AudioState  —  immutable snapshot ی دۆخی پلەیەر
+// ─────────────────────────────────────────────────────────
 
 class AudioState {
   final AudioPlaybackState status;
   final int? currentSurahId;
   final int? currentAyahNumber;
-  final int? highlightedWordIndex;
+  final int? highlightedWordIndex; // 0-based
   final Duration position;
   final Duration duration;
   final Reciter? reciter;
@@ -258,8 +144,9 @@ class AudioState {
 
   bool get isPlaying => status == AudioPlaybackState.playing;
   bool get isLoading => status == AudioPlaybackState.loading;
-  bool get hasError => status == AudioPlaybackState.error;
+  bool get isPaused => status == AudioPlaybackState.paused;
   bool get isActive => status != AudioPlaybackState.idle;
+  bool get hasError => status == AudioPlaybackState.error;
 
   AudioState copyWith({
     AudioPlaybackState? status,
