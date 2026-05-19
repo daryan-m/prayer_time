@@ -1,174 +1,354 @@
-// ============================================================
-//  quran_models.dart
-//  تەنها مۆدێلەکانی داتا — هیچ لۆجیک تێدا نییە
-// ============================================================
-
-// ─────────────────────────────────────────────────────────
-//  Surah
-// ─────────────────────────────────────────────────────────
-
-class Surah {
+class QuranWord {
   final int id;
-  final String nameArabic;
-  final String nameSimple;
-  final String nameKurdish;
-  final int versesCount;
-  final String revelationPlace; // 'makkah' | 'madinah'
-  final int pageStart;
-  final int juzStart;
+  final String location;
+  final int surah;
+  final int ayah;
+  final int wordIndex;
+  final String text;
 
-  const Surah({
+  QuranWord({
     required this.id,
-    required this.nameArabic,
-    required this.nameSimple,
-    required this.nameKurdish,
-    required this.versesCount,
-    required this.revelationPlace,
-    required this.pageStart,
-    required this.juzStart,
+    required this.location,
+    required this.surah,
+    required this.ayah,
+    required this.wordIndex,
+    required this.text,
   });
+
+  factory QuranWord.fromMap(Map<String, dynamic> map) {
+    return QuranWord(
+      id: map['id'] as int,
+      location: map['location'] as String,
+      surah: map['surah'] as int,
+      ayah: map['ayah'] as int,
+      wordIndex: map['word'] as int,
+      text: map['text'] as String,
+    );
+  }
+}
+
+class QuranPageLine {
+  final int pageNumber;
+  final int lineNumber;
+  final String lineType; // 'ayah', 'surah_name', 'basmallah'
+  final bool isCentered;
+  final int? firstWordId;
+  final int? lastWordId;
+  final int? surahNumber;
+
+  QuranPageLine({
+    required this.pageNumber,
+    required this.lineNumber,
+    required this.lineType,
+    required this.isCentered,
+    this.firstWordId,
+    this.lastWordId,
+    this.surahNumber,
+  });
+
+  factory QuranPageLine.fromMap(Map<String, dynamic> map) {
+    int toInt(dynamic v) {
+      if (v == null) return 0;
+      final s = v.toString().trim();
+      if (s.isEmpty || s == 'null') return 0;
+      return int.tryParse(s) ?? 0;
+    }
+
+    int? toIntOrNull(dynamic v) {
+      if (v == null) return null;
+      final s = v.toString().trim();
+      if (s.isEmpty || s == 'null') return null;
+      return int.tryParse(s);
+    }
+
+    return QuranPageLine(
+      pageNumber: toInt(map['page_number']),
+      lineNumber: toInt(map['line_number']),
+      lineType: map['line_type'] as String,
+      isCentered: toInt(map['is_centered']) == 1,
+      firstWordId: toIntOrNull(map['first_word_id']),
+      lastWordId: toIntOrNull(map['last_word_id']),
+      surahNumber: toIntOrNull(map['surah_number']),
+    );
+  }
+}
+
+class QuranAyahGlyph {
+  final int id;
+  final String verseKey;
+  final int surah;
+  final int ayah;
+  final String text;
+  final int pageNumber;
+
+  QuranAyahGlyph({
+    required this.id,
+    required this.verseKey,
+    required this.surah,
+    required this.ayah,
+    required this.text,
+    required this.pageNumber,
+  });
+
+  factory QuranAyahGlyph.fromMap(Map<String, dynamic> map) {
+    return QuranAyahGlyph(
+      id: map['id'] as int,
+      verseKey: map['verse_key'] as String,
+      surah: map['surah'] as int,
+      ayah: map['ayah'] as int,
+      text: map['text'] as String,
+      pageNumber: map['page_number'] as int,
+    );
+  }
+}
+
+class SurahInfo {
+  final int id;
+  final String name;
+  final String nameSimple;
+  final String nameArabic;
+  final int revelationOrder;
+  final String revelationPlace;
+  final int versesCount;
+  final bool bismillahPre;
+
+  SurahInfo({
+    required this.id,
+    required this.name,
+    required this.nameSimple,
+    required this.nameArabic,
+    required this.revelationOrder,
+    required this.revelationPlace,
+    required this.versesCount,
+    required this.bismillahPre,
+  });
+
+  factory SurahInfo.fromMap(Map<String, dynamic> map) {
+    return SurahInfo(
+      id: map['id'] as int,
+      name: map['name'] as String,
+      nameSimple: map['name_simple'] as String,
+      nameArabic: map['name_arabic'] as String,
+      revelationOrder: map['revelation_order'] as int,
+      revelationPlace: map['revelation_place'] as String,
+      versesCount: map['verses_count'] as int,
+      bismillahPre: (map['bismillah_pre'] as int) == 1,
+    );
+  }
 
   bool get isMakki => revelationPlace == 'makkah';
-  String get displayName => nameKurdish.isNotEmpty ? nameKurdish : nameArabic;
 }
 
-// ─────────────────────────────────────────────────────────
-//  Reciter
-// ─────────────────────────────────────────────────────────
+class JuzInfo {
+  final int juzNumber;
+  final int versesCount;
+  final String firstVerseKey;
+  final String lastVerseKey;
+  final Map<String, String> verseMapping;
 
-class Reciter {
-  final String id;
-  final String nameArabic;
-  final String nameEnglish;
-  final String style;
-  final int bitrate;
-
-  const Reciter({
-    required this.id,
-    required this.nameArabic,
-    required this.nameEnglish,
-    required this.style,
-    this.bitrate = 128,
+  JuzInfo({
+    required this.juzNumber,
+    required this.versesCount,
+    required this.firstVerseKey,
+    required this.lastVerseKey,
+    required this.verseMapping,
   });
 
-  static const List<Reciter> defaults = [
-    Reciter(
-      id: 'ar.alafasy',
-      nameArabic: 'مشاری راشد العفاسی',
-      nameEnglish: 'Mishary Alafasy',
-      style: 'Murattal',
-    ),
-    Reciter(
-      id: 'ar.abdulbasitmurattal',
-      nameArabic: 'عبد الباسط عبد الصمد',
-      nameEnglish: 'Abdul Basit Murattal',
-      style: 'Murattal',
-    ),
-    Reciter(
-      id: 'ar.husary',
-      nameArabic: 'محمود خلیل الحصری',
-      nameEnglish: 'Mahmoud Khalil Al-Husary',
-      style: 'Murattal',
-    ),
-    Reciter(
-      id: 'ar.shaatree',
-      nameArabic: 'أبو بكر الشاطری',
-      nameEnglish: 'Abu Bakr Ash-Shaatree',
-      style: 'Murattal',
-    ),
-    Reciter(
-      id: 'ar.minshawi',
-      nameArabic: 'محمد صدیق المنشاوی',
-      nameEnglish: 'Mohamed Siddiq Al-Minshawi',
-      style: 'Murattal',
-    ),
-  ];
+  factory JuzInfo.fromMap(Map<String, dynamic> map) {
+    Map<String, String> mapping = {};
+    try {
+      final raw = map['verse_mapping'] as String;
+      final decoded =
+          raw.replaceAll('{', '').replaceAll('}', '').replaceAll('"', '');
+      for (final part in decoded.split(',')) {
+        final kv = part.split(':');
+        if (kv.length == 2) mapping[kv[0].trim()] = kv[1].trim();
+      }
+    } catch (_) {}
+    return JuzInfo(
+      juzNumber: map['juz_number'] as int,
+      versesCount: map['verses_count'] as int,
+      firstVerseKey: map['first_verse_key'] as String,
+      lastVerseKey: map['last_verse_key'] as String,
+      verseMapping: mapping,
+    );
+  }
 }
 
-// ─────────────────────────────────────────────────────────
-//  QuranReadingState
-// ─────────────────────────────────────────────────────────
+class HizbInfo {
+  final int hizbNumber;
+  final int versesCount;
+  final String firstVerseKey;
+  final String lastVerseKey;
 
-class QuranReadingState {
-  final int surahId;
+  HizbInfo({
+    required this.hizbNumber,
+    required this.versesCount,
+    required this.firstVerseKey,
+    required this.lastVerseKey,
+  });
+
+  factory HizbInfo.fromMap(Map<String, dynamic> map) {
+    return HizbInfo(
+      hizbNumber: map['hizb_number'] as int,
+      versesCount: map['verses_count'] as int,
+      firstVerseKey: map['first_verse_key'] as String,
+      lastVerseKey: map['last_verse_key'] as String,
+    );
+  }
+}
+
+class AyahSegment {
+  final int wordIndex;
+  final int startMs;
+  final int endMs;
+
+  AyahSegment({
+    required this.wordIndex,
+    required this.startMs,
+    required this.endMs,
+  });
+
+  factory AyahSegment.fromList(List<dynamic> list) {
+    return AyahSegment(
+      wordIndex: list[0] as int,
+      startMs: list[1] as int,
+      endMs: list[2] as int,
+    );
+  }
+}
+
+class AyahRecitation {
+  final int surahNumber;
   final int ayahNumber;
-  final int page;
+  final String audioUrl;
+  final int? duration;
+  final List<AyahSegment> segments;
 
-  const QuranReadingState({
-    required this.surahId,
+  AyahRecitation({
+    required this.surahNumber,
     required this.ayahNumber,
-    required this.page,
+    required this.audioUrl,
+    this.duration,
+    required this.segments,
   });
 
-  factory QuranReadingState.initial() =>
-      const QuranReadingState(surahId: 1, ayahNumber: 1, page: 1);
+  factory AyahRecitation.fromMap(Map<String, dynamic> map) {
+    final segList = (map['segments'] as List<dynamic>)
+        .map((s) => AyahSegment.fromList(s as List<dynamic>))
+        .toList();
+    return AyahRecitation(
+      surahNumber: map['surah_number'] as int,
+      ayahNumber: map['ayah_number'] as int,
+      audioUrl: map['audio_url'] as String,
+      duration: map['duration'] as int?,
+      segments: segList,
+    );
+  }
 
-  QuranReadingState copyWith({int? surahId, int? ayahNumber, int? page}) =>
-      QuranReadingState(
-        surahId: surahId ?? this.surahId,
-        ayahNumber: ayahNumber ?? this.ayahNumber,
-        page: page ?? this.page,
-      );
+  String get verseKey => '$surahNumber:$ayahNumber';
 }
 
-// ─────────────────────────────────────────────────────────
-//  AudioPlaybackState
-// ─────────────────────────────────────────────────────────
+// Reciter info model
+class ReciterInfo {
+  final String id;
+  final String name;
+  final String nameArabic;
+  final String jsonFileName;
+  final bool isDownloaded;
 
-enum AudioPlaybackState { idle, loading, playing, paused, error }
-
-// ─────────────────────────────────────────────────────────
-//  AudioState  —  immutable snapshot ی دۆخی پلەیەر
-// ─────────────────────────────────────────────────────────
-
-class AudioState {
-  final AudioPlaybackState status;
-  final int? currentSurahId;
-  final int? currentAyahNumber;
-  final int? highlightedWordIndex; // 0-based
-  final Duration position;
-  final Duration duration;
-  final Reciter? reciter;
-  final String? errorMessage;
-
-  const AudioState({
-    this.status = AudioPlaybackState.idle,
-    this.currentSurahId,
-    this.currentAyahNumber,
-    this.highlightedWordIndex,
-    this.position = Duration.zero,
-    this.duration = Duration.zero,
-    this.reciter,
-    this.errorMessage,
+  ReciterInfo({
+    required this.id,
+    required this.name,
+    required this.nameArabic,
+    required this.jsonFileName,
+    this.isDownloaded = false,
   });
-
-  bool get isPlaying => status == AudioPlaybackState.playing;
-  bool get isLoading => status == AudioPlaybackState.loading;
-  bool get isPaused => status == AudioPlaybackState.paused;
-  bool get isActive => status != AudioPlaybackState.idle;
-  bool get hasError => status == AudioPlaybackState.error;
-
-  AudioState copyWith({
-    AudioPlaybackState? status,
-    int? currentSurahId,
-    int? currentAyahNumber,
-    int? highlightedWordIndex,
-    bool clearHighlight = false,
-    Duration? position,
-    Duration? duration,
-    Reciter? reciter,
-    String? errorMessage,
-  }) =>
-      AudioState(
-        status: status ?? this.status,
-        currentSurahId: currentSurahId ?? this.currentSurahId,
-        currentAyahNumber: currentAyahNumber ?? this.currentAyahNumber,
-        highlightedWordIndex: clearHighlight
-            ? null
-            : (highlightedWordIndex ?? this.highlightedWordIndex),
-        position: position ?? this.position,
-        duration: duration ?? this.duration,
-        reciter: reciter ?? this.reciter,
-        errorMessage: errorMessage ?? this.errorMessage,
-      );
 }
+
+// Built-in reciters list (matching downloaded JSON files)
+const List<Map<String, String>> kBuiltInReciters = [
+  {
+    'id': '953',
+    'name': 'Mishari Rashid Al-Afasy',
+    'nameArabic': 'مشاري راشد العفاسي',
+    'file': 'ayah-recitation-mishari-rashid-al-afasy-murattal-hafs-953.json',
+  },
+];
+
+// All available reciters for online download
+const List<Map<String, String>> kAllReciters = [
+  {
+    'id': '953',
+    'name': 'Mishari Rashid Al-Afasy',
+    'nameArabic': 'مشاري راشد العفاسي',
+    'file': 'ayah-recitation-mishari-rashid-al-afasy-murattal-hafs-953.json',
+    'url':
+        'https://qul.tarteel.ai/resources/recitation/118/download?format=json',
+  },
+  {
+    'id': '950',
+    'name': 'Abdul Basit Abdul Samad',
+    'nameArabic': 'عبد الباسط عبد الصمد',
+    'file': 'ayah-recitation-abdul-basit-abdul-samad-murattal-hafs-950.json',
+    'url':
+        'https://qul.tarteel.ai/resources/recitation/115/download?format=json',
+  },
+  {
+    'id': '952',
+    'name': 'Abu Bakr al-Shatri',
+    'nameArabic': 'أبو بكر الشاطري',
+    'file': 'ayah-recitation-abu-bakr-al-shatri-murattal-hafs-952.json',
+    'url':
+        'https://qul.tarteel.ai/resources/recitation/117/download?format=json',
+  },
+  {
+    'id': '958',
+    'name': 'Khalifa Al Tunaiji',
+    'nameArabic': 'خليفة الطنيجي',
+    'file': 'ayah-recitation-khalifa-al-tunaiji-murattal-hafs-958.json',
+    'url':
+        'https://qul.tarteel.ai/resources/recitation/109/download?format=json',
+  },
+  {
+    'id': '948',
+    'name': 'Maher Al-Muaiqly',
+    'nameArabic': 'ماهر المعيقلي',
+    'file': 'ayah-recitation-maher-al-mu-aiqly-murattal-hafs-948.json',
+    'url':
+        'https://qul.tarteel.ai/resources/recitation/113/download?format=json',
+  },
+  {
+    'id': '957',
+    'name': 'Mahmoud Khalil Al-Husary',
+    'nameArabic': 'محمود خليل الحصري',
+    'file': 'ayah-recitation-mahmoud-khalil-al-husary-murattal-hafs-957.json',
+    'url':
+        'https://qul.tarteel.ai/resources/recitation/110/download?format=json',
+  },
+  {
+    'id': '959',
+    'name': 'Muhammad Siddiq Al-Minshawi',
+    'nameArabic': 'محمد صديق المنشاوي',
+    'file':
+        'ayah-recitation-muhammad-siddiq-al-minshawi-murattal-hafs-959.json',
+    'url':
+        'https://qul.tarteel.ai/resources/recitation/108/download?format=json',
+  },
+  {
+    'id': '954',
+    'name': 'Saad al-Ghamdi',
+    'nameArabic': 'سعد الغامدي',
+    'file': 'ayah-recitation-saad-al-ghamdi-murattal-hafs-954.json',
+    'url':
+        'https://qul.tarteel.ai/resources/recitation/119/download?format=json',
+  },
+  {
+    'id': '961',
+    'name': 'Yasser Al-Dosari',
+    'nameArabic': 'ياسر الدوسري',
+    'file': 'ayah-recitation-yasser-al-dosari-murattal-hafs-961.json',
+    'url':
+        'https://qul.tarteel.ai/resources/recitation/103/download?format=json',
+  },
+];

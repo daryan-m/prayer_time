@@ -1,345 +1,15 @@
-// ============================================================
-//  quran_screen.dart
-//
-//  بەرپرسێتییەکان (UI تەنها):
-//    • PageView بۆ ١-٣ asset + ٤-٦٠٤ دانلۆد PNG
-//    • TopBar: مکی/مدنی — ناوی سورە — جوزء
-//    • هایلایتی ئایەت: bounds لە QPC DB
-//    • AudioBar: پلەیەر لەخوارەوە
-//    • بۆکسی دانلۆد: progress گلۆبال، جوڵە نابێت
-//    • پاشبزمی سپی
-//
-//  assets:
-//    assets/quran/page001.png  ...  page003.png
-//    assets/quran/qpc-v2-15-lines.db
-//    assets/quran/qpc-v2-ayah-by-ayah-glyphs.db
-//
-//  pubspec:
-//    sqflite, path, path_provider, http
-// ============================================================
-
-import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:http/http.dart' as http;
-import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
-import 'package:sqflite/sqflite.dart';
-
-import 'quran_audio_service.dart';
-import 'quran_database_helper.dart';
+import 'package:archive/archive_io.dart';
+import 'package:http/http.dart' as http;
 import 'quran_models.dart';
+import 'quran_database_helper.dart';
+import 'quran_audio_service.dart';
 
-// ── ثابتەکان ─────────────────────────────────────────────
-
-const int _kLocalMax = 3;
-const int _kTotalPages = 604;
-const int _kLines = 15; // دێر بە لاپەرە
-const String _kDlBase = 'https://archive.org/download/ALQURANPERPAGEFORMATPNG/';
-const String _kLinesAsset = 'assets/quran/qpc-v2-15-lines.db';
-const String _kGlyphsAsset = 'assets/quran/qpc-v2-ayah-by-ayah-glyphs.db';
-
-// جوزء — لاپەرەی دەستپێکی هەر جوزئێک (دڵنیابووە لە DB)
-const List<int> _kJuzStart = [
-  1,
-  22,
-  42,
-  62,
-  82,
-  102,
-  122,
-  142,
-  162,
-  182,
-  202,
-  222,
-  242,
-  262,
-  282,
-  302,
-  322,
-  342,
-  362,
-  382,
-  402,
-  422,
-  442,
-  462,
-  482,
-  502,
-  522,
-  542,
-  562,
-  582,
-];
-
-int _juzOf(int page) {
-  for (int i = _kJuzStart.length - 1; i >= 0; i--) {
-    if (_kJuzStart[i] <= page) return i + 1;
-  }
-  return 1;
-}
-
-// ── Fallback سورە ────────────────────────────────────────
-
-const _kFallbackSurah = Surah(
-  id: 1,
-  nameArabic: 'الفاتحة',
-  nameSimple: 'Al-Fatihah',
-  nameKurdish: 'فاتیحە',
-  versesCount: 7,
-  revelationPlace: 'makkah',
-  pageStart: 1,
-  juzStart: 1,
-);
-
-// ============================================================
-//  _AyahBound  —  ناوچەی ئایەتێک لە لاپەرە
-//  y1/y2 normalized 0.0–1.0
-// ============================================================
-
-class _AyahBound {
-  final int surah;
-  final int ayah;
-  final double y1;
-  final double y2;
-
-  const _AyahBound({
-    required this.surah,
-    required this.ayah,
-    required this.y1,
-    required this.y2,
-  });
-
-  bool contains(double ny) => ny >= y1 && ny < y2;
-}
-
-// ============================================================
-//  _QuranLayoutService  —  singleton
-//
-//  لە دوو DB:
-//    qpc-v2-ayah-by-ayah-glyphs.db  →  global word range
-//    qpc-v2-15-lines.db             →  bounds بۆ هەر لاپەرە
-// ============================================================
-
-class _QuranLayoutService {
-  _QuranLayoutService._();
-  static final _QuranLayoutService instance = _QuranLayoutService._();
-  factory _QuranLayoutService() => instance;
-
-  bool _ready = false;
-  bool get isReady => _ready;
-
-  // verse_key → (wordStart, wordEnd, surah, ayah)
-  final Map<String, (int, int, int, int)> _words = {};
-
-  // page → List<_AyahBound> sorted by y1
-  final Map<int, List<_AyahBound>> _bounds = {};
-
-  // page → surahId
-  final Map<int, int> _pageSurah = {};
-
-  Future<void> init() async {
-    if (_ready) return;
-    final dir = await getApplicationDocumentsDirectory();
-
-    final lPath = await _copyAsset(_kLinesAsset, dir, 'qpc_lines.db');
-    final gPath = await _copyAsset(_kGlyphsAsset, dir, 'qpc_glyphs.db');
-
-    // ── ١. global word range لە glyphs db ──
-    final gDb = await openDatabase(gPath, readOnly: true);
-    final gRows = await gDb.rawQuery(
-        'SELECT verse_key, surah, ayah, text FROM verses ORDER BY id');
-    await gDb.close();
-
-    int total = 0;
-    for (final r in gRows) {
-      final vk = r['verse_key'] as String;
-      final s = r['surah'] as int;
-      final a = r['ayah'] as int;
-      final wc = (r['text'] as String).split(' ').length;
-      _words[vk] = (total + 1, total + wc, s, a);
-      total += wc;
-    }
-
-    // ── ٢. page lines لە lines db ──
-    final pDb = await openDatabase(lPath, readOnly: true);
-    final pRows =
-        await pDb.rawQuery('SELECT page_number, line_number, line_type, '
-            'first_word_id, last_word_id, surah_number '
-            'FROM pages ORDER BY page_number, line_number');
-    await pDb.close();
-
-    int curSurah = 1;
-    // page → [(lineNum, firstWord, lastWord)]
-    final Map<int, List<(int, int, int)>> pageLines = {};
-
-    for (final r in pRows) {
-      final pg = r['page_number'] as int;
-      final ln = r['line_number'] as int;
-      final lt = r['line_type'] as String? ?? '';
-      final sn = r['surah_number'];
-      final fw = r['first_word_id'];
-      final lw = r['last_word_id'];
-
-      if (lt == 'surah_name' && sn != null) {
-        final v = sn is int ? sn : int.tryParse(sn.toString().trim());
-        if (v != null && v > 0) curSurah = v;
-      }
-      _pageSurah.putIfAbsent(pg, () => curSurah);
-
-      if (lt == 'ayah' && fw != null && lw != null) {
-        final fwI = fw is int ? fw : int.tryParse(fw.toString().trim());
-        final lwI = lw is int ? lw : int.tryParse(lw.toString().trim());
-        if (fwI != null && lwI != null) {
-          pageLines.putIfAbsent(pg, () => []);
-          pageLines[pg]!.add((ln, fwI, lwI));
-        }
-      }
-    }
-
-    // ── ٣. bounds بنیات بکە ──
-    for (final e in pageLines.entries) {
-      final pg = e.key;
-      final lines = e.value;
-      final lc = lines.length; // ١٥
-
-      // هەر ئایەتێک → (firstLine, lastLine)
-      final Map<String, (int, int)> ayahLines = {};
-
-      for (final line in lines) {
-        final ln = line.$1;
-        final fw = line.$2;
-        final lw = line.$3;
-        for (final we in _words.entries) {
-          final ws = we.value.$1;
-          final ww = we.value.$2;
-          if (ws <= lw && ww >= fw) {
-            final cur = ayahLines[we.key];
-            ayahLines[we.key] = cur == null
-                ? (ln, ln)
-                : (cur.$1 < ln ? cur.$1 : ln, cur.$2 > ln ? cur.$2 : ln);
-          }
-        }
-      }
-
-      final list = <_AyahBound>[];
-      for (final ae in ayahLines.entries) {
-        final info = _words[ae.key]!;
-        list.add(_AyahBound(
-          surah: info.$3,
-          ayah: info.$4,
-          y1: (ae.value.$1 - 1) / lc,
-          y2: ae.value.$2 / lc,
-        ));
-      }
-      list.sort((a, b) => a.y1.compareTo(b.y1));
-      _bounds[pg] = list;
-    }
-
-    _ready = true;
-    debugPrint(
-        '[Layout] ready — ${_words.length} ayahs, ${_bounds.length} pages');
-  }
-
-  Future<String> _copyAsset(String asset, Directory dir, String name) async {
-    final dest = File(p.join(dir.path, name));
-    if (!dest.existsSync()) {
-      final d = await rootBundle.load(asset);
-      await dest.writeAsBytes(d.buffer.asUint8List(), flush: true);
-    }
-    return dest.path;
-  }
-
-  List<_AyahBound> boundsFor(int page) => _bounds[page] ?? const [];
-  int surahOf(int page) => _pageSurah[page] ?? 1;
-
-  /// تاپ لە ny → ئایەت دۆزینەوە (یەکەم containsY)
-  _AyahBound? findAyah(int page, double ny) {
-    for (final b in boundsFor(page)) {
-      if (b.contains(ny)) return b;
-    }
-    return null;
-  }
-}
-
-// ============================================================
-//  _PageDownloader  —  singleton
-// ============================================================
-
-class _PageDownloader {
-  _PageDownloader._();
-  static final _PageDownloader instance = _PageDownloader._();
-  factory _PageDownloader() => instance;
-
-  String? _dir;
-
-  Future<void> init() async {
-    final d = await getApplicationDocumentsDirectory();
-    _dir = p.join(d.path, 'qpages');
-    await Directory(_dir!).create(recursive: true);
-  }
-
-  String path(int page) =>
-      p.join(_dir!, 'p${page.toString().padLeft(3, '0')}.png');
-
-  bool exists(int page) => page <= _kLocalMax || File(path(page)).existsSync();
-
-  ImageProvider imageOf(int page) {
-    if (page <= _kLocalMax) {
-      return AssetImage(
-          'assets/quran/page${page.toString().padLeft(3, '0')}.png');
-    }
-    final f = File(path(page));
-    if (f.existsSync()) return FileImage(f);
-    // فالبەک: لاپەرەی یەکەم
-    return const AssetImage('assets/quran/page001.png');
-  }
-
-  Future<bool> download(int page,
-      {void Function(double progress)? onProgress}) async {
-    if (page <= _kLocalMax) return true;
-    final f = File(path(page));
-    if (f.existsSync()) return true;
-
-    final fname = 'page${page.toString().padLeft(3, '0')}.png';
-    final url = '$_kDlBase$fname';
-
-    for (int attempt = 1; attempt <= 3; attempt++) {
-      try {
-        final req = http.Request('GET', Uri.parse(url));
-        final resp = await req.send().timeout(const Duration(seconds: 60));
-        if (resp.statusCode != 200) break;
-
-        final total = resp.contentLength ?? 0;
-        int received = 0;
-        final sink = f.openWrite();
-
-        await for (final chunk in resp.stream) {
-          sink.add(chunk);
-          received += chunk.length;
-          if (total > 0) onProgress?.call(received / total);
-        }
-        await sink.flush();
-        await sink.close();
-        return true;
-      } catch (_) {
-        try {
-          await f.delete();
-        } catch (_) {}
-        if (attempt < 3) {
-          await Future.delayed(Duration(seconds: attempt * 2));
-        }
-      }
-    }
-    return false;
-  }
-}
-
-// ============================================================
-//  QuranScreen
-// ============================================================
+// Font base URL — individual files on GitHub Pages
+const String kFontBaseUrl = 'https://daryan-m.github.io/fonts';
 
 class QuranScreen extends StatefulWidget {
   const QuranScreen({super.key});
@@ -349,300 +19,734 @@ class QuranScreen extends StatefulWidget {
 }
 
 class _QuranScreenState extends State<QuranScreen> {
-  final _layout = _QuranLayoutService.instance;
-  final _dl = _PageDownloader.instance;
-  final _db = QuranDatabaseHelper.instance;
-  final _audio = QuranAudioService.instance;
+  final QuranDatabaseHelper _db = QuranDatabaseHelper();
+  final QuranAudioService _audio = QuranAudioService();
 
-  late final PageController _ctrl;
+  bool _isInitialized = false;
+  bool _isLoadingPage = false;
+  bool _barsVisible = true; // toggle top/bottom bars on tap
 
-  bool _ready = false;
-  int _page = 1;
-  Surah _surah = _kFallbackSurah;
-  List<Surah> _surahs = [];
+  // Font state
+  final Map<int, bool> _fontReady = {}; // page -> font loaded
+  final Set<int> _loadedFonts = {}; // pages whose font is loaded into engine
+  final Map<int, double> _pageDownloadProgress =
+      {}; // per-page download progress
+  String? _fontsDir;
 
-  StreamSubscription<AudioState>? _audioSub;
-  AudioState _audioState = const AudioState();
-  bool _playerVisible = false;
+  int _currentPage = 1;
+  List<QuranPageLine> _pageLines = [];
+  List<QuranWord> _pageWords = [];
+  Map<int, QuranWord> _wordById = {};
 
-  // دانلۆد
-  int _dlDone = 0;
-  double _dlProg = 0.0;
-  static const int _dlTotal = _kTotalPages - _kLocalMax;
+  List<SurahInfo> _allSurahs = [];
+  int _currentJuz = 1;
+  SurahInfo? _currentSurah;
 
-  // ── init ────────────────────────────────────────────────
+  final PageController _pageController = PageController(initialPage: 0);
 
   @override
   void initState() {
     super.initState();
-    _ctrl = PageController();
-    _boot();
+    _init();
   }
 
-  Future<void> _boot() async {
-    // هەموو یەکجار بار بکە
-    await Future.wait([
-      _layout.init(),
-      _dl.init(),
-      _audio.init(),
-    ]);
+  Future<void> _init() async {
+    await _db.initAll();
+    await _audio.init();
+    _allSurahs = await _db.getAllSurahs();
 
-    _surahs = await _db.getAllSurahs();
+    // Setup fonts directory
+    final appDir = await getApplicationDocumentsDirectory();
+    _fontsDir = '${appDir.path}/quran_fonts';
+    await Directory(_fontsDir!).create(recursive: true);
 
-    // ئاخرین شوێن
-    final saved = await _db.loadReadingState();
-    _page = saved.page.clamp(1, _kTotalPages);
+    // p1.ttf is always in assets — mark page 1 as ready
+    _fontReady[1] = true;
 
-    // قاریئی پاشەکەوتکراو
-    final rid = await _db.loadReciterId();
-    final rec = Reciter.defaults.firstWhere(
-      (r) => r.id == rid,
-      orElse: () => Reciter.defaults.first,
-    );
-    _audio.setReciter(rec);
+    // Check if other fonts already downloaded
+    await _checkFontsReady();
 
-    // ئاگادار چەند لاپەرە ئامادەن
-    int done = 0;
-    for (int pg = _kLocalMax + 1; pg <= _kTotalPages; pg++) {
-      if (_dl.exists(pg)) done++;
-    }
+    await _loadPage(1);
 
-    _audioSub = _audio.stream.listen(_onAudio);
+    if (mounted) setState(() => _isInitialized = true);
 
-    if (mounted) {
-      setState(() {
-        _ready = true;
-        _dlDone = done;
-        _dlProg = done / _dlTotal;
-        _surah = _surahFor(_layout.surahOf(_page));
-      });
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (_ctrl.hasClients) _ctrl.jumpToPage(_page - 1);
-      });
-    }
-
-    // ignore: unawaited_futures
-    _runDownloader(done);
+    // Start downloading fonts — current page first, then background
+    _prefetchFonts(1);
   }
 
-  // ── دانلۆدی پاشبزم ──────────────────────────────────────
+  // ─── Font Management ────────────────────────────────────────────────────────
 
-  Future<void> _runDownloader(int alreadyDone) async {
-    int done = alreadyDone;
-    for (int pg = _kLocalMax + 1; pg <= _kTotalPages; pg++) {
-      if (!mounted) return;
-      if (_dl.exists(pg)) continue;
+  Future<void> _checkFontsReady() async {
+    // Check all font files in parallel for speed
+    final futures = <Future<MapEntry<int, bool>>>[];
+    for (int page = 2; page <= 604; page++) {
+      final p = page;
+      futures.add(
+        File('$_fontsDir/p$p.ttf').exists().then((e) => MapEntry(p, e)),
+      );
+    }
+    final results = await Future.wait(futures);
+    for (final entry in results) {
+      _fontReady[entry.key] = entry.value;
+    }
+  }
 
-      await _dl.download(pg, onProgress: (v) {
-        if (!mounted) return;
-        final g = (done + v) / _dlTotal;
-        if ((g - _dlProg).abs() > 0.005) {
-          setState(() => _dlProg = g.clamp(0.0, 1.0));
+  bool _isPageFontReady(int page) {
+    if (page == 1) return true;
+    return _fontReady[page] == true;
+  }
+
+  /// Download a single page font from GitHub Pages
+  Future<void> _downloadFontForPage(int page) async {
+    if (page == 1) return; // already in assets
+    if (_fontReady[page] == true) return; // already downloaded
+    if (_pageDownloadProgress.containsKey(page)) return; // already downloading
+
+    final url = '$kFontBaseUrl/p$page.ttf';
+    final outFile = File('$_fontsDir/p$page.ttf');
+
+    try {
+      final request = http.Request('GET', Uri.parse(url));
+      final response = await http.Client().send(request);
+      final totalBytes = response.contentLength ?? 0;
+      int received = 0;
+
+      if (mounted) setState(() => _pageDownloadProgress[page] = 0.0);
+
+      final sink = outFile.openWrite();
+      await for (final chunk in response.stream) {
+        sink.add(chunk);
+        received += chunk.length;
+        if (totalBytes > 0 && mounted) {
+          setState(() {
+            _pageDownloadProgress[page] = received / totalBytes;
+          });
         }
-      });
+      }
+      await sink.flush();
+      await sink.close();
 
-      done++;
       if (mounted) {
         setState(() {
-          _dlDone = done;
-          _dlProg = (done / _dlTotal).clamp(0.0, 1.0);
+          _fontReady[page] = true;
+          _pageDownloadProgress.remove(page);
+        });
+        // If this is the current page, reload it so font renders
+        if (page == _currentPage) {
+          _pendingPage = null;
+          _isLoadingPage = false;
+          await _loadPage(_currentPage);
+        }
+      }
+    } catch (e) {
+      try {
+        await outFile.delete();
+      } catch (_) {}
+      if (mounted) setState(() => _pageDownloadProgress.remove(page));
+      debugPrint('Font download error p$page: $e');
+    }
+  }
+
+  /// Download fonts for current page + next 2 pages in background
+  void _downloadAllFonts() {
+    for (int p = 2; p <= 604; p++) {
+      if (_fontReady[p] != true) {
+        _downloadFontForPage(p);
+      }
+    }
+  }
+
+  /// Download current page font + prefetch nearby pages
+  void _prefetchFonts(int currentPage) {
+    for (int p = currentPage; p <= (currentPage + 3).clamp(1, 604); p++) {
+      if (_fontReady[p] != true) {
+        _downloadFontForPage(p);
+      }
+    }
+  }
+
+  Future<bool> _loadFontForPage(int page) async {
+    if (page == 1) return true; // bundled in assets via pubspec
+    if (_loadedFonts.contains(page)) return true; // already loaded
+    if (_fontReady[page] != true) return false; // not downloaded yet
+
+    final fontName = 'QCFp${page.toString().padLeft(3, '0')}';
+    final file = File('$_fontsDir/p$page.ttf');
+    if (!await file.exists()) return false;
+
+    try {
+      final loader = FontLoader(fontName);
+      final bytes = await file.readAsBytes();
+      loader.addFont(Future.value(ByteData.view(bytes.buffer)));
+      await loader.load();
+      _loadedFonts.add(page);
+      return true;
+    } catch (e) {
+      debugPrint('Font load error p$page: $e');
+      return false;
+    }
+  }
+
+  String _fontNameForPage(int page) {
+    if (page == 1) return 'QCFp001'; // bundled p1.ttf
+    return 'QCFp${page.toString().padLeft(3, '0')}';
+  }
+
+  // ─── Page Loading ───────────────────────────────────────────────────────────
+
+  int? _pendingPage; // tracks the latest requested page
+
+  Future<void> _loadPage(int pageNumber) async {
+    _pendingPage = pageNumber;
+    if (_isLoadingPage) {
+      return; // debounce: will be triggered after current load
+    }
+    _isLoadingPage = true;
+
+    while (_pendingPage != null) {
+      final targetPage = _pendingPage!;
+      _pendingPage = null;
+
+      final lines = await _db.getLinesForPage(targetPage);
+
+      final allWords = <QuranWord>[];
+      final wordMap = <int, QuranWord>{};
+
+      for (final line in lines) {
+        if (line.lineType == 'ayah' || line.lineType == 'basmallah') {
+          if (line.firstWordId != null && line.lastWordId != null) {
+            final words =
+                await _db.getWordsRange(line.firstWordId!, line.lastWordId!);
+            for (final w in words) {
+              wordMap[w.id] = w;
+            }
+            allWords.addAll(words);
+          }
+        }
+      }
+
+      // Load font — if not ready yet, page will show loading state
+      final fontLoaded = await _loadFontForPage(targetPage);
+
+      final juz = _db.getJuzForPage(targetPage);
+      final surahNum = _db.getSurahForPage(targetPage);
+      SurahInfo? surahInfo;
+      if (_allSurahs.isNotEmpty && surahNum > 0) {
+        surahInfo = _allSurahs.firstWhere(
+          (s) => s.id == surahNum,
+          orElse: () => _allSurahs.first,
+        );
+      }
+
+      if (mounted) {
+        setState(() {
+          _currentPage = targetPage;
+          _pageLines = lines;
+          _pageWords = allWords;
+          _wordById = wordMap;
+          _currentJuz = juz;
+          _currentSurah = surahInfo;
+          // If font was just loaded, mark it ready so UI renders
+          if (fontLoaded) _fontReady[targetPage] = true;
         });
       }
-      await Future.delayed(const Duration(milliseconds: 30));
     }
+
+    _isLoadingPage = false;
+    // Prefetch fonts for nearby pages
+    _prefetchFonts(_currentPage);
   }
 
-  // ── یارمەتیدەر ──────────────────────────────────────────
-
-  Surah _surahFor(int id) => _surahs.firstWhere(
-        (s) => s.id == id,
-        orElse: () => _kFallbackSurah,
-      );
-
-  void _onPageChanged(int idx) {
-    final pg = idx + 1;
-    final s = _surahFor(_layout.surahOf(pg));
-    setState(() {
-      _page = pg;
-      _surah = s;
-    });
-    _db.saveReadingState(
-        QuranReadingState(surahId: s.id, ayahNumber: 1, page: pg));
+  void _goToPage(int page) {
+    if (page < 1 || page > 604) return;
+    _pageController.jumpToPage(page - 1);
   }
 
-  // ── تاپ روو لاپەرە ──────────────────────────────────────
-
-  void _onTap(TapDownDetails d, Size sz) {
-    // تاپ کاتی پلەیەر دیاریە → دادەخات
-    if (_playerVisible) {
-      setState(() => _playerVisible = false);
-      return;
-    }
-    final ny = d.localPosition.dy / sz.height;
-    final bound = _layout.findAyah(_page, ny);
-    if (bound != null) _playAyah(bound.surah, bound.ayah);
-  }
-
-  Future<void> _playAyah(int surah, int ayah) async {
-    final total = await _db.getSurahVerseCount(surah);
-    if (!mounted) return;
-    setState(() => _playerVisible = true);
-    await _audio.play(surah, ayah, totalAyahs: total);
-  }
-
-  void _onAudio(AudioState s) {
-    if (!mounted) return;
-    setState(() {
-      _audioState = s;
-      if (s.status == AudioPlaybackState.idle) _playerVisible = false;
-    });
-  }
-
-  void _jumpTo(int page) => _ctrl.jumpToPage(page.clamp(1, _kTotalPages) - 1);
-
-  // ── dispose ─────────────────────────────────────────────
-
-  @override
-  void dispose() {
-    _audioSub?.cancel();
-    _audio.stop();
-    _ctrl.dispose();
-    super.dispose();
-  }
-
-  // ── build ────────────────────────────────────────────────
+  // ─── UI ────────────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
-    if (!_ready) return const _SplashScreen();
+    if (!_isInitialized) {
+      return const Scaffold(
+        backgroundColor: Color(0xFFF5F0E8),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(color: Color(0xFF4A7C59)),
+              SizedBox(height: 16),
+              Text('قورئانى پیرۆز...', style: TextStyle(fontSize: 16)),
+            ],
+          ),
+        ),
+      );
+    }
 
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Column(children: [
-          // ── TopBar
-          _TopBar(
-            page: _page,
-            juz: _juzOf(_page),
-            surah: _surah,
-            dlDone: _dlDone,
-            dlTotal: _dlTotal,
-            dlProg: _dlProg,
-            onPage: _showGoToPage,
-            onList: _showSurahList,
-          ),
-
-          // ── PageView
-          Expanded(
-            child: PageView.builder(
-              controller: _ctrl,
-              reverse: true, // ڕاست بۆ چەپ
-              itemCount: _kTotalPages,
-              onPageChanged: _onPageChanged,
-              itemBuilder: (_, i) => _buildPage(i + 1),
+      backgroundColor: const Color(0xFFF5F0E8),
+      body: GestureDetector(
+        onTap: () => setState(() => _barsVisible = !_barsVisible),
+        child: Column(
+          children: [
+            // Top bar — لە ژێر status bar دەست پێدەکات
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              height:
+                  _barsVisible ? (MediaQuery.of(context).padding.top + 52) : 0,
+              clipBehavior: Clip.hardEdge,
+              decoration: const BoxDecoration(),
+              child: SafeArea(
+                bottom: false,
+                child: _buildTopBar(),
+              ),
             ),
-          ),
-
-          // ── AudioBar
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 220),
-            child: (_playerVisible || _audioState.isActive)
-                ? _AudioBar(
-                    key: const ValueKey('bar'),
-                    state: _audioState,
-                    surah: _surah,
-                    surahs: _surahs,
-                    onPlay: _audio.togglePlayPause,
-                    onNext: _audio.nextAyah,
-                    onPrev: _audio.prevAyah,
-                    onStop: () {
-                      _audio.stop();
-                      setState(() => _playerVisible = false);
-                    },
-                    onReciter: _showReciterSheet,
-                  )
-                : const SizedBox.shrink(key: ValueKey('empty')),
-          ),
-        ]),
+            // Page content
+            Expanded(child: _buildPageView()),
+            // Bottom bar — لە سەرەوەی navigation bar دەوەستێت
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              height: _barsVisible
+                  ? (MediaQuery.of(context).padding.bottom + 56)
+                  : 0,
+              clipBehavior: Clip.hardEdge,
+              decoration: const BoxDecoration(),
+              child: SafeArea(
+                top: false,
+                child: _buildBottomBar(),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildPage(int page) {
-    final isCurrent = page == _page;
-    return LayoutBuilder(builder: (_, bc) {
-      final sz = Size(bc.maxWidth, bc.maxHeight);
-      return GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTapDown: isCurrent ? (d) => _onTap(d, sz) : null,
-        child: Stack(fit: StackFit.expand, children: [
-          // پاشبزمی سپی
-          const ColoredBox(color: Colors.white),
+  Widget _buildTopBar() {
+    final surahName = _currentSurah?.nameArabic ?? '';
+    final juzName = 'جزء $_currentJuz';
+    final place = _currentSurah?.isMakki == true ? 'مکی' : 'مدنی';
 
-          // وێنەی لاپەرە
-          _PageImage(page: page, dl: _dl),
-
-          // هایلایتی ئایەت — تەنها لاپەرەی ئێستا
-          if (isCurrent && _audioState.currentSurahId != null)
-            RepaintBoundary(
-              child: CustomPaint(
-                size: sz,
-                painter: _HighlightPainter(
-                  bounds: _layout.boundsFor(page),
-                  surah: _audioState.currentSurahId!,
-                  ayah: _audioState.currentAyahNumber ?? 1,
+    return Container(
+      color: const Color(0xFF2D5016),
+      padding: const EdgeInsets.only(
+        top: 4,
+        left: 12,
+        right: 12,
+        bottom: 8,
+      ),
+      child: Row(
+        children: [
+          // Back button — stays within quran screen context
+          IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () => Navigator.of(context).maybePop(),
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+          ),
+          const SizedBox(width: 8),
+          // Surah name + ayah info
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  surahName,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontFamily: 'quran-common',
+                  ),
                 ),
-              ),
+                if (_audio.isPlaying || _audio.isPaused)
+                  Text(
+                    'ئایە ${_audio.currentAyah}',
+                    style: const TextStyle(color: Colors.white70, fontSize: 12),
+                  ),
+              ],
             ),
-        ]),
-      );
-    });
+          ),
+          // Juz + Makki/Madani (right side)
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                juzName,
+                style: const TextStyle(color: Colors.white, fontSize: 13),
+              ),
+              Text(
+                place,
+                style: const TextStyle(color: Colors.white70, fontSize: 11),
+              ),
+            ],
+          ),
+          const SizedBox(width: 8),
+          // Page number
+          Text(
+            '$_currentPage',
+            style: const TextStyle(color: Colors.white60, fontSize: 12),
+          ),
+        ],
+      ),
+    );
   }
 
-  // ── دیالۆگەکان ──────────────────────────────────────────
-
-  void _showGoToPage() {
-    final c = TextEditingController(text: '$_page');
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        backgroundColor: const Color(0xFF1B4332),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-        title: const Text('بڕۆ بۆ لاپەڕە',
-            style: TextStyle(
-                color: Color(0xFFD4A853), fontFamily: 'Amiri', fontSize: 18)),
-        content: TextField(
-          controller: c,
-          autofocus: true,
-          keyboardType: TextInputType.number,
-          style: const TextStyle(color: Colors.white, fontSize: 22),
-          textAlign: TextAlign.center,
-          decoration: const InputDecoration(
-            hintText: '١ — ٦٠٤',
-            hintStyle: TextStyle(color: Colors.white38),
-            enabledBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: Color(0xFFD4A853))),
-            focusedBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: Color(0xFFD4A853), width: 2)),
-          ),
-          onSubmitted: (v) {
-            Navigator.pop(context);
-            final n = int.tryParse(v);
-            if (n != null) _jumpTo(n);
+  Widget _buildPageView() {
+    return Stack(
+      children: [
+        PageView.builder(
+          controller: _pageController,
+          reverse: true, // RTL — right page = lower number
+          onPageChanged: (index) => _loadPage(index + 1),
+          itemCount: 604,
+          itemBuilder: (context, index) {
+            final page = index + 1;
+            return _buildMushafPage(page);
           },
         ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              final n = int.tryParse(c.text);
-              if (n != null) _jumpTo(n);
+        // Per-page font download progress bar (top of page)
+        if (_pageDownloadProgress.containsKey(_currentPage))
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: LinearProgressIndicator(
+              value: _pageDownloadProgress[_currentPage],
+              backgroundColor: Colors.transparent,
+              color: const Color(0xFF4A7C59),
+              minHeight: 3,
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildMushafPage(int pageNumber) {
+    // Show placeholder while this page's data is loading
+    if (pageNumber != _currentPage) {
+      return Container(
+        key: ValueKey('placeholder_$pageNumber'),
+        color: const Color(0xFFF5F0E8),
+        child: const Center(
+          child: CircularProgressIndicator(color: Color(0xFF4A7C59)),
+        ),
+      );
+    }
+
+    final fontReady = _isPageFontReady(pageNumber);
+    final fontName = _fontNameForPage(pageNumber);
+
+    return Container(
+      key: ValueKey('page_$pageNumber'),
+      color: const Color(0xFFF5F0E8),
+      child: Column(
+        children: [
+          // Page border header
+          _buildPageHeader(pageNumber),
+          // Page content
+          Expanded(
+            child:
+                fontReady ? _buildPageLines(fontName) : _buildFontLoadingPage(),
+          ),
+          // Page border footer
+          _buildPageFooter(pageNumber),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPageHeader(int pageNumber) {
+    // Border with Juz name top-right, Makki/Madani top-left
+    final place = _currentSurah?.isMakki == true ? 'مکی' : 'مدنی';
+    final juzName = 'جزء $_currentJuz';
+    return Container(
+      margin: const EdgeInsets.fromLTRB(8, 4, 8, 0),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      decoration: BoxDecoration(
+        border: Border.all(color: const Color(0xFF4A7C59), width: 1),
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(6),
+          topRight: Radius.circular(6),
+        ),
+      ),
+      child: Row(
+        children: [
+          Text(place,
+              style: const TextStyle(fontSize: 11, color: Color(0xFF4A7C59))),
+          const Spacer(),
+          Text(juzName,
+              style: const TextStyle(
+                  fontSize: 11,
+                  color: Color(0xFF4A7C59),
+                  fontWeight: FontWeight.bold)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPageFooter(int pageNumber) {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(8, 0, 8, 4),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      decoration: BoxDecoration(
+        border: Border.all(color: const Color(0xFF4A7C59), width: 1),
+        borderRadius: const BorderRadius.only(
+          bottomLeft: Radius.circular(6),
+          bottomRight: Radius.circular(6),
+        ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            '$pageNumber',
+            style: const TextStyle(fontSize: 12, color: Color(0xFF4A7C59)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFontLoadingPage() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const CircularProgressIndicator(color: Color(0xFF4A7C59)),
+          const SizedBox(height: 12),
+          Text(
+            _pageDownloadProgress.containsKey(_currentPage)
+                ? 'فۆنت دابەزدێت... ${((_pageDownloadProgress[_currentPage] ?? 0) * 100).toStringAsFixed(0)}%'
+                : 'فۆنت بەردەست نییە',
+            style: const TextStyle(fontSize: 14),
+          ),
+          if (!_pageDownloadProgress.containsKey(_currentPage))
+            TextButton(
+              onPressed: () => _downloadFontForPage(_currentPage),
+              child: const Text('دابەزاندن'),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPageLines(String fontName) {
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children:
+              _pageLines.map((line) => _buildLine(line, fontName)).toList(),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLine(QuranPageLine line, String fontName) {
+    switch (line.lineType) {
+      case 'surah_name':
+        return _buildSurahNameLine(line);
+      case 'basmallah':
+        return _buildBasmallahLine(fontName);
+      case 'ayah':
+        return _buildAyahLine(line, fontName);
+      default:
+        return const SizedBox.shrink();
+    }
+  }
+
+  Widget _buildSurahNameLine(QuranPageLine line) {
+    final surahNum = line.surahNumber ?? 1;
+    SurahInfo? info;
+    try {
+      info = _allSurahs.firstWhere((s) => s.id == surahNum);
+    } catch (_) {}
+
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.symmetric(vertical: 2),
+      padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 16),
+      decoration: BoxDecoration(
+        border: Border.all(color: const Color(0xFF4A7C59).withOpacity(0.5)),
+        borderRadius: BorderRadius.circular(4),
+        color: const Color(0xFFEAE4D0),
+      ),
+      child: Text(
+        info?.nameArabic ?? '',
+        textAlign: TextAlign.center,
+        style: const TextStyle(
+          fontFamily: 'surah-name-v2',
+          fontSize: 28,
+          color: Color(0xFF2D5016),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBasmallahLine(String fontName) {
+    // Basmallah glyph in QPC V2 font
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Text(
+        '\uFDFD', // Basmallah Unicode fallback
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          fontFamily: fontName,
+          fontSize: 22,
+          color: const Color(0xFF1A1A1A),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAyahLine(QuranPageLine line, String fontName) {
+    if (line.firstWordId == null || line.lastWordId == null) {
+      return const SizedBox(height: 24);
+    }
+
+    // Get words for this line
+    final words = <QuranWord>[];
+    for (int id = line.firstWordId!; id <= line.lastWordId!; id++) {
+      final w = _wordById[id];
+      if (w != null) words.add(w);
+    }
+
+    if (words.isEmpty) return const SizedBox(height: 24);
+
+    return ListenableBuilder(
+      listenable: _audio,
+      builder: (context, _) {
+        return _buildWordLine(words, fontName, line.isCentered);
+      },
+    );
+  }
+
+  Widget _buildWordLine(List<QuranWord> words, String fontName, bool centered) {
+    return GestureDetector(
+      onTap: () {
+        if (words.isNotEmpty) {
+          _audio.togglePlayPause(words.first.surah, words.first.ayah);
+        }
+      },
+      child: Container(
+        width: double.infinity,
+        alignment: centered ? Alignment.center : Alignment.centerRight,
+        padding: const EdgeInsets.symmetric(vertical: 2),
+        child: Wrap(
+          textDirection: TextDirection.rtl,
+          alignment: centered ? WrapAlignment.center : WrapAlignment.end,
+          children: words.map((word) => _buildWord(word, fontName)).toList(),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWord(QuranWord word, String fontName) {
+    final isHighlighted = _audio.isWordHighlighted(
+      word.surah,
+      word.ayah,
+      word.wordIndex,
+    );
+    final isCurrentAyah = _audio.isCurrentAyah(word.surah, word.ayah) &&
+        (_audio.isPlaying || _audio.isPaused);
+
+    Color textColor = const Color(0xFF1A1A1A);
+    Color? bgColor;
+
+    if (isHighlighted) {
+      textColor = const Color(0xFF2D5016);
+      bgColor = const Color(0xFFFFD700).withOpacity(0.6);
+    } else if (isCurrentAyah) {
+      textColor = const Color(0xFF4A7C59);
+    }
+
+    return Container(
+      color: bgColor,
+      padding: const EdgeInsets.symmetric(horizontal: 1),
+      child: Text(
+        word.text,
+        style: TextStyle(
+          fontFamily: fontName,
+          fontSize: 18,
+          color: textColor,
+          height: 1.8,
+        ),
+      ),
+    );
+  }
+
+  // ─── Bottom Bar ─────────────────────────────────────────────────────────────
+
+  Widget _buildBottomBar() {
+    return Container(
+      color: const Color(0xFF2D5016),
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).padding.bottom + 4,
+        top: 4,
+        left: 8,
+        right: 8,
+      ),
+      child: Row(
+        children: [
+          // Reciter button
+          IconButton(
+            icon: const Icon(Icons.person, color: Colors.white70),
+            onPressed: _showReciterSheet,
+            tooltip: 'قورئانخوێن',
+          ),
+          // Play/Pause current ayah
+          ListenableBuilder(
+            listenable: _audio,
+            builder: (context, _) {
+              final isActive = _audio.isPlaying || _audio.isPaused;
+              return Row(
+                children: [
+                  IconButton(
+                    icon: Icon(
+                      _audio.isPlaying ? Icons.pause : Icons.play_arrow,
+                      color: Colors.white,
+                    ),
+                    onPressed: () {
+                      if (isActive) {
+                        if (_audio.isPlaying) {
+                          _audio.pause();
+                        } else {
+                          _audio.resume();
+                        }
+                      } else {
+                        // Play first ayah on page
+                        if (_pageWords.isNotEmpty) {
+                          _audio.playAyah(
+                            _pageWords.first.surah,
+                            _pageWords.first.ayah,
+                            continuous: true,
+                          );
+                        }
+                      }
+                    },
+                  ),
+                  if (isActive)
+                    IconButton(
+                      icon: const Icon(Icons.stop, color: Colors.white70),
+                      onPressed: _audio.stop,
+                    ),
+                ],
+              );
             },
-            child: const Text('بڕۆ',
-                style: TextStyle(
-                    color: Color(0xFFD4A853),
-                    fontWeight: FontWeight.bold,
-                    fontSize: 15)),
+          ),
+          const Spacer(),
+          // Surah list button
+          IconButton(
+            icon: const Icon(Icons.list, color: Colors.white70),
+            onPressed: _showSurahList,
+          ),
+          // Page jump
+          IconButton(
+            icon: const Icon(Icons.open_in_new, color: Colors.white70),
+            onPressed: _showPageJump,
           ),
         ],
       ),
@@ -652,22 +756,64 @@ class _QuranScreenState extends State<QuranScreen> {
   void _showSurahList() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF1B4332),
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
-      builder: (_) => DraggableScrollableSheet(
-        expand: false,
-        initialChildSize: 0.8,
-        maxChildSize: 0.95,
-        builder: (_, sc) => _SurahSheet(
-          surahs: _surahs,
-          sc: sc,
-          onSelect: (s) {
-            Navigator.pop(context);
-            _jumpTo(s.pageStart);
-          },
+      backgroundColor: const Color(0xFFF5F0E8),
+      builder: (ctx) => ListView.builder(
+        itemCount: _allSurahs.length,
+        itemBuilder: (ctx, i) {
+          final surah = _allSurahs[i];
+          return ListTile(
+            leading: CircleAvatar(
+              backgroundColor: const Color(0xFF2D5016),
+              child: Text(
+                '${surah.id}',
+                style: const TextStyle(color: Colors.white, fontSize: 12),
+              ),
+            ),
+            title: Text(
+              surah.nameArabic,
+              style: const TextStyle(fontFamily: 'quran-common', fontSize: 18),
+              textDirection: TextDirection.rtl,
+            ),
+            subtitle: Text(
+              '${surah.isMakki ? "مکی" : "مدنی"} · ${surah.versesCount} ئایە',
+              textDirection: TextDirection.rtl,
+            ),
+            onTap: () async {
+              Navigator.pop(ctx);
+              final page = await _db.getPageForAyah(surah.id, 1);
+              _goToPage(page);
+            },
+          );
+        },
+      ),
+    );
+  }
+
+  void _showPageJump() {
+    final controller = TextEditingController(text: '$_currentPage');
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('بڕۆ بۆ لاپەرە'),
+        content: TextField(
+          controller: controller,
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(labelText: 'ژمارەی لاپەرە (1-604)'),
         ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('پاشگەزبوونەوە'),
+          ),
+          TextButton(
+            onPressed: () {
+              final page = int.tryParse(controller.text) ?? 1;
+              Navigator.pop(ctx);
+              _goToPage(page.clamp(1, 604));
+            },
+            child: const Text('بڕۆ'),
+          ),
+        ],
       ),
     );
   }
@@ -675,590 +821,119 @@ class _QuranScreenState extends State<QuranScreen> {
   void _showReciterSheet() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF1B4332),
-      shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
-      builder: (_) => _ReciterSheet(
-        current: _audioState.reciter ?? Reciter.defaults.first,
-        onSelect: (r) async {
-          _audio.setReciter(r);
-          await _db.saveReciterId(r.id);
-          if (!mounted) return;
-          Navigator.pop(context);
+      backgroundColor: const Color(0xFFF5F0E8),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setLocal) {
+          return Column(
+            children: [
+              const Padding(
+                padding: EdgeInsets.all(12),
+                child: Text(
+                  'قورئانخوێنان',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+              ),
+              Expanded(
+                child: ListView(
+                  children: kAllReciters.map((reciter) {
+                    final id = reciter['id']!;
+                    final isBuiltIn = id == '953';
+                    final isDownloaded =
+                        isBuiltIn || _audio.downloadedReciters.contains(id);
+                    final isCurrent = _audio.currentReciterId == id;
+                    final progress = _audio.downloadProgress[id];
+
+                    return ListTile(
+                      leading: CircleAvatar(
+                        backgroundColor: isCurrent
+                            ? const Color(0xFF2D5016)
+                            : const Color(0xFF4A7C59).withOpacity(0.3),
+                        child: Text(
+                          id.substring(0, 2),
+                          style: const TextStyle(
+                              color: Colors.white, fontSize: 11),
+                        ),
+                      ),
+                      title: Text(reciter['nameArabic']!,
+                          textDirection: TextDirection.rtl),
+                      subtitle: Text(reciter['name']!),
+                      trailing: _buildReciterTrailing(
+                        id: id,
+                        isBuiltIn: isBuiltIn,
+                        isDownloaded: isDownloaded,
+                        isCurrent: isCurrent,
+                        progress: progress,
+                        setLocal: setLocal,
+                        reciter: reciter,
+                      ),
+                      onTap: isDownloaded
+                          ? () {
+                              _audio.switchReciter(id, reciter['file']!);
+                              Navigator.pop(ctx);
+                            }
+                          : null,
+                    );
+                  }).toList(),
+                ),
+              ),
+            ],
+          );
         },
       ),
     );
   }
-}
 
-// ============================================================
-//  _SplashScreen
-// ============================================================
-
-class _SplashScreen extends StatelessWidget {
-  const _SplashScreen();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(
-      backgroundColor: Color(0xFF1B4332),
-      body: Center(
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          CircularProgressIndicator(color: Color(0xFFD4A853), strokeWidth: 2),
-          SizedBox(height: 20),
-          Text('قورئانی پیرۆز',
-              style: TextStyle(
-                  color: Color(0xFFD4A853),
-                  fontFamily: 'Amiri',
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold)),
-          SizedBox(height: 8),
-          Text('دامەزراودەکرێت...',
-              style: TextStyle(color: Colors.white54, fontSize: 13)),
-        ]),
-      ),
-    );
-  }
-}
-
-// ============================================================
-//  _TopBar
-// ============================================================
-
-class _TopBar extends StatelessWidget {
-  final int page;
-  final int juz;
-  final Surah surah;
-  final int dlDone;
-  final int dlTotal;
-  final double dlProg;
-  final VoidCallback onPage;
-  final VoidCallback onList;
-
-  const _TopBar({
-    required this.page,
-    required this.juz,
-    required this.surah,
-    required this.dlDone,
-    required this.dlTotal,
-    required this.dlProg,
-    required this.onPage,
-    required this.onList,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    const gold = Color(0xFFD4A853);
-    const bg = Color(0xFF1B4332);
-    final done = dlDone >= dlTotal;
-
-    return Column(mainAxisSize: MainAxisSize.min, children: [
-      // بارەی سەرەکی
-      Container(
-        color: bg,
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-        child: Row(children: [
-          // مکی/مدنی
-          GestureDetector(
-            onTap: onList,
-            child: _Chip(
-              surah.isMakki ? 'مکی' : 'مدنی',
-              gold.withOpacity(0.15),
-              gold,
-            ),
-          ),
-          const SizedBox(width: 8),
-
-          // ناوی سورە
-          Expanded(
-              child: GestureDetector(
-            onTap: onPage,
-            child: Column(children: [
-              Text(
-                surah.nameArabic,
-                style: const TextStyle(
-                    color: gold,
-                    fontFamily: 'Amiri',
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold),
-                textDirection: TextDirection.rtl,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.center,
-              ),
-              Text(
-                'لاپەڕە $page',
-                style: TextStyle(color: gold.withOpacity(0.5), fontSize: 9),
-              ),
-            ]),
-          )),
-
-          const SizedBox(width: 8),
-
-          // جوزء
-          _Chip('جزء $juz', Colors.white.withOpacity(0.08), gold, border: true),
-        ]),
-      ),
-
-      // بۆکسی دانلۆد — AnimatedSize بۆ جوڵەی نەرم
-      AnimatedSize(
-        duration: const Duration(milliseconds: 350),
-        curve: Curves.easeInOut,
-        child: done
-            ? const SizedBox.shrink()
-            : Container(
-                color: const Color(0xFF0D2818),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-                child: Row(children: [
-                  const Icon(Icons.cloud_download_outlined,
-                      color: gold, size: 12),
-                  const SizedBox(width: 6),
-                  Text(
-                    'دابەزاندن  $dlDone / $dlTotal',
-                    style:
-                        TextStyle(color: gold.withOpacity(0.8), fontSize: 10),
-                  ),
-                  const Spacer(),
-                  SizedBox(
-                    width: 90,
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(3),
-                      child: LinearProgressIndicator(
-                        value: dlProg,
-                        color: gold,
-                        backgroundColor: gold.withOpacity(0.15),
-                        minHeight: 4,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    '${(dlProg * 100).toStringAsFixed(0)}٪',
-                    style:
-                        TextStyle(color: gold.withOpacity(0.65), fontSize: 10),
-                  ),
-                ]),
-              ),
-      ),
-    ]);
-  }
-}
-
-class _Chip extends StatelessWidget {
-  final String label;
-  final Color bg;
-  final Color fg;
-  final bool border;
-  const _Chip(this.label, this.bg, this.fg, {this.border = false});
-
-  @override
-  Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(
-          color: bg,
-          borderRadius: BorderRadius.circular(8),
-          border: border ? Border.all(color: fg.withOpacity(0.4)) : null,
+  Widget _buildReciterTrailing({
+    required String id,
+    required bool isBuiltIn,
+    required bool isDownloaded,
+    required bool isCurrent,
+    required double? progress,
+    required StateSetter setLocal,
+    required Map<String, String> reciter,
+  }) {
+    if (isCurrent) {
+      return const Icon(Icons.check_circle, color: Color(0xFF2D5016));
+    }
+    if (progress != null) {
+      return SizedBox(
+        width: 40,
+        height: 40,
+        child: CircularProgressIndicator(
+          value: progress,
+          color: const Color(0xFF2D5016),
         ),
-        child: Text(label,
-            style: TextStyle(
-                color: fg, fontSize: 10, fontWeight: FontWeight.w700)),
-      );
-}
-
-// ============================================================
-//  _PageImage
-// ============================================================
-
-class _PageImage extends StatelessWidget {
-  final int page;
-  final _PageDownloader dl;
-  const _PageImage({required this.page, required this.dl});
-
-  @override
-  Widget build(BuildContext context) {
-    if (page <= _kLocalMax) {
-      return Image(
-        image: AssetImage(
-            'assets/quran/page${page.toString().padLeft(3, '0')}.png'),
-        fit: BoxFit.contain,
-        filterQuality: FilterQuality.medium,
       );
     }
-
-    final path = dl.path(page);
-    if (File(path).existsSync()) {
-      return Image(
-        image: FileImage(File(path)),
-        fit: BoxFit.contain,
-        filterQuality: FilterQuality.medium,
-        errorBuilder: (_, __, ___) => const Center(
-            child: Icon(Icons.broken_image_outlined,
-                color: Colors.black26, size: 48)),
+    if (isDownloaded) {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.download_done, color: Color(0xFF4A7C59), size: 18),
+          if (!isBuiltIn)
+            IconButton(
+              icon: const Icon(Icons.delete_outline, size: 18),
+              onPressed: () {
+                _audio.deleteDownloadedReciter(id);
+                setLocal(() {});
+              },
+            ),
+        ],
       );
     }
-
-    // هێشتا دانلۆد نەبووە
-    return Center(
-      child: Column(mainAxisSize: MainAxisSize.min, children: [
-        const Icon(Icons.hourglass_top_rounded,
-            color: Color(0xFF1B4332), size: 40),
-        const SizedBox(height: 10),
-        Text('لاپەڕەی $page',
-            style: const TextStyle(
-                fontFamily: 'Amiri', color: Color(0xFF1B4332), fontSize: 16)),
-        const SizedBox(height: 4),
-        const Text('دامەزردەکرێت...',
-            style: TextStyle(color: Colors.black38, fontSize: 12)),
-      ]),
-    );
-  }
-}
-
-// ============================================================
-//  _HighlightPainter
-//
-//  هایلایتی ئایەت بەتەواوی:
-//  • لە y1 یەکەمین دێر تا y2 دواترین دێر یەک ناوچە
-//  • پاشبزمی زەرد نیمەشەفاف + دەوری نرم
-// ============================================================
-
-class _HighlightPainter extends CustomPainter {
-  final List<_AyahBound> bounds;
-  final int surah;
-  final int ayah;
-
-  const _HighlightPainter({
-    required this.bounds,
-    required this.surah,
-    required this.ayah,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final matching =
-        bounds.where((b) => b.surah == surah && b.ayah == ayah).toList();
-
-    if (matching.isEmpty) return;
-
-    // یەک ناوچەی یەکگرتوو — لە یەکەم تا دواترین دێر
-    final y1 = matching.first.y1 * size.height;
-    final y2 = matching.last.y2 * size.height;
-
-    final rect = RRect.fromRectAndRadius(
-      Rect.fromLTRB(6, y1, size.width - 6, y2),
-      const Radius.circular(6),
-    );
-
-    // پاشبزمی زەرد
-    canvas.drawRRect(
-      rect,
-      Paint()
-        ..color = const Color(0x55FFD700)
-        ..style = PaintingStyle.fill,
-    );
-
-    // دەوری
-    canvas.drawRRect(
-      rect,
-      Paint()
-        ..color = const Color(0xCCFF8C00)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.8,
+    // Not downloaded
+    return IconButton(
+      icon: const Icon(Icons.download, color: Color(0xFF4A7C59)),
+      onPressed: () {
+        _audio.downloadReciter(id);
+        setLocal(() {});
+      },
     );
   }
 
   @override
-  bool shouldRepaint(_HighlightPainter o) => o.surah != surah || o.ayah != ayah;
-}
-
-// ============================================================
-//  _AudioBar
-// ============================================================
-
-class _AudioBar extends StatelessWidget {
-  final AudioState state;
-  final Surah surah;
-  final List<Surah> surahs;
-  final VoidCallback onPlay;
-  final VoidCallback onNext;
-  final VoidCallback onPrev;
-  final VoidCallback onStop;
-  final VoidCallback onReciter;
-
-  const _AudioBar({
-    super.key,
-    required this.state,
-    required this.surah,
-    required this.surahs,
-    required this.onPlay,
-    required this.onNext,
-    required this.onPrev,
-    required this.onStop,
-    required this.onReciter,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    const gold = Color(0xFFD4A853);
-    const bg = Color(0xFF1B4332);
-
-    // ناوی ئایەت
-    String label = '';
-    if (state.currentSurahId != null) {
-      final s = surahs.firstWhere(
-        (x) => x.id == state.currentSurahId,
-        orElse: () => surah,
-      );
-      label = '${s.nameArabic}  ·  ئایەت ${state.currentAyahNumber ?? ''}';
-    }
-
-    // progress
-    final dur = state.duration.inMilliseconds;
-    final prog =
-        dur > 0 ? (state.position.inMilliseconds / dur).clamp(0.0, 1.0) : 0.0;
-
-    return Container(
-      color: bg,
-      child: Column(mainAxisSize: MainAxisSize.min, children: [
-        // progress bar
-        ClipRect(
-          child: LinearProgressIndicator(
-            value: prog,
-            color: gold,
-            backgroundColor: gold.withOpacity(0.15),
-            minHeight: 2,
-          ),
-        ),
-
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-          child: Row(children: [
-            // داخستن
-            _IBtn(Icons.close_rounded, Colors.white54, 20, onStop),
-            const SizedBox(width: 4),
-
-            // قاریئ
-            GestureDetector(
-              onTap: onReciter,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: gold.withOpacity(0.12),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: gold.withOpacity(0.35), width: 0.7),
-                ),
-                child: Row(mainAxisSize: MainAxisSize.min, children: [
-                  const Icon(Icons.record_voice_over_outlined,
-                      color: gold, size: 12),
-                  const SizedBox(width: 4),
-                  Text(
-                    state.reciter?.nameArabic.split(' ').first ?? 'قاریئ',
-                    style: const TextStyle(
-                        color: gold, fontSize: 10, fontFamily: 'Amiri'),
-                  ),
-                ]),
-              ),
-            ),
-
-            const Spacer(),
-
-            // ناوی ئایەت
-            Flexible(
-              child: Text(
-                label,
-                style: TextStyle(
-                    color: gold.withOpacity(0.9),
-                    fontSize: 12,
-                    fontFamily: 'Amiri'),
-                textDirection: TextDirection.rtl,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.center,
-              ),
-            ),
-
-            const Spacer(),
-
-            // کنترۆڵ
-            _IBtn(Icons.skip_next_rounded, Colors.white70, 22, onNext),
-            const SizedBox(width: 4),
-
-            // Play / Pause
-            GestureDetector(
-              onTap: onPlay,
-              child: Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: gold,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                        color: gold.withOpacity(0.4),
-                        blurRadius: 8,
-                        spreadRadius: 1),
-                  ],
-                ),
-                child: Icon(
-                  state.isPlaying
-                      ? Icons.pause_rounded
-                      : state.isLoading
-                          ? Icons.hourglass_top_rounded
-                          : Icons.play_arrow_rounded,
-                  color: Colors.black87,
-                  size: 26,
-                ),
-              ),
-            ),
-            const SizedBox(width: 4),
-
-            _IBtn(Icons.skip_previous_rounded, Colors.white70, 22, onPrev),
-          ]),
-        ),
-      ]),
-    );
-  }
-}
-
-class _IBtn extends StatelessWidget {
-  final IconData icon;
-  final Color color;
-  final double size;
-  final VoidCallback onTap;
-  const _IBtn(this.icon, this.color, this.size, this.onTap);
-
-  @override
-  Widget build(BuildContext context) => GestureDetector(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(4),
-          child: Icon(icon, color: color, size: size),
-        ),
-      );
-}
-
-// ============================================================
-//  _SurahSheet
-// ============================================================
-
-class _SurahSheet extends StatelessWidget {
-  final List<Surah> surahs;
-  final ScrollController sc;
-  final void Function(Surah) onSelect;
-
-  const _SurahSheet({
-    required this.surahs,
-    required this.sc,
-    required this.onSelect,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    const gold = Color(0xFFD4A853);
-    return Column(children: [
-      // هاندل
-      Container(
-        width: 36,
-        height: 4,
-        margin: const EdgeInsets.symmetric(vertical: 10),
-        decoration: BoxDecoration(
-            color: Colors.white24, borderRadius: BorderRadius.circular(2)),
-      ),
-      const Text('پێرستی سورەکان',
-          style: TextStyle(
-              color: gold,
-              fontSize: 16,
-              fontFamily: 'Amiri',
-              fontWeight: FontWeight.bold)),
-      const SizedBox(height: 4),
-      const Divider(color: Colors.white12),
-      Expanded(
-        child: ListView.builder(
-          controller: sc,
-          itemCount: surahs.length,
-          itemBuilder: (_, i) {
-            final s = surahs[i];
-            return ListTile(
-              dense: true,
-              leading: CircleAvatar(
-                radius: 15,
-                backgroundColor: const Color(0xFF2D6A4F),
-                child: Text('${s.id}',
-                    style: const TextStyle(color: gold, fontSize: 10)),
-              ),
-              title: Text(s.nameArabic,
-                  textDirection: TextDirection.rtl,
-                  style: const TextStyle(
-                      color: Colors.white, fontFamily: 'Amiri', fontSize: 15)),
-              subtitle: Text(
-                  '${s.versesCount} ئایەت  ·  '
-                  '${s.isMakki ? "مکی" : "مدنی"}',
-                  style: const TextStyle(color: Colors.white54, fontSize: 10)),
-              trailing: Text('ل ${s.pageStart}',
-                  style: const TextStyle(color: gold, fontSize: 10)),
-              onTap: () => onSelect(s),
-            );
-          },
-        ),
-      ),
-    ]);
-  }
-}
-
-// ============================================================
-//  _ReciterSheet
-// ============================================================
-
-class _ReciterSheet extends StatelessWidget {
-  final Reciter current;
-  final void Function(Reciter) onSelect;
-
-  const _ReciterSheet({
-    required this.current,
-    required this.onSelect,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    const gold = Color(0xFFD4A853);
-    return Column(mainAxisSize: MainAxisSize.min, children: [
-      Container(
-        width: 36,
-        height: 4,
-        margin: const EdgeInsets.symmetric(vertical: 10),
-        decoration: BoxDecoration(
-            color: Colors.white24, borderRadius: BorderRadius.circular(2)),
-      ),
-      const Text('هەڵبژاردنی قاریئ',
-          style: TextStyle(
-              color: gold,
-              fontSize: 15,
-              fontFamily: 'Amiri',
-              fontWeight: FontWeight.bold)),
-      const SizedBox(height: 8),
-      ...Reciter.defaults.map((r) {
-        final sel = r.id == current.id;
-        return ListTile(
-          dense: true,
-          leading: Icon(
-            sel ? Icons.radio_button_checked : Icons.radio_button_off,
-            color: gold,
-            size: 18,
-          ),
-          title: Text(r.nameArabic,
-              textDirection: TextDirection.rtl,
-              style: TextStyle(
-                  color: sel ? gold : Colors.white70,
-                  fontFamily: 'Amiri',
-                  fontSize: 14,
-                  fontWeight: sel ? FontWeight.bold : FontWeight.normal)),
-          subtitle: Text(r.style,
-              style: const TextStyle(color: Colors.white38, fontSize: 10)),
-          onTap: () => onSelect(r),
-        );
-      }),
-      const SizedBox(height: 16),
-    ]);
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
   }
 }

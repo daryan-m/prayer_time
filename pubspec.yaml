@@ -61,6 +61,18 @@ flutter:
       fonts:
         - asset: assets/fonts/noto.ttf
 
+    - family: QCFp001
+      fonts:
+      - asset: assets/quran/p1.ttf
+
+    - family: quran-common
+      fonts:
+      - asset: assets/quran/quran-common.ttf   
+
+    - family: surah-name-v2
+      fonts:
+      - asset: assets/quran/surah-name-v2.ttf
+
    
 
 
