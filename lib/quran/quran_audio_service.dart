@@ -32,7 +32,6 @@ class QuranAudioService extends ChangeNotifier {
   Timer? _segmentTimer;
   AyahRecitation? _currentRecitation;
 
-  bool _isPlayingContinuous = false;
 
   // Download progress
   final Map<String, double> _downloadProgress = {};
@@ -84,23 +83,24 @@ class QuranAudioService extends ChangeNotifier {
 
   // ─── Reciter Management ────────────────────────────────────────────────────
 
-  Future<void> switchReciter(String reciterId, String fileName) async {
-    if (_currentReciterId == reciterId) return;
+  Future<void> switchReciter(String reciterId, String fileName,
+      {bool forceOnline = false}) async {
+    if (_currentReciterId == reciterId && !forceOnline) return;
     await stop();
     _currentReciterId = reciterId;
     _currentReciterFileName = fileName;
 
-    // Check if this is the built-in reciter
     if (reciterId == '953') {
       await _db.loadBuiltInRecitation(fileName);
+      _mode = AudioMode.offline;
     } else {
-      // Load from downloaded files
       final dir = await _getReciterDir();
       final path = '${dir.path}/$fileName';
-      if (await File(path).exists()) {
+      if (!forceOnline && await File(path).exists()) {
         await _db.loadDownloadedRecitation(path, reciterId);
         _mode = AudioMode.offline;
       } else {
+        // ئۆنلاین: پێویستی بە JSON نییە — URL ڕاستەوخۆ لە kAllReciters دەسازدرێت
         _mode = AudioMode.online;
       }
     }
@@ -168,39 +168,74 @@ class QuranAudioService extends ChangeNotifier {
 
   // ─── Playback ──────────────────────────────────────────────────────────────
 
+  /// سازکردنی URL ی MP3 بۆ قاریئی ئۆنلاین
+  /// ئەو قاریئانەی لە everyayah.com هەیان
+  static const Map<String, String> _onlineReciterSlugs = {
+    '950': 'Abdul_Basit_Murattal_64kbps',
+    '952': 'Abu_Bakr_Ash-Shaatree_128kbps',
+    '948': 'Maher_AlMuaiqly_64kbps',
+    '954': 'Saad_Al-Ghamdi_40kbps',
+    '957': 'Husary_64kbps',
+    '958': 'khalefa_al_tunaiji_64kbps',
+    '959': 'Minshawi_Murattal_128kbps',
+    '961': 'Yasser_Ad-Dussary_128kbps',
+  };
+
+  String _buildOnlineAudioUrl(int surah, int ayah) {
+    final slug = _onlineReciterSlugs[_currentReciterId];
+    if (slug == null) {
+      // fallback: Afasy
+      final s = surah.toString().padLeft(3, '0');
+      final a = ayah.toString().padLeft(3, '0');
+      return 'https://everyayah.com/data/Alafasy_128kbps/$s$a.mp3';
+    }
+    final s = surah.toString().padLeft(3, '0');
+    final a = ayah.toString().padLeft(3, '0');
+    return 'https://everyayah.com/data/$slug/$s$a.mp3';
+  }
+
   Future<void> playAyah(int surah, int ayah, {bool continuous = false}) async {
     _segmentTimer?.cancel();
     _currentSurah = surah;
     _currentAyah = ayah;
     _highlightedWordIndex = 0;
-    _isPlayingContinuous = continuous;
     _state = AudioState.loading;
     notifyListeners();
 
-    _currentRecitation = _db.getAyahRecitation(surah, ayah);
-    if (_currentRecitation == null) {
-      _state = AudioState.error;
-      notifyListeners();
-      return;
-    }
-
     try {
-      String audioUrl = _currentRecitation!.audioUrl;
+      String audioUrl;
 
-      // If offline mode, try local file
-      if (_mode == AudioMode.offline && _currentReciterId != '953') {
-        final dir = await _getReciterDir();
-        final localPath =
-            '${dir.path}/audio/${_currentReciterId}_${surah}_$ayah.mp3';
-        if (await File(localPath).exists()) {
-          await _player.setFilePath(localPath);
-        } else {
-          await _player.setUrl(audioUrl);
-        }
+      if (_mode == AudioMode.online && _currentReciterId != '953') {
+        // ئۆنلاین مۆد: URL ڕاستەوخۆ بسازە
+        audioUrl = _buildOnlineAudioUrl(surah, ayah);
+        _currentRecitation = null; // segment tracking نییە بۆ ئۆنلاین
       } else {
-        await _player.setUrl(audioUrl);
+        // ئۆفلاین مۆد: لە داتابەیس بخوێنەوە
+        _currentRecitation = _db.getAyahRecitation(surah, ayah);
+        if (_currentRecitation == null) {
+          _state = AudioState.error;
+          notifyListeners();
+          return;
+        }
+        audioUrl = _currentRecitation!.audioUrl;
+
+        // ئەگەر فایلی لۆکەل هەبێت
+        if (_currentReciterId != '953') {
+          final dir = await _getReciterDir();
+          final localPath =
+              '${dir.path}/audio/${_currentReciterId}_${surah}_$ayah.mp3';
+          if (await File(localPath).exists()) {
+            await _player.setFilePath(localPath);
+            await _player.play();
+            _state = AudioState.playing;
+            _startSegmentTracking();
+            notifyListeners();
+            return;
+          }
+        }
       }
 
+      await _player.setUrl(audioUrl);
       await _player.play();
       _state = AudioState.playing;
       _startSegmentTracking();
@@ -239,13 +274,8 @@ class QuranAudioService extends ChangeNotifier {
   void _onAyahCompleted() {
     _segmentTimer?.cancel();
     _highlightedWordIndex = 0;
-
-    if (_isPlayingContinuous) {
-      _playNextAyah();
-    } else {
-      _state = AudioState.stopped;
-      notifyListeners();
-    }
+    // هەمیشە بەردەوام بێت — نەوەستێت
+    _playNextAyah();
   }
 
   Future<void> _playNextAyah() async {
@@ -296,7 +326,6 @@ class QuranAudioService extends ChangeNotifier {
     await _player.stop();
     _state = AudioState.stopped;
     _highlightedWordIndex = 0;
-    _isPlayingContinuous = false;
     notifyListeners();
   }
 
