@@ -266,89 +266,52 @@ class ReciterInfo {
   });
 }
 
-// Built-in reciters list (matching downloaded JSON files)
-const List<Map<String, String>> kBuiltInReciters = [
-  {
-    'id': '953',
-    'name': 'Mishari Rashid Al-Afasy',
-    'nameArabic': 'مشاري راشد العفاسي',
-    'file': 'ayah-recitation-mishari-rashid-al-afasy-murattal-hafs-953.json',
-  },
-];
-
-// All available reciters for online download
+// هەموو قاریئەکان لە assets/quran پێشکەوتوون
 const List<Map<String, String>> kAllReciters = [
   {
     'id': '953',
-    'name': 'Mishari Rashid Al-Afasy',
     'nameArabic': 'مشاري راشد العفاسي',
     'file': 'ayah-recitation-mishari-rashid-al-afasy-murattal-hafs-953.json',
-    'url':
-        'https://qul.tarteel.ai/resources/recitation/118/download?format=json',
   },
   {
     'id': '950',
-    'name': 'Abdul Basit Abdul Samad',
     'nameArabic': 'عبد الباسط عبد الصمد',
     'file': 'ayah-recitation-abdul-basit-abdul-samad-murattal-hafs-950.json',
-    'url':
-        'https://qul.tarteel.ai/resources/recitation/115/download?format=json',
   },
   {
     'id': '952',
-    'name': 'Abu Bakr al-Shatri',
     'nameArabic': 'أبو بكر الشاطري',
     'file': 'ayah-recitation-abu-bakr-al-shatri-murattal-hafs-952.json',
-    'url':
-        'https://qul.tarteel.ai/resources/recitation/117/download?format=json',
   },
   {
     'id': '958',
-    'name': 'Khalifa Al Tunaiji',
     'nameArabic': 'خليفة الطنيجي',
     'file': 'ayah-recitation-khalifa-al-tunaiji-murattal-hafs-958.json',
-    'url':
-        'https://qul.tarteel.ai/resources/recitation/109/download?format=json',
   },
   {
     'id': '948',
-    'name': 'Maher Al-Muaiqly',
     'nameArabic': 'ماهر المعيقلي',
     'file': 'ayah-recitation-maher-al-mu-aiqly-murattal-hafs-948.json',
-    'url':
-        'https://qul.tarteel.ai/resources/recitation/113/download?format=json',
   },
   {
     'id': '957',
-    'name': 'Mahmoud Khalil Al-Husary',
     'nameArabic': 'محمود خليل الحصري',
     'file': 'ayah-recitation-mahmoud-khalil-al-husary-murattal-hafs-957.json',
-    'url':
-        'https://qul.tarteel.ai/resources/recitation/110/download?format=json',
   },
   {
     'id': '959',
-    'name': 'Muhammad Siddiq Al-Minshawi',
     'nameArabic': 'محمد صديق المنشاوي',
     'file':
         'ayah-recitation-muhammad-siddiq-al-minshawi-murattal-hafs-959.json',
-    'url':
-        'https://qul.tarteel.ai/resources/recitation/108/download?format=json',
   },
   {
     'id': '954',
-    'name': 'Saad al-Ghamdi',
     'nameArabic': 'سعد الغامدي',
     'file': 'ayah-recitation-saad-al-ghamdi-murattal-hafs-954.json',
-    'url':
-        'https://qul.tarteel.ai/resources/recitation/119/download?format=json',
   },
   {
     'id': '961',
-    'name': 'Yasser Al-Dosari',
     'nameArabic': 'ياسر الدوسري',
     'file': 'ayah-recitation-yasser-al-dosari-murattal-hafs-961.json',
-    'url':
-        'https://qul.tarteel.ai/resources/recitation/103/download?format=json',
   },
 ];
