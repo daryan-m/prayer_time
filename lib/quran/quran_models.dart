@@ -267,51 +267,61 @@ class ReciterInfo {
 }
 
 // هەموو قاریئەکان لە assets/quran پێشکەوتوون
+// slug بۆ دابەزاندنی MP3 لە audio-cdn.tarteel.ai
 const List<Map<String, String>> kAllReciters = [
   {
     'id': '953',
     'nameArabic': 'مشاري راشد العفاسي',
     'file': 'ayah-recitation-mishari-rashid-al-afasy-murattal-hafs-953.json',
+    'slug': 'alafasy',
   },
   {
     'id': '950',
     'nameArabic': 'عبد الباسط عبد الصمد',
     'file': 'ayah-recitation-abdul-basit-abdul-samad-murattal-hafs-950.json',
+    'slug': 'abdulBasitMurattal',
   },
   {
     'id': '952',
     'nameArabic': 'أبو بكر الشاطري',
     'file': 'ayah-recitation-abu-bakr-al-shatri-murattal-hafs-952.json',
+    'slug': 'abuBakrAlShatri',
   },
   {
     'id': '958',
     'nameArabic': 'خليفة الطنيجي',
     'file': 'ayah-recitation-khalifa-al-tunaiji-murattal-hafs-958.json',
+    'slug': 'khalifaAlTunaiji',
   },
   {
     'id': '948',
     'nameArabic': 'ماهر المعيقلي',
     'file': 'ayah-recitation-maher-al-mu-aiqly-murattal-hafs-948.json',
+    'slug': 'maherAlMuaiqly',
   },
   {
     'id': '957',
     'nameArabic': 'محمود خليل الحصري',
     'file': 'ayah-recitation-mahmoud-khalil-al-husary-murattal-hafs-957.json',
+    'slug': 'husary',
   },
   {
     'id': '959',
     'nameArabic': 'محمد صديق المنشاوي',
     'file':
         'ayah-recitation-muhammad-siddiq-al-minshawi-murattal-hafs-959.json',
+    'slug': 'minshawyMurattal',
   },
   {
     'id': '954',
     'nameArabic': 'سعد الغامدي',
     'file': 'ayah-recitation-saad-al-ghamdi-murattal-hafs-954.json',
+    'slug': 'ghamadi',
   },
   {
     'id': '961',
     'nameArabic': 'ياسر الدوسري',
     'file': 'ayah-recitation-yasser-al-dosari-murattal-hafs-961.json',
+    'slug': 'yasserAlDosari',
   },
 ];

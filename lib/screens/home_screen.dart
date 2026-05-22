@@ -227,7 +227,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
                   TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
               textAlign: TextAlign.center),
           content: const Text(
-            "بۆ ئەوەی بانگەکان کار بکەن، پێویستە ڕێپێدانی ئاگادارکردنەوە و باکگراوند بدەیت.",
+            "بۆ ئەوەی گوێ بیستى بانگەکان  ببیت، پێویستە ڕێپێدانی ئاگادارکردنەوە و باکگراوند بدەیت.",
             style: TextStyle(color: Colors.white70),
             textAlign: TextAlign.center,
           ),
@@ -903,7 +903,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
   Widget _buildBottomBar(BuildContext context) {
     return SafeArea(
       child: Container(
-        height: 56,
+        height: 58,
         decoration: BoxDecoration(
           color: _palette.background,
           border: Border(
@@ -976,8 +976,8 @@ class _PrayerHomePageState extends State<PrayerHomePage>
             label,
             style: TextStyle(
               color: _palette.listText,
-              fontSize: 10,
-              fontWeight: FontWeight.w500,
+              fontSize: 11,
+              fontWeight: FontWeight.w800,
             ),
           ),
         ],

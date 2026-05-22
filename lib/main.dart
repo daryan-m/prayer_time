@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
@@ -12,6 +13,11 @@ final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  //ئەمە زیادکرا بۆ باکگراوندى بوتومبار ببێت بە رەنگى باکگراوندى ئەپەکە
+  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+    systemNavigationBarColor: Color(0xFF020617),
+  ));
 
   // ── کات ──
   tz.initializeTimeZones();
@@ -53,8 +59,8 @@ void main() async {
     ),
     AndroidNotificationChannel(
       'quran_download',
-      'داگیردانی قورئان',
-      description: 'پێشەوەیی داگیردانی دێنگی قارەکان',
+      'داگرتنى دەنگى قورئانى پیرۆز',
+      description: ' داگرتنى دەنگى قورئانخوینێک',
       importance: Importance.low,
     ),
   ];

@@ -220,13 +220,13 @@ class _PrayerDrawerState extends State<PrayerDrawer> {
                         leading: Icon(Icons.notifications_active_outlined,
                             color: pal.primary, size: 22),
                         title: Text(
-                            "مۆڵەتەکانی بانگ و قورئان (ئاگادار + باتری)",
+                            "مۆڵەتەکانی دەنگى بانگ و قورئان",
                             style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.bold,
                                 color: pal.listText)),
                         subtitle: Text(
-                            "ئەگەر مۆڵەت نەدرابێت داوا دەکرێت (دووبارە داوا ناکرێت)",
+                            "ئەگەر مۆڵەت نەدرابێت",
                             textAlign: TextAlign.right,
                             style: TextStyle(
                                 color: pal.listText.withOpacity(0.5),
@@ -238,7 +238,7 @@ class _PrayerDrawerState extends State<PrayerDrawer> {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: const Text(
-                                    "ئەگەر مۆڵەت پێویست بوو داوا کرا"),
+                                    " مۆڵەت دراوە "),
                                 backgroundColor: pal.primary.withOpacity(0.5),
                                 behavior: SnackBarBehavior.floating,
                               ),
@@ -454,7 +454,7 @@ class _PrayerDrawerState extends State<PrayerDrawer> {
         children: [
           // ── دەربارەی ئەپ ──
           Text(
-            "ئەم ئەپلیکەیشنە تایبەتە بە کاتی بانگی شارو شارۆچکەکانی هەرێمی کوردستان.",
+            "ئەم ئەپلیکەیشنە تایبەتە بە کاتی بانگی شارو شارۆچکەکانی هەرێمی کوردستان،وە بەشى قورئانى پیرۆز و ناوەکانى خواى گەورەو چەند تایبەتمەندییەکى تر...",
             textAlign: TextAlign.right,
             style: TextStyle(color: pal.listText, fontSize: 13, height: 1.5),
           ),
@@ -697,7 +697,7 @@ class _PrayerDrawerState extends State<PrayerDrawer> {
                                   color: pal.listText.withOpacity(0.5),
                                   size: 20),
                             ),
-                            Text("پەیوەندی و راوبۆچوون",
+                            Text("پەیوەندی و ڕاوبۆچوون",
                                 style: TextStyle(
                                     color: pal.listText,
                                     fontSize: 15,

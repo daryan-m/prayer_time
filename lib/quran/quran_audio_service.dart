@@ -1,12 +1,13 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:http/http.dart' as http;
 import 'quran_models.dart';
 import 'quran_database_helper.dart';
+
+enum AudioMode { online, offline }
 
 enum AudioState { idle, loading, playing, paused, stopped, error }
 
@@ -19,58 +20,41 @@ class QuranAudioService extends ChangeNotifier {
   final QuranDatabaseHelper _db = QuranDatabaseHelper();
 
   AudioState _state = AudioState.idle;
+  AudioMode _mode = AudioMode.online;
+
   int _currentSurah = 0;
   int _currentAyah = 0;
-  int _highlightedWordIndex = 0;
+  int _highlightedWordIndex = 0; // 1-based word index
   String _currentReciterId = '953';
+  String _currentReciterFileName =
+      'ayah-recitation-mishari-rashid-al-afasy-murattal-hafs-953.json';
 
   Timer? _segmentTimer;
   AyahRecitation? _currentRecitation;
 
+  // Download progress
+  final Map<String, double> _downloadProgress = {};
+  final Set<String> _downloadedReciters = {};
+
   // ─── Getters ───────────────────────────────────────────────────────────────
 
   AudioState get state => _state;
+  AudioMode get mode => _mode;
   int get currentSurah => _currentSurah;
   int get currentAyah => _currentAyah;
   int get highlightedWordIndex => _highlightedWordIndex;
   String get currentReciterId => _currentReciterId;
   bool get isPlaying => _state == AudioState.playing;
   bool get isPaused => _state == AudioState.paused;
-
-  // ─── Prefs ─────────────────────────────────────────────────────────────────
-
-  Future<File> _getPrefsFile() async {
-    final dir = await getApplicationDocumentsDirectory();
-    return File('${dir.path}/quran_prefs.json');
-  }
-
-  Future<void> _saveSelectedReciter(String id) async {
-    try {
-      final f = await _getPrefsFile();
-      await f.writeAsString(jsonEncode({'reciter_id': id}));
-    } catch (_) {}
-  }
-
-  Future<String?> _loadSavedReciterId() async {
-    try {
-      final f = await _getPrefsFile();
-      if (!await f.exists()) return null;
-      final map = jsonDecode(await f.readAsString()) as Map;
-      return map['reciter_id'] as String?;
-    } catch (_) {
-      return null;
-    }
-  }
+  Map<String, double> get downloadProgress => _downloadProgress;
+  Set<String> get downloadedReciters => _downloadedReciters;
 
   // ─── Init ──────────────────────────────────────────────────────────────────
 
   Future<void> init() async {
-    final savedId = await _loadSavedReciterId();
-    final id = (savedId != null && kAllReciters.any((r) => r['id'] == savedId))
-        ? savedId
-        : kAllReciters.first['id']!;
-
-    await _loadReciter(id);
+    // Load built-in reciter (Afasy)
+    await _db.loadBuiltInRecitation(_currentReciterFileName);
+    await _checkDownloadedReciters();
 
     _player.playerStateStream.listen((playerState) {
       if (playerState.processingState == ProcessingState.completed) {
@@ -79,22 +63,114 @@ class QuranAudioService extends ChangeNotifier {
     });
   }
 
-  // ─── Reciter loading ───────────────────────────────────────────────────────
-
-  Future<void> _loadReciter(String reciterId) async {
-    final reciter = kAllReciters.firstWhere(
-      (r) => r['id'] == reciterId,
-      orElse: () => kAllReciters.first,
-    );
-    _currentReciterId = reciter['id']!;
-    await _db.loadBuiltInRecitation(reciter['file']!);
+  Future<void> _checkDownloadedReciters() async {
+    final dir = await _getReciterDir();
+    for (final reciter in kAllReciters) {
+      final file = File('${dir.path}/${reciter['file']}');
+      if (await file.exists()) {
+        _downloadedReciters.add(reciter['id']!);
+      }
+    }
   }
 
-  Future<void> switchReciter(String reciterId) async {
+  Future<Directory> _getReciterDir() async {
+    final appDir = await getApplicationDocumentsDirectory();
+    final dir = Directory('${appDir.path}/quran_audio');
+    if (!await dir.exists()) await dir.create(recursive: true);
+    return dir;
+  }
+
+  // ─── Reciter Management ────────────────────────────────────────────────────
+
+  Future<void> switchReciter(String reciterId, String fileName) async {
     if (_currentReciterId == reciterId) return;
+
+    // ئایەتی ئێستا پاشکەوت بکە پێش وەستاندن
+    final wasPlaying =
+        _state == AudioState.playing || _state == AudioState.paused;
+    final resumeSurah = _currentSurah;
+    final resumeAyah = _currentAyah;
+
     await stop();
-    await _loadReciter(reciterId);
-    await _saveSelectedReciter(reciterId);
+    _currentReciterId = reciterId;
+    _currentReciterFileName = fileName;
+
+    if (reciterId == '953') {
+      await _db.loadBuiltInRecitation(fileName);
+    } else {
+      final dir = await _getReciterDir();
+      final path = '${dir.path}/$fileName';
+      if (await File(path).exists()) {
+        await _db.loadDownloadedRecitation(path, reciterId);
+        _mode = AudioMode.offline;
+      } else {
+        _mode = AudioMode.online;
+      }
+    }
+    notifyListeners();
+
+    // ئەگەر دەنگ لە کارکردندا بوو، هەمان ئایەتە بخوێنەوە
+    if (wasPlaying && resumeSurah > 0 && resumeAyah > 0) {
+      await playAyah(resumeSurah, resumeAyah);
+    }
+  }
+
+  Future<void> downloadReciter(String reciterId) async {
+    final reciterData = kAllReciters.firstWhere(
+      (r) => r['id'] == reciterId,
+      orElse: () => {},
+    );
+    if (reciterData.isEmpty) return;
+
+    final url = reciterData['url']!;
+    final fileName = reciterData['file']!;
+    final dir = await _getReciterDir();
+    final filePath = '${dir.path}/$fileName';
+
+    _downloadProgress[reciterId] = 0.0;
+    notifyListeners();
+
+    try {
+      final request = http.Request('GET', Uri.parse(url));
+      final response = await http.Client().send(request);
+      final totalBytes = response.contentLength ?? 0;
+      int receivedBytes = 0;
+
+      final file = File(filePath);
+      final sink = file.openWrite();
+
+      await for (final chunk in response.stream) {
+        sink.add(chunk);
+        receivedBytes += chunk.length;
+        if (totalBytes > 0) {
+          _downloadProgress[reciterId] = receivedBytes / totalBytes;
+          notifyListeners();
+        }
+      }
+      await sink.close();
+
+      _downloadedReciters.add(reciterId);
+      _downloadProgress.remove(reciterId);
+      notifyListeners();
+    } catch (e) {
+      _downloadProgress.remove(reciterId);
+      notifyListeners();
+      debugPrint('Download failed: $e');
+    }
+  }
+
+  Future<void> deleteDownloadedReciter(String reciterId) async {
+    final reciterData = kAllReciters.firstWhere(
+      (r) => r['id'] == reciterId,
+      orElse: () => {},
+    );
+    if (reciterData.isEmpty) return;
+
+    final dir = await _getReciterDir();
+    final file = File('${dir.path}/${reciterData['file']}');
+    if (await file.exists()) await file.delete();
+
+    _downloadedReciters.remove(reciterId);
     notifyListeners();
   }
 
@@ -105,6 +181,7 @@ class QuranAudioService extends ChangeNotifier {
     _currentSurah = surah;
     _currentAyah = ayah;
     _highlightedWordIndex = 0;
+
     _state = AudioState.loading;
     notifyListeners();
 
@@ -116,15 +193,20 @@ class QuranAudioService extends ChangeNotifier {
     }
 
     try {
-      // audio_url لە JSON دێت — ناو assets/quran/audio پاشکەوتکراوە
-      final audioUrl = _currentRecitation!.audioUrl;
+      String audioUrl = _currentRecitation!.audioUrl;
 
-      // ئەگەر URL ی ئۆنلاینە (https) ڕاستەوخۆ لێی بدە
-      // چونکە فایلەکان لە assets/quran/audio دابەزێنراون
-      if (audioUrl.startsWith('https')) {
-        await _player.setUrl(audioUrl);
+      // If offline mode, try local file
+      if (_mode == AudioMode.offline && _currentReciterId != '953') {
+        final dir = await _getReciterDir();
+        final localPath =
+            '${dir.path}/audio/${_currentReciterId}_${surah}_$ayah.mp3';
+        if (await File(localPath).exists()) {
+          await _player.setFilePath(localPath);
+        } else {
+          await _player.setUrl(audioUrl);
+        }
       } else {
-        await _player.setAsset(audioUrl);
+        await _player.setUrl(audioUrl);
       }
 
       await _player.play();
@@ -149,6 +231,7 @@ class QuranAudioService extends ChangeNotifier {
         return;
       }
       final pos = _player.position.inMilliseconds;
+      // Find current segment
       for (int i = segments.length - 1; i >= 0; i--) {
         if (pos >= segments[i].startMs) {
           if (_highlightedWordIndex != segments[i].wordIndex) {
@@ -164,10 +247,12 @@ class QuranAudioService extends ChangeNotifier {
   void _onAyahCompleted() {
     _segmentTimer?.cancel();
     _highlightedWordIndex = 0;
+    // هەمیشە بەردەوام بێت — نەوەستێت
     _playNextAyah();
   }
 
   Future<void> _playNextAyah() async {
+    // Get total ayahs for current surah
     final surahInfo = await _db.getSurahInfo(_currentSurah);
     if (surahInfo == null) {
       _state = AudioState.stopped;
@@ -214,6 +299,7 @@ class QuranAudioService extends ChangeNotifier {
     await _player.stop();
     _state = AudioState.stopped;
     _highlightedWordIndex = 0;
+
     notifyListeners();
   }
 

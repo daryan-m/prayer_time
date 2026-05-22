@@ -214,30 +214,37 @@ class QuranDatabaseHelper {
 
     final glyphsDb = _glyphsDb!;
 
-    // Build page -> first surah on that page
-    final surahRows = await glyphsDb.rawQuery(
-      'SELECT page_number, MIN(surah) as first_surah FROM verses GROUP BY page_number ORDER BY page_number',
-    );
-    for (final row in surahRows) {
-      _pageSurahMap![row['page_number'] as int] = row['first_surah'] as int;
-    }
+    // یەک query — هەموو لاپەرەکان یەکجاراً
+    final rows = await glyphsDb.rawQuery('''
+    SELECT page_number, MIN(surah) as first_surah, MIN(ayah) as first_ayah
+    FROM verses
+    GROUP BY page_number
+    ORDER BY page_number
+  ''');
 
-    // Build page -> juz
-    for (int page = 1; page <= 604; page++) {
-      final surah = _pageSurahMap![page] ?? 1;
-      // Get first ayah on page
-      final rows = await glyphsDb.query(
-        'verses',
-        columns: ['ayah'],
-        where: 'page_number = ?',
-        whereArgs: [page],
-        orderBy: 'surah ASC, ayah ASC',
-        limit: 1,
-      );
-      if (rows.isNotEmpty) {
-        final ayah = rows.first['ayah'] as int;
-        _pageJuzMap![page] = await getJuzForAyah(surah, ayah);
+    // juz داتا یەکجاراً بخوێنەوە
+    final juzRows = await _juzDb!.query('juz', orderBy: 'juz_number ASC');
+    final juzList = juzRows.map((r) => JuzInfo.fromMap(r)).toList();
+
+    for (final row in rows) {
+      final page = row['page_number'] as int;
+      final surah = row['first_surah'] as int;
+      final ayah = row['first_ayah'] as int;
+
+      _pageSurahMap![page] = surah;
+
+      // juz بدۆزەوە بەبێ query زیادە
+      int juz = 1;
+      for (final j in juzList.reversed) {
+        final parts = j.firstVerseKey.split(':');
+        final fSurah = int.parse(parts[0]);
+        final fAyah = int.parse(parts[1]);
+        if (surah > fSurah || (surah == fSurah && ayah >= fAyah)) {
+          juz = j.juzNumber;
+          break;
+        }
       }
+      _pageJuzMap![page] = juz;
     }
   }
 
