@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
@@ -116,39 +118,52 @@ class QuranAudioService extends ChangeNotifier {
   }
 
   Future<void> downloadReciter(String reciterId) async {
+    if (_downloadProgress.containsKey(reciterId)) return;
+    if (_downloadedReciters.contains(reciterId)) return;
+
     final reciterData = kAllReciters.firstWhere(
       (r) => r['id'] == reciterId,
       orElse: () => {},
     );
     if (reciterData.isEmpty) return;
 
-    final url = reciterData['url']!;
-    final fileName = reciterData['file']!;
-    final dir = await _getReciterDir();
-    final filePath = '${dir.path}/$fileName';
+    final slug = reciterData['slug']!;
+    final jsonStr =
+        await rootBundle.loadString('assets/quran/${reciterData['file']}');
+    final Map<String, dynamic> data = jsonDecode(jsonStr);
+    final total = data.length;
+    int done = 0;
 
     _downloadProgress[reciterId] = 0.0;
     notifyListeners();
 
     try {
-      final request = http.Request('GET', Uri.parse(url));
-      final response = await http.Client().send(request);
-      final totalBytes = response.contentLength ?? 0;
-      int receivedBytes = 0;
+      final dir = await _getReciterDir();
+      final mp3Dir = Directory('${dir.path}/$reciterId');
+      if (!await mp3Dir.exists()) await mp3Dir.create(recursive: true);
 
-      final file = File(filePath);
-      final sink = file.openWrite();
+      for (final entry in data.entries) {
+        final ayahData = entry.value as Map<String, dynamic>;
+        final surah = ayahData['surah_number'] as int;
+        final ayah = ayahData['ayah_number'] as int;
+        final fname =
+            '${surah.toString().padLeft(3, '0')}${ayah.toString().padLeft(3, '0')}.mp3';
+        final local = File('${mp3Dir.path}/$fname');
 
-      await for (final chunk in response.stream) {
-        sink.add(chunk);
-        receivedBytes += chunk.length;
-        if (totalBytes > 0) {
-          _downloadProgress[reciterId] = receivedBytes / totalBytes;
-          notifyListeners();
+        if (!await local.exists()) {
+          final url = 'https://audio-cdn.tarteel.ai/quran/$slug/$fname';
+          final res = await http.get(Uri.parse(url));
+          if (res.statusCode == 200) {
+            await local.writeAsBytes(res.bodyBytes);
+          }
         }
+        done++;
+        _downloadProgress[reciterId] = done / total;
+        if (done % 20 == 0) notifyListeners();
       }
-      await sink.close();
 
+      // marker
+      await File('${mp3Dir.path}/.done').writeAsString('ok');
       _downloadedReciters.add(reciterId);
       _downloadProgress.remove(reciterId);
       notifyListeners();
@@ -160,16 +175,9 @@ class QuranAudioService extends ChangeNotifier {
   }
 
   Future<void> deleteDownloadedReciter(String reciterId) async {
-    final reciterData = kAllReciters.firstWhere(
-      (r) => r['id'] == reciterId,
-      orElse: () => {},
-    );
-    if (reciterData.isEmpty) return;
-
     final dir = await _getReciterDir();
-    final file = File('${dir.path}/${reciterData['file']}');
-    if (await file.exists()) await file.delete();
-
+    final mp3Dir = Directory('${dir.path}/$reciterId');
+    if (await mp3Dir.exists()) await mp3Dir.delete(recursive: true);
     _downloadedReciters.remove(reciterId);
     notifyListeners();
   }
@@ -193,18 +201,16 @@ class QuranAudioService extends ChangeNotifier {
     }
 
     try {
-      String audioUrl = _currentRecitation!.audioUrl;
+      final audioUrl = _currentRecitation!.audioUrl;
 
-      // If offline mode, try local file
-      if (_mode == AudioMode.offline && _currentReciterId != '953') {
-        final dir = await _getReciterDir();
-        final localPath =
-            '${dir.path}/audio/${_currentReciterId}_${surah}_$ayah.mp3';
-        if (await File(localPath).exists()) {
-          await _player.setFilePath(localPath);
-        } else {
-          await _player.setUrl(audioUrl);
-        }
+      // ئۆفلاین چێک — لە فۆڵدەری نوێ
+      final fname =
+          '${surah.toString().padLeft(3, '0')}${ayah.toString().padLeft(3, '0')}.mp3';
+      final dir = await _getReciterDir();
+      final localFile = File('${dir.path}/$_currentReciterId/$fname');
+
+      if (await localFile.exists()) {
+        await _player.setFilePath(localFile.path);
       } else {
         await _player.setUrl(audioUrl);
       }

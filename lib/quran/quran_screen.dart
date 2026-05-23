@@ -328,23 +328,7 @@ class _QuranScreenState extends State<QuranScreen> {
               child: _buildPageView(),
             ),
             // تولبارى سەرەوە
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              child: AnimatedSlide(
-                duration: const Duration(milliseconds: 200),
-                offset: _barsVisible ? Offset.zero : const Offset(0, -1),
-                child: AnimatedOpacity(
-                  duration: const Duration(milliseconds: 200),
-                  opacity: _barsVisible ? 1 : 0,
-                  child: IgnorePointer(
-                    ignoring: !_barsVisible,
-                    child: _buildTopBar(),
-                  ),
-                ),
-              ),
-            ),
+
             // پلەیەری خوارەوە
             Positioned(
               bottom: 0,
@@ -370,67 +354,6 @@ class _QuranScreenState extends State<QuranScreen> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildTopBar() {
-    final surahName = _currentSurah?.nameArabic ?? '';
-    final juzText = 'جزء $_currentJuz';
-    final placeText = _currentSurah?.isMakki == true ? 'مکی' : 'مدنی';
-
-    return Container(
-      color: const Color(0xFF2D5016),
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
-      child: Row(
-        children: [
-          // چەپ: سەهمی گەرانەوە + ژمارەی لاپەرە
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.arrow_back, color: Colors.white),
-                onPressed: () => Navigator.of(context).maybePop(),
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-              ),
-              Text(
-                placeText,
-                style: const TextStyle(color: Colors.white60, fontSize: 14),
-              ),
-            ],
-          ),
-          // ناوەراست: ناوی سورە + (مکی/مدنی)
-          Expanded(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  surahName,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontFamily: 'Notonaskh',
-                  ),
-                ),
-              ],
-            ),
-          ),
-          // راست: جزء
-          SizedBox(
-            width: 72,
-            child: Text(
-              juzText,
-              textAlign: TextAlign.justify,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -500,83 +423,103 @@ class _QuranScreenState extends State<QuranScreen> {
   }
 
   Widget _buildPageHeader(int pageNumber) {
-    final juzText = 'جزء $_currentJuz';
+    final juzText = 'جزء ${_toKNum(_currentJuz)}';
     final placeText = _currentSurah?.isMakki == true ? 'مکی' : 'مدنی';
     final surahName = _currentSurah?.nameArabic ?? '';
 
     return Container(
       margin: const EdgeInsets.fromLTRB(8, 4, 8, 0),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
       decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            Color(0xFF4A7C59), // تیرەتر لەسەرەوە
-            Color(0xFFE2FFEA), // ئاسایی لەخوارەوە
-          ],
-        ),
-        border: Border(
-          top: BorderSide(color: Color(0xFF4A7C59), width: 2),
-          left: BorderSide(color: Color(0xFF4A7C59), width: 2),
-          right: BorderSide(color: Color(0xFF4A7C59), width: 2),
-        ),
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(6),
           topRight: Radius.circular(6),
         ),
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Color(0xFF4A7C59),
+            Color(0xFFB8D4A8),
+          ],
+        ),
       ),
-      child: Row(
-        children: [
-          // فیزیکی چەپ = RTL راست: سەهمی گەرانەوە
-          GestureDetector(
-            onTap: () => Navigator.of(context).maybePop(),
-            child: const Icon(
-              Icons.arrow_back_ios,
-              size: 16,
-              color: Colors.white,
-            ),
+      padding: const EdgeInsets.only(
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 1,
+      ),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFFD4E8D4),
+              Color(0xFFF5F0E8),
+            ],
           ),
-          // ناوەراست: ناوی سورە + (مکی/مدنی)
-          Expanded(
-            child: RichText(
-              textAlign: TextAlign.center,
-              text: TextSpan(
-                children: [
-                  TextSpan(
-                    text: surahName,
-                    style: const TextStyle(
-                      fontSize: 11,
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  TextSpan(
-                    text: ' ($placeText)',
-                    style: const TextStyle(
-                      fontSize: 9,
-                      color: Colors.white70,
-                    ),
-                  ),
-                ],
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(5),
+            topRight: Radius.circular(5),
+          ),
+        ),
+        child: Row(
+          children: [
+            // لای چەپ فیزیکی: سەهمی گەرانەوە
+            GestureDetector(
+              onTap: () => Navigator.of(context).maybePop(),
+              child: const Icon(
+                Icons.arrow_back_ios,
+                size: 14,
+                color: Color(0xFF4A7C59),
               ),
             ),
-          ),
-          // فیزیکی راست = RTL چەپ: جزء
-          SizedBox(
-            width: 70,
-            child: Text(
-              juzText,
-              style: const TextStyle(
-                fontSize: 11,
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
+            const SizedBox(width: 4),
+
+            // ناوەراست: ناوی سورە + (مکی/مدنی)
+            Expanded(
+              child: RichText(
+                textAlign: TextAlign.center,
+                text: TextSpan(
+                  children: [
+                    TextSpan(
+                      text: surahName,
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: Color(0xFF2D5016),
+                        fontFamily: 'quran-common',
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    TextSpan(
+                      text: ' ($placeText)',
+                      style: const TextStyle(
+                        fontSize: 9,
+                        color: Color(0xFF4A7C59),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              textAlign: TextAlign.left,
-              textDirection: TextDirection.rtl,
             ),
-          ),
-        ],
+            // لای راست فیزیکی: فراغ بۆ توازن
+            SizedBox(
+              width: 60,
+              child: Text(
+                juzText,
+                style: const TextStyle(
+                  fontSize: 10,
+                  color: Color(0xFF4A7C59),
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.right,
+                textDirection: TextDirection.rtl,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -585,59 +528,83 @@ class _QuranScreenState extends State<QuranScreen> {
     final pct = (_downloadedFonts / _totalFonts).clamp(0.0, 1.0);
     final pctKu = _toKNum((_downloadedFonts * 100 ~/ _totalFonts));
 
-    return Container(
-      margin: const EdgeInsets.fromLTRB(8, 0, 8, 4),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            Color(0xFFE2FFEA), // ئاسایی لەسەرەوە
-            Color(0xFF4A7C59), // تیرەتر لەخوارەوە
-          ],
-        ),
-        border: Border(
-          bottom: BorderSide(color: Color(0xFF4A7C59), width: 2),
-          left: BorderSide(color: Color(0xFF4A7C59), width: 2),
-          right: BorderSide(color: Color(0xFF4A7C59), width: 2),
-        ),
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(6),
-          bottomRight: Radius.circular(6),
-        ),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // ژمارەی لاپەرە
-          Text(
-            '— ${_toKNum(pageNumber)} —',
-            style: const TextStyle(fontSize: 10, color: Color(0xFFFFFFFF)),
+    return GestureDetector(
+      onTap: () => setState(() => _barsVisible = !_barsVisible),
+      child: Container(
+        margin: const EdgeInsets.fromLTRB(8, 0, 8, 4),
+        decoration: const BoxDecoration(
+          borderRadius: BorderRadius.only(
+            bottomLeft: Radius.circular(6),
+            bottomRight: Radius.circular(6),
           ),
-          // دەرسەدی دابەزاندنی لاپەرەکان — تا تەواو نەبێت
-          if (!_allFontsDone) ...[
-            const SizedBox(height: 4),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(3),
-              child: LinearProgressIndicator(
-                value: pct,
-                minHeight: 3,
-                backgroundColor: const Color(0xFF4A7C59).withOpacity(0.15),
-                valueColor:
-                    const AlwaysStoppedAnimation<Color>(Color(0xFF4A7C59)),
-              ),
+          gradient: LinearGradient(
+            begin: Alignment.bottomCenter,
+            end: Alignment.topCenter,
+            colors: [Color(0xFF4A7C59), Color(0xFFB8D4A8)],
+          ),
+        ),
+        padding: const EdgeInsets.only(bottom: 0, left: 0, right: 0, top: 1),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.bottomCenter,
+              end: Alignment.topCenter,
+              colors: [Color(0xFFD4E8D4), Color(0xFFF5F0E8)],
             ),
-            const SizedBox(height: 2),
-            Text(
-              'دابەزاندنی لاپەڕەکانی قورئانی پیرۆز $pctKu٪',
-              style: TextStyle(
-                fontSize: 8,
-                color: const Color(0xFF4A7C59).withOpacity(0.8),
-              ),
+            borderRadius: BorderRadius.only(
+              bottomLeft: Radius.circular(5),
+              bottomRight: Radius.circular(5),
             ),
-          ],
-        ],
+          ),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              // ژمارەی لاپەرە لەناوەراست
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    '— ${_toKNum(pageNumber)} —',
+                    style:
+                        const TextStyle(fontSize: 10, color: Color(0xFF4A7C59)),
+                  ),
+                  if (!_allFontsDone) ...[
+                    const SizedBox(height: 4),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(3),
+                      child: LinearProgressIndicator(
+                        value: pct,
+                        minHeight: 3,
+                        backgroundColor:
+                            const Color(0xFF4A7C59).withOpacity(0.15),
+                        valueColor: const AlwaysStoppedAnimation<Color>(
+                            Color(0xFF4A7C59)),
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'دابەزاندنی لاپەڕەکانی قورئانی پیرۆز $pctKu٪',
+                      style: TextStyle(
+                        fontSize: 8,
+                        color: const Color(0xFF4A7C59).withOpacity(0.8),
+                      ),
+                    ),
+                    // ئایکۆنی tune لەگۆشەی چەپ
+                    Positioned(
+                      right: 0, // ← لای چەپ فیزیکی (RTL)
+                      child: Icon(
+                        Icons.tune,
+                        size: 14,
+                        color: const Color(0xFF4A7C59).withOpacity(0.6),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -659,7 +626,7 @@ class _QuranScreenState extends State<QuranScreen> {
           const SizedBox(height: 12),
           Text(
             _pageDownloadProgress.containsKey(_currentPage)
-                ? 'فۆنت دادەبەزێت... ${((_pageDownloadProgress[_currentPage] ?? 0) * 100).toStringAsFixed(0)}%'
+                ? 'فۆنت دادەبەزێت... ${_toKNum(((_pageDownloadProgress[_currentPage] ?? 0) * 100).toInt())}٪'
                 : 'فۆنت بەردەست نییە',
             style: const TextStyle(fontSize: 14),
           ),
@@ -808,69 +775,89 @@ class _QuranScreenState extends State<QuranScreen> {
   // ─── Bottom Bar ─────────────────────────────────────────────────────────────
 
   Widget _buildBottomBar() {
-    return Container(
-      color: const Color(0xFF2D5016),
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-      child: Row(
-        children: [
-          // Reciter button
-          IconButton(
-            icon: const Icon(Icons.person, color: Colors.white70),
-            onPressed: _showReciterSheet,
-            tooltip: 'قورئانخوێن',
+    return ClipPath(
+      clipper: _WaveClipper(),
+      child: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFFF5F0E8), Color(0xFFD4E8D4)],
           ),
-          // Play/Pause current ayah
-          ListenableBuilder(
-            listenable: _audio,
-            builder: (context, _) {
-              final isActive = _audio.isPlaying || _audio.isPaused;
-              return Row(
-                children: [
-                  IconButton(
-                    icon: Icon(
-                      _audio.isPlaying ? Icons.pause : Icons.play_arrow,
-                      color: Colors.white,
-                    ),
-                    onPressed: () {
-                      if (isActive) {
-                        if (_audio.isPlaying) {
-                          _audio.pause();
-                        } else {
-                          _audio.resume();
-                        }
-                      } else {
-                        // Play from first ayah on page — continuous always true
-                        if (_pageWords.isNotEmpty) {
-                          _audio.playAyah(
-                            _pageWords.first.surah,
-                            _pageWords.first.ayah,
-                            continuous: true,
-                          );
-                        }
-                      }
-                    },
-                  ),
-                  if (isActive)
-                    IconButton(
-                      icon: const Icon(Icons.stop, color: Colors.white70),
-                      onPressed: _audio.stop,
-                    ),
-                ],
-              );
-            },
-          ),
-          const Spacer(),
-          // Surah list button
-          IconButton(
-            icon: const Icon(Icons.list, color: Colors.white70),
-            onPressed: _showSurahList,
-          ),
-          // Page jump
-          IconButton(
-            icon: const Icon(Icons.open_in_new, color: Colors.white70),
-            onPressed: _showPageJump,
-          ),
-        ],
+        ),
+        padding: const EdgeInsets.only(left: 8, right: 8, bottom: 0, top: 4),
+        child: Stack(
+          alignment: Alignment.topCenter,
+          children: [
+            // ژمارەی لاپەرە لەناو شەپۆلەکە
+            Positioned(
+              top: 0,
+              child: Text(
+                _toKNum(_currentPage),
+                style: const TextStyle(
+                  fontSize: 10,
+                  color: Color(0xFF2D5016),
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            Row(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.person, color: Colors.white70),
+                  onPressed: _showReciterSheet,
+                  tooltip: 'قورئانخوێن',
+                ),
+                ListenableBuilder(
+                  listenable: _audio,
+                  builder: (context, _) {
+                    final isActive = _audio.isPlaying || _audio.isPaused;
+                    return Row(
+                      children: [
+                        IconButton(
+                          icon: Icon(
+                            _audio.isPlaying ? Icons.pause : Icons.play_arrow,
+                            color: Colors.white,
+                          ),
+                          onPressed: () {
+                            if (isActive) {
+                              if (_audio.isPlaying) {
+                                _audio.pause();
+                              } else {
+                                _audio.resume();
+                              }
+                            } else {
+                              if (_pageWords.isNotEmpty) {
+                                _audio.playAyah(
+                                  _pageWords.first.surah,
+                                  _pageWords.first.ayah,
+                                );
+                              }
+                            }
+                          },
+                        ),
+                        if (isActive)
+                          IconButton(
+                            icon: const Icon(Icons.stop, color: Colors.white70),
+                            onPressed: _audio.stop,
+                          ),
+                      ],
+                    );
+                  },
+                ),
+                const Spacer(),
+                IconButton(
+                  icon: const Icon(Icons.list, color: Colors.white70),
+                  onPressed: _showSurahList,
+                ),
+                IconButton(
+                  icon: const Icon(Icons.open_in_new, color: Colors.white70),
+                  onPressed: _showPageJump,
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -953,7 +940,7 @@ class _QuranScreenState extends State<QuranScreen> {
                       textDirection: TextDirection.rtl,
                     ),
                     subtitle: Text(
-                      '${surah.isMakki ? "مکی" : "مدنی"} · ${_toKNum(surah.versesCount)} ئایە',
+                      '${surah.isMakki ? "مکی" : "مدنی"} / ${_toKNum(surah.versesCount)} ئایە',
                       textDirection: TextDirection.rtl,
                       style: TextStyle(
                         color: Colors.white.withOpacity(0.45),
@@ -1030,7 +1017,7 @@ class _QuranScreenState extends State<QuranScreen> {
               child: Row(
                 children: [
                   const Expanded(
-                    child: Text('دەنگەکان',
+                    child: Text('قورئانخوێنان',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                             color: Colors.white,
@@ -1063,127 +1050,136 @@ class _QuranScreenState extends State<QuranScreen> {
                     final isDl = _audio.downloadedReciters.contains(id);
                     final progress = _audio.downloadProgress[id];
 
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 6),
-                      child: Row(
-                        children: [
-                          // بازنەی هەڵبژاردن
-                          GestureDetector(
-                            onTap: () {
-                              _audio.switchReciter(id, r['file']!);
-                              Navigator.pop(ctx);
-                            },
-                            child: Container(
-                              width: 34,
-                              height: 34,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: isSelected
-                                      ? const Color(0xFF8BC34A)
-                                      : Colors.white24,
-                                  width: isSelected ? 2.5 : 1.5,
-                                ),
-                                color: isSelected
-                                    ? const Color(0xFF4A7C59)
-                                    : Colors.transparent,
-                              ),
-                              child: isSelected
-                                  ? const Icon(Icons.check,
-                                      color: Colors.white, size: 17)
-                                  : null,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          // ناو + بار
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  r['nameArabic']!,
-                                  style: TextStyle(
+                    return GestureDetector(
+                        onTap: () {
+                          Navigator.pop(ctx);
+                          _audio.switchReciter(id, r['file']!);
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 6),
+                          child: Row(
+                            children: [
+                              // بازنەی هەڵبژاردن
+                              Container(
+                                width: 34,
+                                height: 34,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
                                     color: isSelected
-                                        ? const Color(0xFFB8D4A8)
-                                        : Colors.white,
-                                    fontSize: 14,
-                                    fontWeight: isSelected
-                                        ? FontWeight.bold
-                                        : FontWeight.normal,
+                                        ? const Color(0xFF8BC34A)
+                                        : Colors.white24,
+                                    width: isSelected ? 2.5 : 1.5,
                                   ),
-                                  textDirection: TextDirection.rtl,
+                                  color: isSelected
+                                      ? const Color(0xFF4A7C59)
+                                      : Colors.transparent,
                                 ),
-                                const SizedBox(height: 5),
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(3),
-                                  child: LinearProgressIndicator(
-                                    value: progress ?? (isDl ? 1.0 : 0.0),
-                                    minHeight: 3,
-                                    backgroundColor: Colors.white10,
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                      isDl && progress == null
-                                          ? const Color(0xFF4A7C59)
-                                          : const Color(0xFF8BC34A),
+                                child: isSelected
+                                    ? const Icon(Icons.check,
+                                        color: Colors.white, size: 17)
+                                    : null,
+                              ),
+                              const SizedBox(width: 12),
+                              // ناو + بار
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      r['nameArabic']!,
+                                      style: TextStyle(
+                                        color: isSelected
+                                            ? const Color(0xFFB8D4A8)
+                                            : Colors.white,
+                                        fontSize: 14,
+                                        fontWeight: isSelected
+                                            ? FontWeight.bold
+                                            : FontWeight.normal,
+                                      ),
+                                      textDirection: TextDirection.rtl,
+                                    ),
+                                    const SizedBox(height: 5),
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(3),
+                                      child: LinearProgressIndicator(
+                                        value: progress ?? (isDl ? 1.0 : 0.0),
+                                        minHeight: 3,
+                                        backgroundColor: Colors.white10,
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                          isDl && progress == null
+                                              ? const Color(0xFF4A7C59)
+                                              : const Color(0xFF8BC34A),
+                                        ),
+                                      ),
+                                    ),
+                                    if (progress != null) ...[
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        '${_toKNum((progress * 100).toInt())}٪ دادەبەزێت',
+                                        style: const TextStyle(
+                                            color: Color(0xFF8BC34A),
+                                            fontSize: 10),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              // دوگمەی دابەزاندن / سڕینەوە
+                              if (id != '953') ...[
+                                if (progress != null)
+                                  GestureDetector(
+                                    behavior: HitTestBehavior.opaque,
+                                    onTap: () =>
+                                        _audio.deleteDownloadedReciter(id),
+                                    child: const Icon(Icons.close,
+                                        color: Colors.white38, size: 18),
+                                  )
+                                else if (isDl)
+                                  GestureDetector(
+                                    behavior: HitTestBehavior.opaque,
+                                    onTap: () =>
+                                        _audio.deleteDownloadedReciter(id),
+                                    child: Icon(Icons.delete_outline,
+                                        color: Colors.white.withOpacity(0.3),
+                                        size: 18),
+                                  )
+                                else
+                                  GestureDetector(
+                                    behavior: HitTestBehavior.opaque,
+                                    onTap: () {
+                                      _audio.downloadReciter(id);
+                                    },
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 9, vertical: 4),
+                                      decoration: BoxDecoration(
+                                        border: Border.all(
+                                            color: const Color(0xFF4A7C59)),
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                      child: const Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(Icons.download,
+                                              color: Color(0xFF8BC34A),
+                                              size: 13),
+                                          SizedBox(width: 3),
+                                          Text('دابەزێنە',
+                                              style: TextStyle(
+                                                  color: Color(0xFF8BC34A),
+                                                  fontSize: 10)),
+                                        ],
+                                      ),
                                     ),
                                   ),
-                                ),
-                                if (progress != null) ...[
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    '${_toKNum((progress * 100).toInt())}٪ دادەبەزێت',
-                                    style: const TextStyle(
-                                        color: Color(0xFF8BC34A), fontSize: 10),
-                                  ),
-                                ],
                               ],
-                            ),
+                            ],
                           ),
-                          const SizedBox(width: 8),
-                          // دوگمەی دابەزاندن / سڕینەوە
-                          if (id != '953') ...[
-                            if (progress != null)
-                              GestureDetector(
-                                onTap: () => _audio.deleteDownloadedReciter(id),
-                                child: const Icon(Icons.close,
-                                    color: Colors.white38, size: 18),
-                              )
-                            else if (isDl)
-                              GestureDetector(
-                                onTap: () => _audio.deleteDownloadedReciter(id),
-                                child: Icon(Icons.delete_outline,
-                                    color: Colors.white.withOpacity(0.3),
-                                    size: 18),
-                              )
-                            else
-                              GestureDetector(
-                                onTap: () => _audio.downloadReciter(id),
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 9, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    border: Border.all(
-                                        color: const Color(0xFF4A7C59)),
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: const Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(Icons.download,
-                                          color: Color(0xFF8BC34A), size: 13),
-                                      SizedBox(width: 3),
-                                      Text('داگرتن',
-                                          style: TextStyle(
-                                              color: Color(0xFF8BC34A),
-                                              fontSize: 10)),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ],
-                      ),
-                    );
+                        ));
                   },
                 ),
               ),
@@ -1200,4 +1196,31 @@ class _QuranScreenState extends State<QuranScreen> {
     _pageController.dispose();
     super.dispose();
   }
+}
+
+class _WaveClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) {
+    final path = Path();
+    const waveHeight = 16.0;
+    const waveWidth = 60.0;
+    final centerX = size.width / 2;
+
+    path.moveTo(0, waveHeight);
+    path.lineTo(centerX - waveWidth / 2, waveHeight);
+    path.quadraticBezierTo(
+      centerX,
+      -waveHeight * 0.6,
+      centerX + waveWidth / 2,
+      waveHeight,
+    );
+    path.lineTo(size.width, waveHeight);
+    path.lineTo(size.width, size.height);
+    path.lineTo(0, size.height);
+    path.close();
+    return path;
+  }
+
+  @override
+  bool shouldReclip(_WaveClipper old) => false;
 }
