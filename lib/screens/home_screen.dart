@@ -76,6 +76,16 @@ class _PrayerHomePageState extends State<PrayerHomePage>
     _initAppData();
   }
 
+  void _applySystemUiColors() {
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+      statusBarColor: _palette.background,
+      statusBarIconBrightness: Brightness.light,
+      systemNavigationBarColor: _palette.background,
+      systemNavigationBarIconBrightness: Brightness.light,
+      systemNavigationBarDividerColor: Colors.transparent,
+    ));
+  }
+
   Future<void> _initAppData() async {
     await _loadSavedSettings();
 
@@ -116,6 +126,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
       if (savedPrayers != null) activeAthans = savedPrayers.toSet();
       _prayerTimesFuture = _prayerDataService.getPrayerTimes(currentCity, _now);
     });
+    _applySystemUiColors();
 
     if (savedPrayers != null) {
       for (final prayerName in savedPrayers) {
@@ -769,6 +780,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
                   primaryColor = color;
                   _palette = getThemePalette(selectedThemeName);
                 });
+                _applySystemUiColors();
                 _saveSettings();
               },
               selectedAthanFile: selectedAthanFile,

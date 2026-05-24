@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import 'quran_models.dart';
 import 'quran_database_helper.dart';
 import 'quran_audio_service.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 // Font base URL — individual files on GitHub Pages
 const String kFontBaseUrl = 'https://daryan-m.github.io/fonts';
@@ -93,6 +94,7 @@ class _QuranScreenState extends State<QuranScreen> {
 
     // هەموو فۆنتەکان لەپاشەکەوتدا دابەزێنە
     if (!_allFontsDone) _runFontQueue();
+    WakelockPlus.enable();
   }
 
   Future<void> _runFontQueue() async {
@@ -488,8 +490,8 @@ class _QuranScreenState extends State<QuranScreen> {
                       text: surahName,
                       style: const TextStyle(
                         fontSize: 11,
-                        color: Color(0xFF2D5016),
-                        fontFamily: 'quran-common',
+                        color: Color(0xFF4A7C59),
+                        fontFamily: 'Notonaskh',
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -591,8 +593,8 @@ class _QuranScreenState extends State<QuranScreen> {
                       ),
                     ),
                     // ئایکۆنی tune لەگۆشەی چەپ
-                    Positioned(
-                      right: 0, // ← لای چەپ فیزیکی (RTL)
+                    Align(
+                      alignment: Alignment.centerRight,
                       child: Icon(
                         Icons.tune,
                         size: 14,
@@ -787,26 +789,24 @@ class _QuranScreenState extends State<QuranScreen> {
         ),
         padding: const EdgeInsets.only(left: 8, right: 8, bottom: 0, top: 4),
         child: Stack(
-          alignment: Alignment.topCenter,
+          alignment: Alignment.center,
           children: [
-            // ژمارەی لاپەرە لەناو شەپۆلەکە
-            Positioned(
-              top: 0,
-              child: Text(
-                _toKNum(_currentPage),
-                style: const TextStyle(
-                  fontSize: 10,
-                  color: Color(0xFF2D5016),
-                  fontWeight: FontWeight.bold,
-                ),
+            // ژمارەی لاپەرە لەناوەراستی بارەکە
+            Text(
+              _toKNum(_currentPage),
+              style: const TextStyle(
+                fontSize: 10,
+                color: Color(0xFF2D5016),
+                fontWeight: FontWeight.bold,
               ),
             ),
             Row(
               children: [
                 IconButton(
-                  icon: const Icon(Icons.person, color: Colors.white70),
+                  icon: const Icon(Icons.person, color: Color(0xFF4A7C59)),
                   onPressed: _showReciterSheet,
                   tooltip: 'قورئانخوێن',
+                  visualDensity: VisualDensity.compact,
                 ),
                 ListenableBuilder(
                   listenable: _audio,
@@ -817,8 +817,9 @@ class _QuranScreenState extends State<QuranScreen> {
                         IconButton(
                           icon: Icon(
                             _audio.isPlaying ? Icons.pause : Icons.play_arrow,
-                            color: Colors.white,
+                            color: const Color(0xFF4A7C59)
                           ),
+                          visualDensity: VisualDensity.compact,
                           onPressed: () {
                             if (isActive) {
                               if (_audio.isPlaying) {
@@ -838,8 +839,9 @@ class _QuranScreenState extends State<QuranScreen> {
                         ),
                         if (isActive)
                           IconButton(
-                            icon: const Icon(Icons.stop, color: Colors.white70),
+                            icon: const Icon(Icons.stop, color: Color(0xFF4A7C59)),
                             onPressed: _audio.stop,
+                            visualDensity: VisualDensity.compact,
                           ),
                       ],
                     );
@@ -847,12 +849,14 @@ class _QuranScreenState extends State<QuranScreen> {
                 ),
                 const Spacer(),
                 IconButton(
-                  icon: const Icon(Icons.list, color: Colors.white70),
+                  icon: const Icon(Icons.list, color: Color(0xFF4A7C59)),
                   onPressed: _showSurahList,
+                  visualDensity: VisualDensity.compact,
                 ),
                 IconButton(
-                  icon: const Icon(Icons.open_in_new, color: Colors.white70),
+                  icon: const Icon(Icons.open_in_new, color: Color(0xFF4A7C59)),
                   onPressed: _showPageJump,
+                  visualDensity: VisualDensity.compact,
                 ),
               ],
             ),
@@ -1195,6 +1199,7 @@ class _QuranScreenState extends State<QuranScreen> {
     _audio.removeListener(_onAudioChanged);
     _pageController.dispose();
     super.dispose();
+    WakelockPlus.disable();
   }
 }
 
