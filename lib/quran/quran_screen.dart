@@ -452,7 +452,7 @@ class _QuranScreenState extends State<QuranScreen> {
         bottom: 1,
       ),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
@@ -489,7 +489,7 @@ class _QuranScreenState extends State<QuranScreen> {
                     TextSpan(
                       text: surahName,
                       style: const TextStyle(
-                        fontSize: 11,
+                        fontSize: 13,
                         color: Color(0xFF4A7C59),
                         fontFamily: 'Notonaskh',
                         fontWeight: FontWeight.bold,
@@ -498,7 +498,7 @@ class _QuranScreenState extends State<QuranScreen> {
                     TextSpan(
                       text: ' ($placeText)',
                       style: const TextStyle(
-                        fontSize: 9,
+                        fontSize: 11,
                         color: Color(0xFF4A7C59),
                       ),
                     ),
@@ -512,7 +512,7 @@ class _QuranScreenState extends State<QuranScreen> {
               child: Text(
                 juzText,
                 style: const TextStyle(
-                  fontSize: 10,
+                  fontSize: 11,
                   color: Color(0xFF4A7C59),
                   fontWeight: FontWeight.bold,
                 ),
@@ -588,7 +588,7 @@ class _QuranScreenState extends State<QuranScreen> {
                     Text(
                       'دابەزاندنی لاپەڕەکانی قورئانی پیرۆز $pctKu٪',
                       style: TextStyle(
-                        fontSize: 8,
+                        fontSize: 10,
                         color: const Color(0xFF4A7C59).withOpacity(0.8),
                       ),
                     ),
@@ -768,7 +768,7 @@ class _QuranScreenState extends State<QuranScreen> {
           fontFamily: fontName,
           fontSize: 18,
           color: textColor,
-          height: 1.8,
+          height: 1.7,
         ),
       ),
     );
@@ -777,30 +777,24 @@ class _QuranScreenState extends State<QuranScreen> {
   // ─── Bottom Bar ─────────────────────────────────────────────────────────────
 
   Widget _buildBottomBar() {
-    return ClipPath(
-      clipper: _WaveClipper(),
-      child: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFFF5F0E8), Color(0xFFD4E8D4)],
-          ),
-        ),
-        padding: const EdgeInsets.only(left: 8, right: 8, bottom: 0, top: 4),
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            // ژمارەی لاپەرە لەناوەراستی بارەکە
-            Text(
-              _toKNum(_currentPage),
-              style: const TextStyle(
-                fontSize: 10,
-                color: Color(0xFF2D5016),
-                fontWeight: FontWeight.bold,
+    return Stack(
+      clipBehavior: Clip.none,
+      alignment: Alignment.topCenter,
+      children: [
+        // بارەی سەرەکی
+        ClipPath(
+          clipper: _WaveClipper(),
+          child: Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Color(0xFFF5F0E8), Color(0xFFD4E8D4)],
               ),
             ),
-            Row(
+            padding:
+                const EdgeInsets.only(left: 8, right: 8, bottom: 0, top: 16),
+            child: Row(
               children: [
                 IconButton(
                   icon: const Icon(Icons.person, color: Color(0xFF4A7C59)),
@@ -813,12 +807,12 @@ class _QuranScreenState extends State<QuranScreen> {
                   builder: (context, _) {
                     final isActive = _audio.isPlaying || _audio.isPaused;
                     return Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         IconButton(
                           icon: Icon(
-                            _audio.isPlaying ? Icons.pause : Icons.play_arrow,
-                            color: const Color(0xFF4A7C59)
-                          ),
+                              _audio.isPlaying ? Icons.pause : Icons.play_arrow,
+                              color: const Color(0xFF4A7C59)),
                           visualDensity: VisualDensity.compact,
                           onPressed: () {
                             if (isActive) {
@@ -839,7 +833,8 @@ class _QuranScreenState extends State<QuranScreen> {
                         ),
                         if (isActive)
                           IconButton(
-                            icon: const Icon(Icons.stop, color: Color(0xFF4A7C59)),
+                            icon: const Icon(Icons.stop,
+                                color: Color(0xFF4A7C59)),
                             onPressed: _audio.stop,
                             visualDensity: VisualDensity.compact,
                           ),
@@ -860,9 +855,26 @@ class _QuranScreenState extends State<QuranScreen> {
                 ),
               ],
             ),
-          ],
+          ),
         ),
-      ),
+        // ژمارەی لاپەرە ناو تاسەی شەپۆلەکە
+        Positioned(
+          top: 0,
+          child: Container(
+            width: 36,
+            height: 20,
+            alignment: Alignment.center,
+            child: Text(
+              _toKNum(_currentPage),
+              style: const TextStyle(
+                fontSize: 11,
+                color: Color(0xFF2D5016),
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 

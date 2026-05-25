@@ -886,7 +886,7 @@ class _DateConverterDialogState extends State<DateConverterDialog>
           Row(children: [
             Expanded(
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 16),
                 decoration: BoxDecoration(
                   color:
                       Theme.of(context).colorScheme.onSurface.withOpacity(0.07),
@@ -896,6 +896,7 @@ class _DateConverterDialogState extends State<DateConverterDialog>
                 child: DropdownButtonHideUnderline(
                   child: DropdownButton<String>(
                     value: _selectedCity,
+                    menuMaxHeight: 350,
                     dropdownColor: widget.dialogBg ??
                         Theme.of(context).colorScheme.surface,
                     style: TextStyle(

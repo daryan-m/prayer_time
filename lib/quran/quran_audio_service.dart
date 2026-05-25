@@ -27,6 +27,7 @@ class QuranAudioService extends ChangeNotifier {
   int _currentSurah = 0;
   int _currentAyah = 0;
   int _highlightedWordIndex = 0; // 1-based word index
+  bool _completionHandled = false; // بۆ ئەوەی دووبارە fire نەبێت
   String _currentReciterId = '953';
   String _currentReciterFileName =
       'ayah-recitation-mishari-rashid-al-afasy-murattal-hafs-953.json';
@@ -60,7 +61,10 @@ class QuranAudioService extends ChangeNotifier {
 
     _player.playerStateStream.listen((playerState) {
       if (playerState.processingState == ProcessingState.completed) {
-        _onAyahCompleted();
+        if (!_completionHandled) {
+          _completionHandled = true;
+          _onAyahCompleted();
+        }
       }
     });
   }
@@ -186,6 +190,7 @@ class QuranAudioService extends ChangeNotifier {
 
   Future<void> playAyah(int surah, int ayah, {bool continuous = false}) async {
     _segmentTimer?.cancel();
+    _completionHandled = false; // ریسێت بکە بۆ هەر ئایەتێکی نوێ
     _currentSurah = surah;
     _currentAyah = ayah;
     _highlightedWordIndex = 0;
@@ -302,10 +307,10 @@ class QuranAudioService extends ChangeNotifier {
 
   Future<void> stop() async {
     _segmentTimer?.cancel();
+    _completionHandled = true; // بێستە ئەوەی completed event کاریگەر نەبێت
     await _player.stop();
     _state = AudioState.stopped;
     _highlightedWordIndex = 0;
-
     notifyListeners();
   }
 

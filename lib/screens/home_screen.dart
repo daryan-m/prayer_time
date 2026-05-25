@@ -763,7 +763,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
             drawerEnableOpenDragGesture: true,
             drawerEdgeDragWidth: 50,
             bottomNavigationBar: MediaQuery.of(context).size.width <= 600
-                ? _buildBottomBar(context)
+                ? Builder(builder: (ctx) => _buildBottomBar(ctx))
                 : null,
             drawer: PrayerDrawer(
               currentCity: currentCity,
