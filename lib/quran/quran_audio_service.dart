@@ -92,8 +92,9 @@ class QuranAudioService extends ChangeNotifier {
     if (_currentReciterId == reciterId) return;
 
     // ئایەتی ئێستا پاشکەوت بکە پێش وەستاندن
-    final wasPlaying =
-        _state == AudioState.playing || _state == AudioState.paused;
+    final wasPlaying = _state == AudioState.playing ||
+        _state == AudioState.paused ||
+        _state == AudioState.loading;
     final resumeSurah = _currentSurah;
     final resumeAyah = _currentAyah;
 

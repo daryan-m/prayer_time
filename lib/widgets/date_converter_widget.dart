@@ -55,6 +55,7 @@ class DateConverterDialog extends StatefulWidget {
 class _DateConverterDialogState extends State<DateConverterDialog>
     with SingleTickerProviderStateMixin {
   late TabController _tabCtrl;
+  bool _cityDropdownOpen = false;
 
   final _gregDayCtrl = TextEditingController();
   final _gregMonthCtrl = TextEditingController();
@@ -883,44 +884,140 @@ class _DateConverterDialogState extends State<DateConverterDialog>
             Expanded(child: _numField(_prayDayCtrl, "ڕۆژ", pc)),
           ]),
           const SizedBox(height: 14),
-          Row(children: [
+          Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Expanded(
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                decoration: BoxDecoration(
-                  color:
-                      Theme.of(context).colorScheme.onSurface.withOpacity(0.07),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: pc.withOpacity(0.35)),
-                ),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<String>(
-                    value: _selectedCity,
-                    menuMaxHeight: 350,
-                    dropdownColor: widget.dialogBg ??
-                        Theme.of(context).colorScheme.surface,
-                    style: TextStyle(
-                        color: Theme.of(context).textTheme.bodyMedium?.color,
-                        fontSize: 13),
-                    iconEnabledColor: Theme.of(context)
-                        .textTheme
-                        .bodyMedium
-                        ?.color
-                        ?.withOpacity(0.54),
-                    isExpanded: true,
-                    hint: Text("شار",
-                        style: TextStyle(
-                            color: Theme.of(context)
-                                .textTheme
-                                .bodyMedium
-                                ?.color
-                                ?.withOpacity(0.38))),
-                    items: kurdistanCitiesData
-                        .map((c) => DropdownMenuItem(value: c, child: Text(c)))
-                        .toList(),
-                    onChanged: (v) => setState(() => _selectedCity = v),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  GestureDetector(
+                    onTap: () =>
+                        setState(() => _cityDropdownOpen = !_cityDropdownOpen),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 11),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withOpacity(0.07),
+                        borderRadius: BorderRadius.only(
+                          topRight: const Radius.circular(10),
+                          topLeft: const Radius.circular(10),
+                          bottomRight:
+                              Radius.circular(_cityDropdownOpen ? 0 : 10),
+                          bottomLeft:
+                              Radius.circular(_cityDropdownOpen ? 0 : 10),
+                        ),
+                        border: Border.all(color: pc.withOpacity(0.35)),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          AnimatedRotation(
+                            turns: _cityDropdownOpen ? 0.5 : 0,
+                            duration: const Duration(milliseconds: 250),
+                            child: Icon(Icons.keyboard_arrow_down,
+                                color: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
+                                    ?.color
+                                    ?.withOpacity(0.54)),
+                          ),
+                          Text(
+                            _selectedCity ?? "شار",
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: _selectedCity != null
+                                  ? Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium
+                                      ?.color
+                                  : Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium
+                                      ?.color
+                                      ?.withOpacity(0.38),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
-                ),
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                    height: _cityDropdownOpen ? 180 : 0,
+                    decoration: BoxDecoration(
+                      color: widget.dialogBg ??
+                          Theme.of(context).colorScheme.surface,
+                      borderRadius: const BorderRadius.only(
+                        bottomRight: Radius.circular(10),
+                        bottomLeft: Radius.circular(10),
+                      ),
+                      border: _cityDropdownOpen
+                          ? Border(
+                              left: BorderSide(color: pc.withOpacity(0.35)),
+                              right: BorderSide(color: pc.withOpacity(0.35)),
+                              bottom: BorderSide(color: pc.withOpacity(0.35)),
+                            )
+                          : const Border(),
+                    ),
+                    child: ClipRRect(
+                      borderRadius: const BorderRadius.only(
+                        bottomRight: Radius.circular(10),
+                        bottomLeft: Radius.circular(10),
+                      ),
+                      child: ListView(
+                        padding: EdgeInsets.zero,
+                        children: kurdistanCitiesData.map((c) {
+                          final isSelected = _selectedCity == c;
+                          return InkWell(
+                            onTap: () => setState(() {
+                              _selectedCity = c;
+                              _cityDropdownOpen = false;
+                            }),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 14, vertical: 11),
+                              decoration: BoxDecoration(
+                                border: Border(
+                                  bottom: BorderSide(
+                                      color: Theme.of(context)
+                                          .dividerColor
+                                          .withOpacity(0.1)),
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  isSelected
+                                      ? Icon(Icons.check, color: pc, size: 16)
+                                      : const SizedBox(width: 16),
+                                  Text(
+                                    c,
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      color: isSelected
+                                          ? pc
+                                          : Theme.of(context)
+                                              .textTheme
+                                              .bodyMedium
+                                              ?.color,
+                                      fontWeight: isSelected
+                                          ? FontWeight.bold
+                                          : FontWeight.normal,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
             const SizedBox(width: 10),

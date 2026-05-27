@@ -913,60 +913,64 @@ class _PrayerHomePageState extends State<PrayerHomePage>
 
   // ── بارێکی خوارەوە (ستانداردی Flutter) ──────────
   Widget _buildBottomBar(BuildContext context) {
-    return SafeArea(
-      child: Container(
-        height: 58,
-        decoration: BoxDecoration(
-          color: _palette.background,
-          border: Border(
-            top: BorderSide(color: _palette.secondary.withOpacity(0.25)),
+    return ColoredBox(
+      color: _palette.background,
+      child: SafeArea(
+        top: false,
+        child: Container(
+          height: 58,
+          decoration: BoxDecoration(
+            color: _palette.background,
+            border: Border(
+              top: BorderSide(color: _palette.secondary.withOpacity(0.25)),
+            ),
           ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _buildBottomIcon(
-              icon: Icons.menu_book_rounded,
-              label: "قورئان",
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const QuranScreen(),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _buildBottomIcon(
+                icon: Icons.menu_book_rounded,
+                label: "قورئان",
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const QuranScreen(),
+                    ),
+                  );
+                },
+              ),
+              _buildBottomIcon(
+                icon: Icons.grain,
+                label: "تەسبیح",
+                onTap: () => showDialog(
+                  context: context,
+                  builder: (_) => TasbihDialog(
+                    primaryColor: primaryColor,
+                    dialogBg: _palette.background,
                   ),
-                );
-              },
-            ),
-            _buildBottomIcon(
-              icon: Icons.grain,
-              label: "تەسبیح",
-              onTap: () => showDialog(
-                context: context,
-                builder: (_) => TasbihDialog(
-                  primaryColor: primaryColor,
-                  dialogBg: _palette.background,
                 ),
               ),
-            ),
-            _buildBottomIcon(
-              icon: Icons.auto_awesome,
-              label: "ناوەکانی خودا",
-              onTap: () => showDialog(
-                context: context,
-                builder: (_) => AllahNamesDialog(
-                  primaryColor: primaryColor,
-                  dialogBg: _palette.background,
+              _buildBottomIcon(
+                icon: Icons.auto_awesome,
+                label: "ناوەکانی خودا",
+                onTap: () => showDialog(
+                  context: context,
+                  builder: (_) => AllahNamesDialog(
+                    primaryColor: primaryColor,
+                    dialogBg: _palette.background,
+                  ),
                 ),
               ),
-            ),
-            Builder(
-              builder: (ctx) => _buildBottomIcon(
-                icon: Icons.tune_rounded,
-                label: "ڕێکخستن",
-                onTap: () => Scaffold.of(ctx).openDrawer(),
+              Builder(
+                builder: (ctx) => _buildBottomIcon(
+                  icon: Icons.tune_rounded,
+                  label: "ڕێکخستن",
+                  onTap: () => Scaffold.of(ctx).openDrawer(),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

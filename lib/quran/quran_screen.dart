@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:archive/archive_io.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'quran_models.dart';
 import 'quran_database_helper.dart';
 import 'quran_audio_service.dart';
@@ -277,6 +278,8 @@ class _QuranScreenState extends State<QuranScreen> {
       if (mounted) {
         setState(() {
           _currentPage = targetPage;
+          SharedPreferences.getInstance()
+              .then((p) => p.setInt('quran_last_page', targetPage));
           _pageLines = lines;
           _pageWords = allWords;
           _wordById = wordMap;
@@ -366,7 +369,23 @@ class _QuranScreenState extends State<QuranScreen> {
         PageView.builder(
           controller: _pageController,
           reverse: true, // RTL — right page = lower number
-          onPageChanged: (index) => _loadPage(index + 1),
+          onPageChanged: (index) {
+            final newPage = index + 1;
+            _loadPage(newPage).then((_) {
+              if (!mounted) return;
+              // یەکەم ئایەتی لاپەرەکە ئەکتێف بکە
+              if (_pageWords.isNotEmpty) {
+                final firstWord = _pageWords.first;
+                // ئەگەر دەنگ لەکارە، یەکەم ئایەتی لاپەرەی نوێ بخوێنەرەوە
+                if (_audio.isPlaying || _audio.isPaused) {
+                  _audio.playAyah(firstWord.surah, firstWord.ayah);
+                } else {
+                  // تەنها سلێکت بکە بەبێ خوێندنەوە
+                  setState(() {});
+                }
+              }
+            });
+          },
           itemCount: 604,
           itemBuilder: (context, index) {
             final page = index + 1;
@@ -750,14 +769,23 @@ class _QuranScreenState extends State<QuranScreen> {
   }
 
   Widget _buildWord(QuranWord word, String fontName) {
-    // هایلایت بە ئایەت — نەک وشە بە وشە
     final isCurrentAyah = _audio.isCurrentAyah(word.surah, word.ayah) &&
         (_audio.isPlaying || _audio.isPaused);
 
+    // یەکەم ئایەتی لاپەرە بە زەرد دیاری بکە ئەگەر دەنگ لەکار نەبوو
+    final isFirstAyah = _pageWords.isNotEmpty &&
+        word.surah == _pageWords.first.surah &&
+        word.ayah == _pageWords.first.ayah &&
+        !_audio.isPlaying &&
+        !_audio.isPaused;
+
     final Color textColor =
         isCurrentAyah ? const Color(0xFF2D5016) : const Color(0xFF1A1A1A);
-    final Color? bgColor =
-        isCurrentAyah ? const Color(0xFFFFD700).withOpacity(0.35) : null;
+    final Color? bgColor = isCurrentAyah
+        ? const Color(0xFFFFD700).withOpacity(0.35)
+        : isFirstAyah
+            ? const Color(0xFFFFD700).withOpacity(0.15)
+            : null;
 
     return Container(
       color: bgColor,
