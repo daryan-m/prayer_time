@@ -58,6 +58,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
   @override
   void initState() {
     super.initState();
+    _applySystemUiColors();
 
     _prayerTimesFuture = _prayerDataService.getPrayerTimes(
       currentCity,

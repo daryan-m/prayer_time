@@ -90,8 +90,17 @@ class _QuranScreenState extends State<QuranScreen> {
     _downloadedFonts = _fontReady.values.where((v) => v).length - 1;
     if (_downloadedFonts >= _totalFonts) _allFontsDone = true;
 
-    await _loadPage(1);
-    if (mounted) setState(() => _isInitialized = true);
+    final prefs = await SharedPreferences.getInstance();
+    final savedPage = prefs.getInt('quran_last_page') ?? 1;
+    await _loadPage(savedPage);
+    if (mounted) {
+      setState(() => _isInitialized = true);
+      if (savedPage > 1) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) _pageController.jumpToPage(savedPage - 1);
+        });
+      }
+    }
 
     // هەموو فۆنتەکان لەپاشەکەوتدا دابەزێنە
     if (!_allFontsDone) _runFontQueue();

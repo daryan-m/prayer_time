@@ -111,6 +111,7 @@ class QuranAudioService extends ChangeNotifier {
         await _db.loadDownloadedRecitation(path, reciterId);
         _mode = AudioMode.offline;
       } else {
+        await _db.loadBuiltInRecitation(fileName);
         _mode = AudioMode.online;
       }
     }
