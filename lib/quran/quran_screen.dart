@@ -480,13 +480,13 @@ class _QuranScreenState extends State<QuranScreen> {
         bottom: 1,
       ),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color(0xFFD4E8D4),
+              Color(0xFFCEE7CE),
               Color(0xFFF5F0E8),
             ],
           ),
@@ -502,8 +502,8 @@ class _QuranScreenState extends State<QuranScreen> {
               onTap: () => Navigator.of(context).maybePop(),
               child: const Icon(
                 Icons.arrow_back_ios,
-                size: 14,
-                color: Color(0xFF4A7C59),
+                size: 16,
+                color: Color(0xFF215B33),
               ),
             ),
             const SizedBox(width: 4),
@@ -517,8 +517,8 @@ class _QuranScreenState extends State<QuranScreen> {
                     TextSpan(
                       text: surahName,
                       style: const TextStyle(
-                        fontSize: 13,
-                        color: Color(0xFF4A7C59),
+                        fontSize: 15,
+                        color: Color(0xFF215B33),
                         fontFamily: 'Notonaskh',
                         fontWeight: FontWeight.bold,
                       ),
@@ -526,8 +526,8 @@ class _QuranScreenState extends State<QuranScreen> {
                     TextSpan(
                       text: ' ($placeText)',
                       style: const TextStyle(
-                        fontSize: 11,
-                        color: Color(0xFF4A7C59),
+                        fontSize: 13,
+                        color: Color(0xFF215B33),
                       ),
                     ),
                   ],
@@ -540,8 +540,8 @@ class _QuranScreenState extends State<QuranScreen> {
               child: Text(
                 juzText,
                 style: const TextStyle(
-                  fontSize: 11,
-                  color: Color(0xFF4A7C59),
+                  fontSize: 13,
+                  color: Color(0xFF215B33),
                   fontWeight: FontWeight.bold,
                 ),
                 textAlign: TextAlign.right,
@@ -580,7 +580,7 @@ class _QuranScreenState extends State<QuranScreen> {
             gradient: LinearGradient(
               begin: Alignment.bottomCenter,
               end: Alignment.topCenter,
-              colors: [Color(0xFFD4E8D4), Color(0xFFF5F0E8)],
+              colors: [Color(0xFFCEE7CE), Color(0xFFF5F0E8)],
             ),
             borderRadius: BorderRadius.only(
               bottomLeft: Radius.circular(5),
@@ -597,7 +597,7 @@ class _QuranScreenState extends State<QuranScreen> {
                   Text(
                     '— ${_toKNum(pageNumber)} —',
                     style:
-                        const TextStyle(fontSize: 10, color: Color(0xFF4A7C59)),
+                        const TextStyle(fontSize: 11, color: Color(0xFF4A7C59)),
                   ),
                   if (!_allFontsDone) ...[
                     const SizedBox(height: 4),
@@ -818,16 +818,14 @@ class _QuranScreenState extends State<QuranScreen> {
       clipBehavior: Clip.none,
       alignment: Alignment.topCenter,
       children: [
-        // بارەی سەرەکی
         ClipPath(
           clipper: _WaveClipper(),
           child: Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [Color(0xFFF5F0E8), Color(0xFFD4E8D4)],
-              ),
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Color(0xFFF5F0E8), Color.fromARGB(255, 212, 237, 212)]),
             ),
             padding:
                 const EdgeInsets.only(left: 8, right: 8, bottom: 0, top: 16),
@@ -894,7 +892,17 @@ class _QuranScreenState extends State<QuranScreen> {
             ),
           ),
         ),
-        // ژمارەی لاپەرە ناو تاسەی شەپۆلەکە
+        // بۆردەری شەپۆلەکە
+        Positioned(
+          top: 0,
+          left: 0,
+          right: 0,
+          height: 32,
+          child: CustomPaint(
+            painter: _WaveBorderPainter(color: const Color(0xFF4A7C59)),
+          ),
+        ),
+        // ژمارەی لاپەرە
         Positioned(
           top: 0,
           child: Container(
@@ -904,7 +912,7 @@ class _QuranScreenState extends State<QuranScreen> {
             child: Text(
               _toKNum(_currentPage),
               style: const TextStyle(
-                fontSize: 11,
+                fontSize: 12,
                 color: Color(0xFF2D5016),
                 fontWeight: FontWeight.bold,
               ),
@@ -1182,7 +1190,7 @@ class _QuranScreenState extends State<QuranScreen> {
                               ),
                               const SizedBox(width: 8),
                               // دوگمەی دابەزاندن / سڕینەوە
-                              if (id != '953') ...[
+                              if (id != '') ...[
                                 if (progress != null)
                                   GestureDetector(
                                     behavior: HitTestBehavior.opaque,
@@ -1277,4 +1285,37 @@ class _WaveClipper extends CustomClipper<Path> {
 
   @override
   bool shouldReclip(_WaveClipper old) => false;
+}
+
+class _WaveBorderPainter extends CustomPainter {
+  final Color color;
+  _WaveBorderPainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.5;
+
+    const waveHeight = 16.0;
+    const waveWidth = 60.0;
+    final centerX = size.width / 2;
+
+    final path = Path();
+    path.moveTo(0, waveHeight);
+    path.lineTo(centerX - waveWidth / 2, waveHeight);
+    path.quadraticBezierTo(
+      centerX,
+      -waveHeight * 0.6,
+      centerX + waveWidth / 2,
+      waveHeight,
+    );
+    path.lineTo(size.width, waveHeight);
+
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(_WaveBorderPainter old) => false;
 }

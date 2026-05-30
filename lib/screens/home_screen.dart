@@ -58,7 +58,6 @@ class _PrayerHomePageState extends State<PrayerHomePage>
   @override
   void initState() {
     super.initState();
-    _applySystemUiColors();
 
     _prayerTimesFuture = _prayerDataService.getPrayerTimes(
       currentCity,
@@ -83,7 +82,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
       statusBarIconBrightness: Brightness.light,
       systemNavigationBarColor: _palette.background,
       systemNavigationBarIconBrightness: Brightness.light,
-      systemNavigationBarDividerColor: Colors.transparent,
+      systemNavigationBarContrastEnforced: false,
     ));
   }
 
@@ -919,7 +918,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
       child: SafeArea(
         top: false,
         child: Container(
-          height: 58,
+          height: 56,
           decoration: BoxDecoration(
             color: _palette.background,
             border: Border(

@@ -102,19 +102,16 @@ class QuranAudioService extends ChangeNotifier {
     _currentReciterId = reciterId;
     _currentReciterFileName = fileName;
 
-    if (reciterId == '953') {
-      await _db.loadBuiltInRecitation(fileName);
+    final dir = await _getReciterDir();
+    final path = '${dir.path}/$fileName';
+    if (await File(path).exists()) {
+      await _db.loadDownloadedRecitation(path, reciterId);
+      _mode = AudioMode.offline;
     } else {
-      final dir = await _getReciterDir();
-      final path = '${dir.path}/$fileName';
-      if (await File(path).exists()) {
-        await _db.loadDownloadedRecitation(path, reciterId);
-        _mode = AudioMode.offline;
-      } else {
-        await _db.loadBuiltInRecitation(fileName);
-        _mode = AudioMode.online;
-      }
+      await _db.loadBuiltInRecitation(fileName);
+      _mode = AudioMode.online;
     }
+
     notifyListeners();
 
     // ئەگەر دەنگ لە کارکردندا بوو، هەمان ئایەتە بخوێنەوە
@@ -259,7 +256,6 @@ class QuranAudioService extends ChangeNotifier {
 
   void _onAyahCompleted() {
     _segmentTimer?.cancel();
-    _highlightedWordIndex = 0;
     // هەمیشە بەردەوام بێت — نەوەستێت
     _playNextAyah();
   }
