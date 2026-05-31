@@ -787,6 +787,7 @@ class _QuranScreenState extends State<QuranScreen> {
         word.ayah == _pageWords.first.ayah &&
         !_audio.isPlaying &&
         !_audio.isPaused;
+    _audio.state != AudioState.loading;
 
     final Color textColor =
         isCurrentAyah ? const Color(0xFF2D5016) : const Color(0xFF1A1A1A);
@@ -818,101 +819,118 @@ class _QuranScreenState extends State<QuranScreen> {
       clipBehavior: Clip.none,
       alignment: Alignment.topCenter,
       children: [
-        ClipPath(
-          clipper: _WaveClipper(),
-          child: Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [Color(0xFFF5F0E8), Color.fromARGB(255, 212, 237, 212)]),
-            ),
-            padding:
-                const EdgeInsets.only(left: 8, right: 8, bottom: 0, top: 16),
-            child: Row(
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.person, color: Color(0xFF4A7C59)),
-                  onPressed: _showReciterSheet,
-                  tooltip: 'قورئانخوێن',
-                  visualDensity: VisualDensity.compact,
-                ),
-                ListenableBuilder(
-                  listenable: _audio,
-                  builder: (context, _) {
-                    final isActive = _audio.isPlaying || _audio.isPaused;
-                    return Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: Icon(
-                              _audio.isPlaying ? Icons.pause : Icons.play_arrow,
-                              color: const Color(0xFF4A7C59)),
-                          visualDensity: VisualDensity.compact,
-                          onPressed: () {
-                            if (isActive) {
-                              if (_audio.isPlaying) {
-                                _audio.pause();
-                              } else {
-                                _audio.resume();
-                              }
-                            } else {
-                              if (_pageWords.isNotEmpty) {
-                                _audio.playAyah(
-                                  _pageWords.first.surah,
-                                  _pageWords.first.ayah,
-                                );
-                              }
-                            }
-                          },
-                        ),
-                        if (isActive)
-                          IconButton(
-                            icon: const Icon(Icons.stop,
-                                color: Color(0xFF4A7C59)),
-                            onPressed: _audio.stop,
-                            visualDensity: VisualDensity.compact,
-                          ),
-                      ],
-                    );
-                  },
-                ),
-                const Spacer(),
-                IconButton(
-                  icon: const Icon(Icons.list, color: Color(0xFF4A7C59)),
-                  onPressed: _showSurahList,
-                  visualDensity: VisualDensity.compact,
-                ),
-                IconButton(
-                  icon: const Icon(Icons.open_in_new, color: Color(0xFF4A7C59)),
-                  onPressed: _showPageJump,
-                  visualDensity: VisualDensity.compact,
-                ),
+        // ستاکی سەرەکی
+        Container(
+          margin: const EdgeInsets.only(top: 28),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Color(0xFFF5F0E8),
+                Color.fromARGB(255, 212, 237, 212),
               ],
             ),
+            border: Border.all(color: const Color(0xFF4A7C59), width: 2),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          padding:
+              const EdgeInsets.only(left: 8, right: 8, bottom: 12, top: 36),
+          child: Row(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.person, color: Color(0xFF4A7C59)),
+                onPressed: _showReciterSheet,
+                tooltip: 'قورئانخوێن',
+                visualDensity: VisualDensity.compact,
+              ),
+              ListenableBuilder(
+                listenable: _audio,
+                builder: (context, _) {
+                  final isActive = _audio.isPlaying || _audio.isPaused;
+                  return Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: Icon(
+                            _audio.isPlaying ? Icons.pause : Icons.play_arrow,
+                            color: const Color(0xFF4A7C59)),
+                        visualDensity: VisualDensity.compact,
+                        onPressed: () {
+                          if (isActive) {
+                            if (_audio.isPlaying) {
+                              _audio.pause();
+                            } else {
+                              _audio.resume();
+                            }
+                          } else {
+                            if (_pageWords.isNotEmpty) {
+                              _audio.playAyah(
+                                _pageWords.first.surah,
+                                _pageWords.first.ayah,
+                              );
+                            }
+                          }
+                        },
+                      ),
+                      if (isActive)
+                        IconButton(
+                          icon:
+                              const Icon(Icons.stop, color: Color(0xFF4A7C59)),
+                          onPressed: _audio.stop,
+                          visualDensity: VisualDensity.compact,
+                        ),
+                    ],
+                  );
+                },
+              ),
+              const Spacer(),
+              IconButton(
+                icon: const Icon(Icons.list, color: Color(0xFF4A7C59)),
+                onPressed: _showSurahList,
+                visualDensity: VisualDensity.compact,
+              ),
+              IconButton(
+                icon: const Icon(Icons.open_in_new, color: Color(0xFF4A7C59)),
+                onPressed: _showPageJump,
+                visualDensity: VisualDensity.compact,
+              ),
+            ],
           ),
         ),
-        // بۆردەری شەپۆلەکە
+        // هێڵی سەرەوەی ستاکەکە بڕ بکە لەژێر بازنەکە
         Positioned(
-          top: 0,
+          top: 28,
           left: 0,
           right: 0,
-          height: 32,
-          child: CustomPaint(
-            painter: _WaveBorderPainter(color: const Color(0xFF4A7C59)),
+          child: Center(
+            child: Container(
+              width: 64,
+              height: 4,
+              color: const Color(0xFFF5F0E8),
+            ),
           ),
         ),
-        // ژمارەی لاپەرە
+        // بازنەی ژمارەی لاپەرە
         Positioned(
           top: 0,
           child: Container(
-            width: 36,
-            height: 20,
+            width: 58,
+            height: 58,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: const LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Color(0xFFF5F0E8), Color.fromARGB(255, 212, 237, 212)],
+              ),
+              border: Border.all(color: const Color(0xFF4A7C59), width: 3),
+            ),
             alignment: Alignment.center,
             child: Text(
               _toKNum(_currentPage),
               style: const TextStyle(
-                fontSize: 12,
+                fontSize: 13,
                 color: Color(0xFF2D5016),
                 fontWeight: FontWeight.bold,
               ),

@@ -58,6 +58,7 @@ class QuranAudioService extends ChangeNotifier {
     // Load built-in reciter (Afasy)
     await _db.loadBuiltInRecitation(_currentReciterFileName);
     await _checkDownloadedReciters();
+    await _resumePendingDownloads();
 
     _player.playerStateStream.listen((playerState) {
       if (playerState.processingState == ProcessingState.completed) {
@@ -67,6 +68,23 @@ class QuranAudioService extends ChangeNotifier {
         }
       }
     });
+  }
+
+  Future<void> _resumePendingDownloads() async {
+    for (final reciter in kAllReciters) {
+      final id = reciter['id']!;
+      if (!_downloadedReciters.contains(id)) {
+        final dir = await _getReciterDir();
+        final mp3Dir = Directory('${dir.path}/$id');
+        if (await mp3Dir.exists()) {
+          // فۆڵدەر هەیە بەڵام تەواو نەبووە — دووبارە دەست پێ بکە
+          final doneFile = File('${mp3Dir.path}/.done');
+          if (!await doneFile.exists()) {
+            downloadReciter(id);
+          }
+        }
+      }
+    }
   }
 
   Future<void> _checkDownloadedReciters() async {
@@ -146,6 +164,7 @@ class QuranAudioService extends ChangeNotifier {
       if (!await mp3Dir.exists()) await mp3Dir.create(recursive: true);
 
       for (final entry in data.entries) {
+        if (!_downloadProgress.containsKey(reciterId)) return;
         final ayahData = entry.value as Map<String, dynamic>;
         final surah = ayahData['surah_number'] as int;
         final ayah = ayahData['ayah_number'] as int;
@@ -256,7 +275,6 @@ class QuranAudioService extends ChangeNotifier {
 
   void _onAyahCompleted() {
     _segmentTimer?.cancel();
-    // هەمیشە بەردەوام بێت — نەوەستێت
     _playNextAyah();
   }
 
