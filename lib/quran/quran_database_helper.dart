@@ -296,6 +296,41 @@ class QuranDatabaseHelper {
     _loadedReciterId = null;
   }
 
+  Future<List<Map<String, dynamic>>> searchAyahs(String query) async {
+    final db = _ayahDb!;
+    // هەرەکەت لە query لابەرە
+    final clean = query.replaceAll(
+      RegExp(
+          r'[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06DC\u06DF-\u06E4\u06E7\u06E8\u06EA-\u06ED]'),
+      '',
+    );
+    final rows = await db.rawQuery('''
+      SELECT surah_number, ayah_number, verse_key,
+             -- هەرەکەت لە text لابەرە بۆ بەراورد
+             REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(
+             REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(
+             text,
+             char(0x064B),''), char(0x064C),''), char(0x064D),''),
+             char(0x064E),''), char(0x064F),''), char(0x0650),''),
+             char(0x0651),''), char(0x0652),''), char(0x0653),''),
+             char(0x0654),'') as clean_text,
+             text as original_text
+      FROM verses
+      WHERE clean_text LIKE ?
+      ORDER BY surah_number ASC, ayah_number ASC
+      LIMIT 100
+    ''', ['%$clean%']);
+
+    return rows
+        .map((r) => {
+              'surah_number': r['surah_number'],
+              'ayah_number': r['ayah_number'],
+              'verse_key': r['verse_key'],
+              'text': r['original_text'], // تێکستی ئەسڵی بە هەرەکەت
+            })
+        .toList();
+  }
+
   // ─── Close ────────────────────────────────────────────────────────────────
 
   Future<void> closeAll() async {
