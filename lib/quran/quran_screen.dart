@@ -330,7 +330,7 @@ class _QuranScreenState extends State<QuranScreen> {
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F0E8),
+      backgroundColor: const Color.fromARGB(255, 243, 232, 215),
       body: SafeArea(
         child: Stack(
           children: [
@@ -356,6 +356,8 @@ class _QuranScreenState extends State<QuranScreen> {
 
   Widget _buildPageView() {
     return Stack(
+      clipBehavior: Clip.none,
+      alignment: Alignment.topCenter,
       children: [
         PageView.builder(
           controller: _pageController,
@@ -624,7 +626,7 @@ class _QuranScreenState extends State<QuranScreen> {
           fontFamily:
               'Notonaskh', // لێرە فۆنتی Amiri یان Uthmanic بەکاربهێنە بۆ ڕوونی
           fontSize: 18, // کەمێک گەورەتری بکە چونکە ئاسۆییە
-          color: Color(0xFF1A1A1A),
+          color: Color.fromARGB(255, 165, 135, 0),
           height: 1.5, // بۆ ئەوەی تەشکیلەکان نەلکێن بە دێڕی سەرەوە
         ),
       ),
@@ -876,29 +878,36 @@ class _QuranScreenState extends State<QuranScreen> {
 
         // ── بازنەی نیمچەگۆ لەسەر لێواری سەرەوە ──
         Positioned(
-          top: 7, // نیوەی 50px بازنە = 25px، لەسەر margin=32 دەکاتە top=7
-          child: Container(
-            width: 50,
-            height: 50,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: const LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Color.fromARGB(255, 243, 232, 215),
-                  Color.fromARGB(255, 194, 228, 194),
-                ],
-              ),
-              border: Border.all(color: const Color(0xFF4A7C59), width: 2.5),
-            ),
-            alignment: Alignment.center,
-            child: Text(
-              _toKNum(_currentPage),
-              style: const TextStyle(
-                fontSize: 14,
-                color: Color(0xFF2D5016),
-                fontWeight: FontWeight.bold,
+          top: -25,
+          child: ClipRect(
+            child: Align(
+              alignment: Alignment.bottomCenter,
+              heightFactor: 0.5, // ← تەنها نیوەی خوارەوە دەرکەوێت
+              child: Container(
+                width: 50,
+                height: 50,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: const LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Color.fromARGB(255, 243, 232, 215),
+                      Color.fromARGB(255, 194, 228, 194),
+                    ],
+                  ),
+                  border:
+                      Border.all(color: const Color(0xFF4A7C59), width: 2.5),
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  _toKNum(_currentPage),
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: Color(0xFF2D5016),
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
             ),
           ),
