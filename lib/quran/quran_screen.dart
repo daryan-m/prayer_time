@@ -438,7 +438,7 @@ class _QuranScreenState extends State<QuranScreen> {
     final surahName = _currentSurah?.nameArabic ?? '';
 
     return Container(
-      margin: const EdgeInsets.only(top: 0),
+      margin: const EdgeInsets.only(top: 4),
       decoration: const BoxDecoration(
         borderRadius: BorderRadius.only(
           bottomLeft: Radius.circular(16),
@@ -455,7 +455,7 @@ class _QuranScreenState extends State<QuranScreen> {
         bottom: 1,
       ),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
@@ -477,7 +477,7 @@ class _QuranScreenState extends State<QuranScreen> {
               onTap: () => Navigator.of(context).maybePop(),
               child: const Icon(
                 Icons.arrow_back_ios,
-                size: 15,
+                size: 16,
                 color: Color(0xFF215B33),
               ),
             ),
@@ -492,7 +492,7 @@ class _QuranScreenState extends State<QuranScreen> {
                     TextSpan(
                       text: surahName,
                       style: const TextStyle(
-                        fontSize: 15,
+                        fontSize: 16,
                         color: Color(0xFF215B33),
                         fontFamily: 'Notonaskh',
                         fontWeight: FontWeight.bold,
@@ -565,7 +565,12 @@ class _QuranScreenState extends State<QuranScreen> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
+        padding: const EdgeInsets.only(
+          left: 16,
+          right: 16,
+          top: 3,
+          bottom: 70,
+        ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -620,7 +625,7 @@ class _QuranScreenState extends State<QuranScreen> {
               'Notonaskh', // لێرە فۆنتی Amiri یان Uthmanic بەکاربهێنە بۆ ڕوونی
           fontSize: 18, // کەمێک گەورەتری بکە چونکە ئاسۆییە
           color: Color(0xFF1A1A1A),
-          height: 1.4, // بۆ ئەوەی تەشکیلەکان نەلکێن بە دێڕی سەرەوە
+          height: 1.5, // بۆ ئەوەی تەشکیلەکان نەلکێن بە دێڕی سەرەوە
         ),
       ),
     );
@@ -685,9 +690,9 @@ class _QuranScreenState extends State<QuranScreen> {
         word.text,
         style: TextStyle(
           fontFamily: fontName,
-          fontSize: 17,
+          fontSize: 18,
           color: textColor,
-          height: 1.3,
+          height: 1.6,
         ),
       ),
     );
@@ -739,8 +744,9 @@ class _QuranScreenState extends State<QuranScreen> {
             ),
           ),
 
+        // ── بوتومبار ──
         Container(
-          margin: const EdgeInsets.only(top: 28),
+          margin: const EdgeInsets.only(top: 32),
           decoration: BoxDecoration(
             gradient: const LinearGradient(
               begin: Alignment.topCenter,
@@ -760,6 +766,7 @@ class _QuranScreenState extends State<QuranScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
+              // ── لای چەپ: قاریء + divider + سورة ──
               _buildBarButton(
                 icon: Icons.person_outline,
                 label: 'قاریء',
@@ -774,58 +781,67 @@ class _QuranScreenState extends State<QuranScreen> {
                 isCenter: false,
               ),
               _buildDivider(),
-              // play / pause / stop
+
+              // ── بۆشایی بەتال بۆ هاوسەنگی ──
+              const SizedBox(width: 20),
+              _buildDivider(),
+
+              // ── ناوەڕاست: play/pause چەپ + بۆشایی stop راست ──
               ListenableBuilder(
                 listenable: _audio,
                 builder: (context, _) {
                   final isPlaying = _audio.isPlaying;
                   final isPaused = _audio.isPaused;
-                  return Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      _buildBarButton(
-                        icon: isPlaying ? Icons.pause : Icons.play_arrow,
-                        label: '',
-                        onTap: () {
-                          if (isPlaying) {
-                            _audio.pause();
-                          } else if (isPaused) {
-                            _audio.resume();
-                          } else {
-                            if (_pageWords.isNotEmpty) {
-                              _audio.playAyah(
-                                _pageWords.first.surah,
-                                _pageWords.first.ayah,
-                              );
-                            }
-                          }
-                        },
-                        isCenter: true,
-                      ),
-                      if (isPlaying || isPaused) ...[
-                        const SizedBox(width: 6),
+                  return SizedBox(
+                    width: 52,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        // play/pause — جیگیر لەچەپ
                         _buildBarButton(
-                          icon: Icons.stop,
+                          icon: isPlaying ? Icons.pause : Icons.play_arrow,
                           label: '',
-                          onTap: _audio.stop,
+                          onTap: () {
+                            if (isPlaying) {
+                              _audio.pause();
+                            } else if (isPaused) {
+                              _audio.resume();
+                            } else {
+                              if (_pageWords.isNotEmpty) {
+                                _audio.playAyah(
+                                  _pageWords.first.surah,
+                                  _pageWords.first.ayah,
+                                );
+                              }
+                            }
+                          },
                           isCenter: true,
                         ),
+                        // stop — دەردەکەوێت کاتێک playing/paused، وەکوو نییە بۆشایی جیگیرە
+                        if (isPlaying || isPaused)
+                          _buildBarButton(
+                            icon: Icons.stop,
+                            label: '',
+                            onTap: _audio.stop,
+                            isCenter: true,
+                          )
+                        else
+                          const SizedBox(width: 20),
                       ],
-                    ],
+                    ),
                   );
                 },
               ),
 
               _buildDivider(),
 
-              _buildDivider(),
+              // ── لای راست: گەڕان + divider + جزء + divider + صفحة ──
               _buildBarButton(
                 icon: Icons.search,
                 label: 'گەڕان',
                 onTap: _showSearchSheet,
                 isCenter: false,
               ),
-
               _buildDivider(),
               _buildBarButton(
                 icon: Icons.layers_outlined,
@@ -833,7 +849,6 @@ class _QuranScreenState extends State<QuranScreen> {
                 onTap: _showJuzList,
                 isCenter: false,
               ),
-
               _buildDivider(),
               _buildBarButton(
                 icon: Icons.open_in_new,
@@ -845,7 +860,7 @@ class _QuranScreenState extends State<QuranScreen> {
           ),
         ),
 
-        // هێڵی سپی لەژێر بازنەکە
+        // ── هێڵی سپی لەژێر بازنەکە ──
         Positioned(
           top: 28,
           left: 0,
@@ -859,9 +874,9 @@ class _QuranScreenState extends State<QuranScreen> {
           ),
         ),
 
-        // بازنەی ژمارەی لاپەڕە
+        // ── بازنەی نیمچەگۆ لەسەر لێواری سەرەوە ──
         Positioned(
-          top: 16,
+          top: 7, // نیوەی 50px بازنە = 25px، لەسەر margin=32 دەکاتە top=7
           child: Container(
             width: 50,
             height: 50,
@@ -881,7 +896,7 @@ class _QuranScreenState extends State<QuranScreen> {
             child: Text(
               _toKNum(_currentPage),
               style: const TextStyle(
-                fontSize: 13,
+                fontSize: 14,
                 color: Color(0xFF2D5016),
                 fontWeight: FontWeight.bold,
               ),
