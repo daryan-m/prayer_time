@@ -346,8 +346,7 @@ class _QuranScreenState extends State<QuranScreen> {
               bottom: 0,
               left: 0,
               right: 0,
-              child: 
-                  _buildBottomBar(),
+              child: _buildBottomBar(),
             ),
           ],
         ),
@@ -406,7 +405,7 @@ class _QuranScreenState extends State<QuranScreen> {
     if (pageNumber != _currentPage) {
       return Container(
         key: ValueKey('placeholder_$pageNumber'),
-        color: const Color(0xFFF5F0E8),
+        color: const Color.fromARGB(255, 250, 242, 230),
         child: const Center(
           child: CircularProgressIndicator(color: Color(0xFF4A7C59)),
         ),
@@ -439,19 +438,11 @@ class _QuranScreenState extends State<QuranScreen> {
     final surahName = _currentSurah?.nameArabic ?? '';
 
     return Container(
-      margin: const EdgeInsets.only(top: 4),
+      margin: const EdgeInsets.only(top: 0),
       decoration: const BoxDecoration(
         borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(6),
-          bottomRight: Radius.circular(6),
-        ),
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            Color.fromARGB(255, 194, 228, 194), // ← وەک بوتومبار
-            Color.fromARGB(255, 243, 232, 215), // ← وەک بوتومبار
-          ],
+          bottomLeft: Radius.circular(16),
+          bottomRight: Radius.circular(16),
         ),
         border: Border.fromBorderSide(
           BorderSide(color: Color(0xFF4A7C59), width: 2),
@@ -464,7 +455,7 @@ class _QuranScreenState extends State<QuranScreen> {
         bottom: 1,
       ),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
@@ -486,7 +477,7 @@ class _QuranScreenState extends State<QuranScreen> {
               onTap: () => Navigator.of(context).maybePop(),
               child: const Icon(
                 Icons.arrow_back_ios,
-                size: 16,
+                size: 15,
                 color: Color(0xFF215B33),
               ),
             ),
@@ -510,7 +501,7 @@ class _QuranScreenState extends State<QuranScreen> {
                     TextSpan(
                       text: ' ($placeText)',
                       style: const TextStyle(
-                        fontSize: 13,
+                        fontSize: 11,
                         color: Color(0xFF215B33),
                       ),
                     ),
@@ -524,8 +515,9 @@ class _QuranScreenState extends State<QuranScreen> {
               child: Text(
                 juzText,
                 style: const TextStyle(
-                  fontSize: 13,
+                  fontSize: 15,
                   color: Color(0xFF215B33),
+                  fontFamily: 'Notonaskh',
                   fontWeight: FontWeight.bold,
                 ),
                 textAlign: TextAlign.right,
@@ -557,7 +549,7 @@ class _QuranScreenState extends State<QuranScreen> {
             _pageDownloadProgress.containsKey(_currentPage)
                 ? 'فۆنت دادەبەزێت... ${_toKNum(((_pageDownloadProgress[_currentPage] ?? 0) * 100).toInt())}٪'
                 : 'فۆنت بەردەست نییە',
-            style: const TextStyle(fontSize: 14),
+            style: const TextStyle(fontSize: 12),
           ),
           if (!_pageDownloadProgress.containsKey(_currentPage))
             TextButton(
@@ -573,7 +565,7 @@ class _QuranScreenState extends State<QuranScreen> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -628,7 +620,7 @@ class _QuranScreenState extends State<QuranScreen> {
               'Notonaskh', // لێرە فۆنتی Amiri یان Uthmanic بەکاربهێنە بۆ ڕوونی
           fontSize: 18, // کەمێک گەورەتری بکە چونکە ئاسۆییە
           color: Color(0xFF1A1A1A),
-          height: 1.5, // بۆ ئەوەی تەشکیلەکان نەلکێن بە دێڕی سەرەوە
+          height: 1.4, // بۆ ئەوەی تەشکیلەکان نەلکێن بە دێڕی سەرەوە
         ),
       ),
     );
@@ -693,9 +685,9 @@ class _QuranScreenState extends State<QuranScreen> {
         word.text,
         style: TextStyle(
           fontFamily: fontName,
-          fontSize: 18,
+          fontSize: 17,
           color: textColor,
-          height: 1.6,
+          height: 1.3,
         ),
       ),
     );
@@ -764,20 +756,20 @@ class _QuranScreenState extends State<QuranScreen> {
               topRight: Radius.circular(16),
             ),
           ),
-          padding: const EdgeInsets.only(left: 4, right: 4, bottom: 4, top: 7),
+          padding: const EdgeInsets.only(left: 4, right: 4, bottom: 4, top: 6),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               _buildBarButton(
                 icon: Icons.person_outline,
-                label: 'قارێء',
+                label: 'قاریء',
                 onTap: _showReciterSheet,
                 isCenter: false,
               ),
               _buildDivider(),
               _buildBarButton(
                 icon: Icons.menu_book_outlined,
-                label: 'سوورە',
+                label: 'السورة',
                 onTap: _showSurahList,
                 isCenter: false,
               ),
@@ -828,7 +820,7 @@ class _QuranScreenState extends State<QuranScreen> {
 
               _buildDivider(),
               _buildBarButton(
-                icon: Icons.bookmark_outline,
+                icon: Icons.search,
                 label: 'گەڕان',
                 onTap: _showSearchSheet,
                 isCenter: false,
@@ -869,7 +861,7 @@ class _QuranScreenState extends State<QuranScreen> {
 
         // بازنەی ژمارەی لاپەڕە
         Positioned(
-          top: 12,
+          top: 16,
           child: Container(
             width: 50,
             height: 50,
@@ -879,8 +871,8 @@ class _QuranScreenState extends State<QuranScreen> {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  Color.fromARGB(255, 236, 226, 208),
-                  Color.fromARGB(255, 202, 238, 202),
+                  Color.fromARGB(255, 243, 232, 215),
+                  Color.fromARGB(255, 194, 228, 194),
                 ],
               ),
               border: Border.all(color: const Color(0xFF4A7C59), width: 2.5),
@@ -889,7 +881,7 @@ class _QuranScreenState extends State<QuranScreen> {
             child: Text(
               _toKNum(_currentPage),
               style: const TextStyle(
-                fontSize: 14,
+                fontSize: 13,
                 color: Color(0xFF2D5016),
                 fontWeight: FontWeight.bold,
               ),
@@ -1197,7 +1189,7 @@ class _QuranScreenState extends State<QuranScreen> {
                 child: Row(
                   children: [
                     const Expanded(
-                      child: Text('گەڕان لە قورئان',
+                      child: Text('گەڕان لە ئایەتەکانى قورئانى پیرۆز',
                           textAlign: TextAlign.center,
                           style: TextStyle(
                               color: Colors.white,
@@ -1315,6 +1307,7 @@ class _QuranScreenState extends State<QuranScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF000000),
         title: const Text('بڕۆ بۆ لاپەرە'),
         content: TextField(
           controller: controller,
@@ -1361,7 +1354,7 @@ class _QuranScreenState extends State<QuranScreen> {
               child: Row(
                 children: [
                   const Expanded(
-                    child: Text('قورئانخوێنان',
+                    child: Text('دەنگەکان',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                             color: Colors.white,
