@@ -315,7 +315,7 @@ class _QuranScreenState extends State<QuranScreen> {
   Widget build(BuildContext context) {
     if (!_isInitialized) {
       return const Scaffold(
-        backgroundColor: Color(0xFFF5F0E8),
+        backgroundColor: Color(0xFFDBCDA0),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -330,7 +330,7 @@ class _QuranScreenState extends State<QuranScreen> {
     }
 
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 243, 232, 215),
+      backgroundColor: const Color(0xFFF3E8D7),
       body: SafeArea(
         child: Stack(
           children: [
@@ -393,7 +393,7 @@ class _QuranScreenState extends State<QuranScreen> {
             right: 0,
             child: LinearProgressIndicator(
               value: _pageDownloadProgress[_currentPage],
-              backgroundColor: Colors.transparent,
+              backgroundColor: const Color.from(alpha: 0, red: 1, green: 0.816, blue: 0.816),
               color: const Color(0xFF4A7C59),
               minHeight: 3,
             ),
@@ -407,7 +407,7 @@ class _QuranScreenState extends State<QuranScreen> {
     if (pageNumber != _currentPage) {
       return Container(
         key: ValueKey('placeholder_$pageNumber'),
-        color: const Color.fromARGB(255, 250, 242, 230),
+        color: const Color(0xFFF3E8D7),
         child: const Center(
           child: CircularProgressIndicator(color: Color(0xFF4A7C59)),
         ),
@@ -464,7 +464,7 @@ class _QuranScreenState extends State<QuranScreen> {
             end: Alignment.bottomCenter,
             colors: [
               Color.fromARGB(255, 194, 228, 194), // ← وەک بوتومبار
-              Color.fromARGB(255, 243, 232, 215), // ← وەک بوتومبار
+              Color(0xFFF3E8D7), // ← وەک بوتومبار
             ],
           ),
           borderRadius: BorderRadius.only(
@@ -517,7 +517,7 @@ class _QuranScreenState extends State<QuranScreen> {
               child: Text(
                 juzText,
                 style: const TextStyle(
-                  fontSize: 15,
+                  fontSize: 14,
                   color: Color(0xFF215B33),
                   fontFamily: 'Notonaskh',
                   fontWeight: FontWeight.bold,
@@ -625,8 +625,8 @@ class _QuranScreenState extends State<QuranScreen> {
         style: TextStyle(
           fontFamily:
               'Notonaskh', // لێرە فۆنتی Amiri یان Uthmanic بەکاربهێنە بۆ ڕوونی
-          fontSize: 18, // کەمێک گەورەتری بکە چونکە ئاسۆییە
-          color: Color.fromARGB(255, 165, 135, 0),
+          fontSize: 19, // کەمێک گەورەتری بکە چونکە ئاسۆییە
+          color: Color(0xFF866E03),
           height: 1.5, // بۆ ئەوەی تەشکیلەکان نەلکێن بە دێڕی سەرەوە
         ),
       ),
@@ -754,7 +754,7 @@ class _QuranScreenState extends State<QuranScreen> {
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                Color.fromARGB(255, 243, 232, 215),
+                Color(0xFFF3E8D7),
                 Color.fromARGB(255, 194, 228, 194),
               ],
             ),
@@ -870,7 +870,7 @@ class _QuranScreenState extends State<QuranScreen> {
           child: Center(
             child: Container(
               width: 38,
-              height: 4,
+              height: 6,
               color: const Color(0xFFF5F0E8),
             ),
           ),
@@ -878,14 +878,14 @@ class _QuranScreenState extends State<QuranScreen> {
 
         // ── بازنەی نیمچەگۆ لەسەر لێواری سەرەوە ──
         Positioned(
-          top: -25,
+          bottom: 45,
           child: ClipRect(
             child: Align(
-              alignment: Alignment.bottomCenter,
+              alignment: Alignment.topCenter,
               heightFactor: 0.5, // ← تەنها نیوەی خوارەوە دەرکەوێت
               child: Container(
-                width: 50,
-                height: 50,
+                width: 60,
+                height: 60,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   gradient: const LinearGradient(
@@ -899,7 +899,7 @@ class _QuranScreenState extends State<QuranScreen> {
                   border:
                       Border.all(color: const Color(0xFF4A7C59), width: 2.5),
                 ),
-                alignment: Alignment.center,
+                alignment: Alignment.topCenter,
                 child: Text(
                   _toKNum(_currentPage),
                   style: const TextStyle(
