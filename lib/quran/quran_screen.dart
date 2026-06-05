@@ -315,7 +315,7 @@ class _QuranScreenState extends State<QuranScreen> {
   Widget build(BuildContext context) {
     if (!_isInitialized) {
       return const Scaffold(
-        backgroundColor: Color(0xFFDBCDA0),
+        backgroundColor: Color(0xFFFFFFFF),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -330,7 +330,7 @@ class _QuranScreenState extends State<QuranScreen> {
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF3E8D7),
+      backgroundColor: const Color(0xFF006627),
       body: SafeArea(
         child: Stack(
           children: [
@@ -382,7 +382,10 @@ class _QuranScreenState extends State<QuranScreen> {
           itemCount: 604,
           itemBuilder: (context, index) {
             final page = index + 1;
-            return _buildMushafPage(page);
+            return ColoredBox(
+              color: const Color(0xFFFDF6E3),
+              child: _buildMushafPage(page),
+            );
           },
         ),
         // Per-page font download progress bar (top of page)
@@ -393,7 +396,7 @@ class _QuranScreenState extends State<QuranScreen> {
             right: 0,
             child: LinearProgressIndicator(
               value: _pageDownloadProgress[_currentPage],
-              backgroundColor: const Color.from(alpha: 0, red: 1, green: 0.816, blue: 0.816),
+              backgroundColor: const Color(0xFFFDF6E3),
               color: const Color(0xFF4A7C59),
               minHeight: 3,
             ),
@@ -407,7 +410,7 @@ class _QuranScreenState extends State<QuranScreen> {
     if (pageNumber != _currentPage) {
       return Container(
         key: ValueKey('placeholder_$pageNumber'),
-        color: const Color(0xFFF3E8D7),
+        color: const Color(0xFFFDF6E3),
         child: const Center(
           child: CircularProgressIndicator(color: Color(0xFF4A7C59)),
         ),
@@ -419,7 +422,7 @@ class _QuranScreenState extends State<QuranScreen> {
 
     return Container(
       key: ValueKey('page_$pageNumber'),
-      color: const Color(0xFFF5F0E8),
+      color: const Color(0xFFFDF6E3),
       child: Column(
         children: [
           // Page border header
@@ -464,7 +467,7 @@ class _QuranScreenState extends State<QuranScreen> {
             end: Alignment.bottomCenter,
             colors: [
               Color.fromARGB(255, 194, 228, 194), // ← وەک بوتومبار
-              Color(0xFFF3E8D7), // ← وەک بوتومبار
+              Color(0xFFFDF6E3), // ← وەک بوتومبار
             ],
           ),
           borderRadius: BorderRadius.only(
@@ -625,7 +628,7 @@ class _QuranScreenState extends State<QuranScreen> {
         style: TextStyle(
           fontFamily:
               'Notonaskh', // لێرە فۆنتی Amiri یان Uthmanic بەکاربهێنە بۆ ڕوونی
-          fontSize: 19, // کەمێک گەورەتری بکە چونکە ئاسۆییە
+          fontSize: 20, // کەمێک گەورەتری بکە چونکە ئاسۆییە
           color: Color(0xFF866E03),
           height: 1.5, // بۆ ئەوەی تەشکیلەکان نەلکێن بە دێڕی سەرەوە
         ),
@@ -754,7 +757,7 @@ class _QuranScreenState extends State<QuranScreen> {
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                Color(0xFFF3E8D7),
+                Color(0xFFFDF6E3),
                 Color.fromARGB(255, 194, 228, 194),
               ],
             ),
@@ -794,17 +797,20 @@ class _QuranScreenState extends State<QuranScreen> {
                 builder: (context, _) {
                   final isPlaying = _audio.isPlaying;
                   final isPaused = _audio.isPaused;
+                  final isLoading = _audio.state == AudioState.loading;
                   return SizedBox(
-                    width: 52,
+                    width: 80, // ← گەورەتر کرا بۆ دوو دوگمە
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        // play/pause — جیگیر لەچەپ
+                        // play/pause
                         _buildBarButton(
-                          icon: isPlaying ? Icons.pause : Icons.play_arrow,
+                          icon: (isPlaying || isLoading)
+                              ? Icons.pause
+                              : Icons.play_arrow,
                           label: '',
                           onTap: () {
-                            if (isPlaying) {
+                            if (isPlaying || isLoading) {
                               _audio.pause();
                             } else if (isPaused) {
                               _audio.resume();
@@ -819,22 +825,18 @@ class _QuranScreenState extends State<QuranScreen> {
                           },
                           isCenter: true,
                         ),
-                        // stop — دەردەکەوێت کاتێک playing/paused، وەکوو نییە بۆشایی جیگیرە
-                        if (isPlaying || isPaused)
-                          _buildBarButton(
-                            icon: Icons.stop,
-                            label: '',
-                            onTap: _audio.stop,
-                            isCenter: true,
-                          )
-                        else
-                          const SizedBox(width: 20),
+                        // stop — هەمیشە دیارە
+                        _buildBarButton(
+                          icon: Icons.stop,
+                          label: '',
+                          onTap: _audio.stop,
+                          isCenter: true,
+                        ),
                       ],
                     ),
                   );
                 },
               ),
-
               _buildDivider(),
 
               // ── لای راست: گەڕان + divider + جزء + divider + صفحة ──
@@ -871,7 +873,7 @@ class _QuranScreenState extends State<QuranScreen> {
             child: Container(
               width: 38,
               height: 6,
-              color: const Color(0xFFF5F0E8),
+              color: const Color(0xFFFDF6E3),
             ),
           ),
         ),
@@ -892,14 +894,15 @@ class _QuranScreenState extends State<QuranScreen> {
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      Color.fromARGB(255, 243, 232, 215),
+                      Color(0xFFFDF6E3),
                       Color.fromARGB(255, 194, 228, 194),
                     ],
                   ),
                   border:
                       Border.all(color: const Color(0xFF4A7C59), width: 2.5),
                 ),
-                alignment: Alignment.topCenter,
+                alignment: Alignment.center,
+                padding: const EdgeInsets.only(bottom: 12),
                 child: Text(
                   _toKNum(_currentPage),
                   style: const TextStyle(
@@ -1341,6 +1344,9 @@ class _QuranScreenState extends State<QuranScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
+            style: TextButton.styleFrom(
+              foregroundColor: const Color(0xFFFFFFFF),
+            ),
             child: const Text('پاشگەزبوونەوە'),
           ),
           TextButton(
@@ -1349,6 +1355,9 @@ class _QuranScreenState extends State<QuranScreen> {
               Navigator.pop(ctx);
               _goToPage(page.clamp(1, 604));
             },
+            style: TextButton.styleFrom(
+              foregroundColor: const Color(0xFFFFFFFF),
+            ),
             child: const Text('بڕۆ'),
           ),
         ],

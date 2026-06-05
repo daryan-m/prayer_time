@@ -106,17 +106,19 @@ class QuranAudioService extends ChangeNotifier {
 
   // ─── Reciter Management ────────────────────────────────────────────────────
 
-  Future<void> switchReciter(String reciterId, String fileName) async {
+ Future<void> switchReciter(String reciterId, String fileName) async {
     if (_currentReciterId == reciterId) return;
 
-    // ئایەتی ئێستا پاشکەوت بکە پێش وەستاندن
-    final wasPlaying = _state == AudioState.playing ||
-        _state == AudioState.paused ||
-        _state == AudioState.loading;
+    final wasPlaying = _state == AudioState.playing;
+    final wasPaused = _state == AudioState.paused;
     final resumeSurah = _currentSurah;
     final resumeAyah = _currentAyah;
 
-    await stop();
+    _segmentTimer?.cancel();
+    _completionHandled = true;
+    await _player.stop();
+    _highlightedWordIndex = 0;
+
     _currentReciterId = reciterId;
     _currentReciterFileName = fileName;
 
@@ -130,11 +132,21 @@ class QuranAudioService extends ChangeNotifier {
       _mode = AudioMode.online;
     }
 
-    notifyListeners();
-
-    // ئەگەر دەنگ لە کارکردندا بوو، هەمان ئایەتە بخوێنەوە
     if (wasPlaying && resumeSurah > 0 && resumeAyah > 0) {
+      // دەنگ بوو → بەردەوام بخوێنێت
       await playAyah(resumeSurah, resumeAyah);
+    } else if (wasPaused && resumeSurah > 0 && resumeAyah > 0) {
+      // پاوز بوو → پاوز بمێنێت
+      _currentSurah = resumeSurah;
+      _currentAyah = resumeAyah;
+      _state = AudioState.paused;
+      notifyListeners();
+    } else {
+      // دەنگ نەبوو → state ریسێت بکە
+      _state = AudioState.stopped;
+      _currentSurah = 0;
+      _currentAyah = 0;
+      notifyListeners();
     }
   }
 
