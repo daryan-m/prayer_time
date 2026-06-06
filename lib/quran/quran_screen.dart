@@ -625,11 +625,13 @@ class _QuranScreenState extends State<QuranScreen> {
     }
 
     return Center(
-      child: Image.asset(
-        'assets/images/basmala.png',
-        width: double.infinity,
-        height: 60,
-        fit: BoxFit.fitWidth,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+        child: Image.asset(
+          'assets/images/besmelah1.png',
+          height: 55,
+          fit: BoxFit.fitWidth,
+        ),
       ),
     );
   }
@@ -896,7 +898,7 @@ class _QuranScreenState extends State<QuranScreen> {
                     end: Alignment.bottomCenter,
                     colors: [
                       Color(0xFFFDF6E3),
-                      Color.fromARGB(255, 194, 228, 194),
+                      Color(0xFFC2E4C2),
                     ],
                   ),
                   border: Border.all(color: const Color(0xFF4A7C59), width: 2),
@@ -955,7 +957,7 @@ class _QuranScreenState extends State<QuranScreen> {
           height: 36, // ← گەورەتر
           decoration: const BoxDecoration(
             shape: BoxShape.circle,
-            color: Color(0xFF2D5016),
+            color: Color(0xFF2B922B),
             boxShadow: [
               BoxShadow(
                 color: Colors.black26,

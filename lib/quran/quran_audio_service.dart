@@ -23,9 +23,10 @@ class QuranAudioService extends ChangeNotifier {
 
   AudioState _state = AudioState.idle;
   AudioMode _mode = AudioMode.online;
-
   int _currentSurah = 0;
   int _currentAyah = 0;
+  int _pendingNextSurah = 0;
+  int _pendingNextAyah = 0;
   int _highlightedWordIndex = 0; // 1-based word index
   bool _completionHandled = false; // بۆ ئەوەی دووبارە fire نەبێت
   String _currentReciterId = '953';
@@ -287,33 +288,51 @@ class QuranAudioService extends ChangeNotifier {
 
   void _onAyahCompleted() {
     _segmentTimer?.cancel();
-    _playNextAyah();
+    if (_pendingNextSurah > 0) {
+      final s = _pendingNextSurah;
+      final a = _pendingNextAyah;
+      _pendingNextSurah = 0;
+      _pendingNextAyah = 0;
+      playAyah(s, a, continuous: true);
+    } else {
+      _playNextAyah();
+    }
+  }
+
+  bool _needsBasmallah(int surah, int ayah) {
+    return ayah == 1 && surah != 9 && surah != 1;
   }
 
   Future<void> _playNextAyah() async {
-    // Get total ayahs for current surah
-    final surahInfo = await _db.getSurahInfo(_currentSurah);
-    if (surahInfo == null) {
+  final surahInfo = await _db.getSurahInfo(_currentSurah);
+  if (surahInfo == null) {
+    _state = AudioState.stopped;
+    notifyListeners();
+    return;
+  }
+
+  int nextSurah = _currentSurah;
+  int nextAyah = _currentAyah + 1;
+
+  if (nextAyah > surahInfo.versesCount) {
+    nextSurah++;
+    nextAyah = 1;
+    if (nextSurah > 114) {
       _state = AudioState.stopped;
       notifyListeners();
       return;
     }
-
-    int nextSurah = _currentSurah;
-    int nextAyah = _currentAyah + 1;
-
-    if (nextAyah > surahInfo.versesCount) {
-      nextSurah++;
-      nextAyah = 1;
-      if (nextSurah > 114) {
-        _state = AudioState.stopped;
-        notifyListeners();
-        return;
-      }
-    }
-
-    await playAyah(nextSurah, nextAyah, continuous: true);
   }
+
+  if (_needsBasmallah(nextSurah, nextAyah)) {
+    _pendingNextSurah = nextSurah;
+    _pendingNextAyah = nextAyah;
+    await playAyah(1, 1, continuous: true);
+    return;
+  }
+
+  await playAyah(nextSurah, nextAyah, continuous: true);
+}
 
   // public next
   Future<void> playNextAyah() async {
