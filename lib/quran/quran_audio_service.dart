@@ -106,7 +106,7 @@ class QuranAudioService extends ChangeNotifier {
 
   // ─── Reciter Management ────────────────────────────────────────────────────
 
- Future<void> switchReciter(String reciterId, String fileName) async {
+  Future<void> switchReciter(String reciterId, String fileName) async {
     if (_currentReciterId == reciterId) return;
 
     final wasPlaying = _state == AudioState.playing;
@@ -313,6 +313,27 @@ class QuranAudioService extends ChangeNotifier {
     }
 
     await playAyah(nextSurah, nextAyah, continuous: true);
+  }
+
+  // public next
+  Future<void> playNextAyah() async {
+    if (_currentSurah == 0) return;
+    await _playNextAyah();
+  }
+
+// public previous
+  Future<void> playPreviousAyah() async {
+    if (_currentSurah == 0) return;
+    int prevSurah = _currentSurah;
+    int prevAyah = _currentAyah - 1;
+    if (prevAyah < 1) {
+      prevSurah--;
+      if (prevSurah < 1) return;
+      final surahInfo = await _db.getSurahInfo(prevSurah);
+      if (surahInfo == null) return;
+      prevAyah = surahInfo.versesCount;
+    }
+    await playAyah(prevSurah, prevAyah);
   }
 
   Future<void> pause() async {

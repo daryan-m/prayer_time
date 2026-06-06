@@ -361,19 +361,16 @@ class _QuranScreenState extends State<QuranScreen> {
       children: [
         PageView.builder(
           controller: _pageController,
-          reverse: true, // RTL — right page = lower number
+          reverse: true,
           onPageChanged: (index) {
             final newPage = index + 1;
             _loadPage(newPage).then((_) {
               if (!mounted) return;
-              // یەکەم ئایەتی لاپەرەکە ئەکتێف بکە
               if (_pageWords.isNotEmpty) {
                 final firstWord = _pageWords.first;
-                // ئەگەر دەنگ لەکارە، یەکەم ئایەتی لاپەرەی نوێ بخوێنەرەوە
                 if (_audio.isPlaying || _audio.isPaused) {
                   _audio.playAyah(firstWord.surah, firstWord.ayah);
                 } else {
-                  // تەنها سلێکت بکە بەبێ خوێندنەوە
                   setState(() {});
                 }
               }
@@ -478,15 +475,17 @@ class _QuranScreenState extends State<QuranScreen> {
         child: Row(
           children: [
             // لای چەپ فیزیکی: سەهمی گەرانەوە
-            GestureDetector(
-              onTap: () => Navigator.of(context).maybePop(),
-              child: const Icon(
-                Icons.arrow_back_ios,
-                size: 16,
-                color: Color(0xFF215B33),
+            Padding(
+              padding: const EdgeInsets.only(left: 8),
+              child: GestureDetector(
+                onTap: () => Navigator.of(context).maybePop(),
+                child: const Icon(
+                  Icons.arrow_back_ios,
+                  size: 16,
+                  color: Color(0xFF215B33),
+                ),
               ),
             ),
-            const SizedBox(width: 4),
 
             // ناوەراست: ناوی سورە + (مکی/مدنی)
             Expanded(
@@ -569,18 +568,20 @@ class _QuranScreenState extends State<QuranScreen> {
   Widget _buildPageLines(String fontName) {
     return Directionality(
       textDirection: TextDirection.rtl,
-      child: Padding(
-        padding: const EdgeInsets.only(
-          left: 16,
-          right: 16,
-          top: 3,
-          bottom: 70,
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children:
-              _pageLines.map((line) => _buildLine(line, fontName)).toList(),
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.only(
+            left: 16,
+            right: 16,
+            top: 3,
+            bottom: 70,
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children:
+                _pageLines.map((line) => _buildLine(line, fontName)).toList(),
+          ),
         ),
       ),
     );
@@ -679,8 +680,10 @@ class _QuranScreenState extends State<QuranScreen> {
   }
 
   Widget _buildWord(QuranWord word, String fontName) {
-    final isCurrentAyah =
-        _audio.isCurrentAyah(word.surah, word.ayah) && _audio.isPlaying;
+    final isCurrentAyah = _audio.isCurrentAyah(word.surah, word.ayah) &&
+        (_audio.isPlaying ||
+            _audio.isPaused ||
+            _audio.state == AudioState.loading);
 
     // یەکەم ئایەتی لاپەرە بە زەرد دیاری بکە ئەگەر دەنگ لەکار نەبوو
     final Color textColor =
@@ -771,7 +774,7 @@ class _QuranScreenState extends State<QuranScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              // ── لای چەپ: قاریء + divider + سورة ──
+              // ── لای چەپ ──
               _buildBarButton(
                 icon: Icons.person_outline,
                 label: 'قاریء',
@@ -787,66 +790,67 @@ class _QuranScreenState extends State<QuranScreen> {
               ),
               _buildDivider(),
 
-              // ── بۆشایی بەتال بۆ هاوسەنگی ──
-              const SizedBox(width: 20),
-              _buildDivider(),
-
-              // ── ناوەڕاست: play/pause چەپ + بۆشایی stop راست ──
+              // ── ناوەڕاست: پلەیەر ──
               ListenableBuilder(
                 listenable: _audio,
                 builder: (context, _) {
                   final isPlaying = _audio.isPlaying;
                   final isPaused = _audio.isPaused;
                   final isLoading = _audio.state == AudioState.loading;
-                  return SizedBox(
-                    width: 80, // ← گەورەتر کرا بۆ دوو دوگمە
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        // play/pause
-                        _buildBarButton(
-                          icon: (isPlaying || isLoading)
-                              ? Icons.pause
-                              : Icons.play_arrow,
-                          label: '',
-                          onTap: () {
-                            if (isPlaying || isLoading) {
-                              _audio.pause();
-                            } else if (isPaused) {
-                              _audio.resume();
-                            } else {
-                              if (_pageWords.isNotEmpty) {
-                                _audio.playAyah(
-                                  _pageWords.first.surah,
-                                  _pageWords.first.ayah,
-                                );
-                              }
+                  return Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // ئایەتی پێشوو
+                      _buildSmallButton(
+                        icon: Icons.skip_previous,
+                        onTap: () => _audio.playPreviousAyah(),
+                      ),
+                      const SizedBox(width: 4),
+                      // play/pause
+                      _buildBarButton(
+                        icon: (isPlaying || isLoading)
+                            ? Icons.pause
+                            : Icons.play_arrow,
+                        label: '',
+                        onTap: () {
+                          if (isPlaying) {
+                            _audio.pause();
+                          } else if (isPaused) {
+                            _audio.resume();
+                          } else if (isLoading) {
+                            // loading دا کلیک کرا — چاوەڕێ بکە
+                          } else {
+                            if (_pageWords.isNotEmpty) {
+                              _audio.playAyah(
+                                _pageWords.first.surah,
+                                _pageWords.first.ayah,
+                              );
                             }
-                          },
-                          isCenter: true,
-                        ),
-                        // stop — هەمیشە دیارە
-                        _buildBarButton(
-                          icon: Icons.stop,
-                          label: '',
-                          onTap: _audio.stop,
-                          isCenter: true,
-                        ),
-                      ],
-                    ),
+                          }
+                        },
+                        isCenter: true,
+                      ),
+                      const SizedBox(width: 4),
+                      // stop
+                      _buildBarButton(
+                        icon: Icons.stop,
+                        label: '',
+                        onTap: _audio.stop,
+                        isCenter: true,
+                      ),
+                      const SizedBox(width: 4),
+                      // ئایەتی دواتر
+                      _buildSmallButton(
+                        icon: Icons.skip_next,
+                        onTap: () => _audio.playNextAyah(),
+                      ),
+                    ],
                   );
                 },
               ),
               _buildDivider(),
 
-              // ── لای راست: گەڕان + divider + جزء + divider + صفحة ──
-              _buildBarButton(
-                icon: Icons.search,
-                label: 'گەڕان',
-                onTap: _showSearchSheet,
-                isCenter: false,
-              ),
-              _buildDivider(),
+              // ── لای راست ──
               _buildBarButton(
                 icon: Icons.layers_outlined,
                 label: 'جزء',
@@ -898,8 +902,7 @@ class _QuranScreenState extends State<QuranScreen> {
                       Color.fromARGB(255, 194, 228, 194),
                     ],
                   ),
-                  border:
-                      Border.all(color: const Color(0xFF4A7C59), width: 2.5),
+                  border: Border.all(color: const Color(0xFF4A7C59), width: 2),
                 ),
                 alignment: Alignment.center,
                 padding: const EdgeInsets.only(bottom: 12),
@@ -916,6 +919,20 @@ class _QuranScreenState extends State<QuranScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildSmallButton({
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Icon(
+        icon,
+        color: const Color(0xFF4A7C59),
+        size: 20,
+      ),
     );
   }
 
@@ -937,8 +954,8 @@ class _QuranScreenState extends State<QuranScreen> {
       return GestureDetector(
         onTap: onTap,
         child: Container(
-          width: 20, // ← بچووکتر کرا
-          height: 20,
+          width: 36, // ← گەورەتر
+          height: 36, // ← گەورەتر
           decoration: const BoxDecoration(
             shape: BoxShape.circle,
             color: Color(0xFF2D5016),
