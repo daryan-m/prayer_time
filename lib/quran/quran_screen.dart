@@ -440,16 +440,7 @@ class _QuranScreenState extends State<QuranScreen> {
     final surahName = _currentSurah?.nameArabic ?? '';
 
     return Container(
-      margin: const EdgeInsets.only(top: 4),
-      decoration: const BoxDecoration(
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(16),
-          bottomRight: Radius.circular(16),
-        ),
-        border: Border.fromBorderSide(
-          BorderSide(color: Color(0xFF4A7C59), width: 2),
-        ),
-      ),
+      margin: const EdgeInsets.only(top: 0),
       padding: const EdgeInsets.only(
         top: 0,
         left: 0,
@@ -457,21 +448,22 @@ class _QuranScreenState extends State<QuranScreen> {
         bottom: 1,
       ),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color.fromARGB(255, 194, 228, 194), // ← وەک بوتومبار
-              Color(0xFFFDF6E3), // ← وەک بوتومبار
+              Color(0xFFFDF6E3),
+              Color(0xFFC2E4C2),
             ],
           ),
-          borderRadius: BorderRadius.only(
+          border: Border.all(color: const Color(0xFF4A7C59), width: 2),
+          borderRadius: const BorderRadius.only(
             bottomLeft: Radius.circular(16),
             bottomRight: Radius.circular(16),
           ),
         ),
+        padding: const EdgeInsets.only(left: 4, right: 4, bottom: 4, top: 6),
         child: Row(
           children: [
             // لای چەپ فیزیکی: سەهمی گەرانەوە
@@ -566,24 +558,37 @@ class _QuranScreenState extends State<QuranScreen> {
   }
 
   Widget _buildPageLines(String fontName) {
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.only(
-            left: 16,
-            right: 16,
-            top: 3,
-            bottom: 70,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isLandscape = constraints.maxWidth > constraints.maxHeight;
+        return Directionality(
+          textDirection: TextDirection.rtl,
+          child: Padding(
+            padding: const EdgeInsets.only(
+              left: 16,
+              right: 16,
+              top: 3,
+              bottom: 76,
+            ),
+            child: isLandscape
+                ? SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: _pageLines
+                          .map((line) => _buildLine(line, fontName))
+                          .toList(),
+                    ),
+                  )
+                : Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: _pageLines
+                        .map((line) => _buildLine(line, fontName))
+                        .toList(),
+                  ),
           ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children:
-                _pageLines.map((line) => _buildLine(line, fontName)).toList(),
-          ),
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -605,7 +610,6 @@ class _QuranScreenState extends State<QuranScreen> {
   }
 
   Widget _buildBasmallahLine(QuranPageLine line, String fontName) {
-    // هەوڵدان بۆ هێنان و پیشاندانی وشەکان بە جیا (بۆ ئەوەی هایلایت ببن یان ئاسۆیی بن)
     if (line.firstWordId != null && line.lastWordId != null) {
       final words = <QuranWord>[];
       for (int id = line.firstWordId!; id <= line.lastWordId!; id++) {
@@ -620,19 +624,12 @@ class _QuranScreenState extends State<QuranScreen> {
       }
     }
 
-    // --- لێرە کێشەکە چارەسەر دەکەین ---
-    // ئەگەر وشەکان نەدۆزرانەوە، دەقە ئاساییەکە بنووسە نەک کۆدە یوونیکۆدەکە
-    return const Center(
-      child: Text(
-        'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ', // نووسینی دەقەکە بە ئاسۆیی
-        textAlign: TextAlign.center,
-        style: TextStyle(
-          fontFamily:
-              'Notonaskh', // لێرە فۆنتی Amiri یان Uthmanic بەکاربهێنە بۆ ڕوونی
-          fontSize: 20, // کەمێک گەورەتری بکە چونکە ئاسۆییە
-          color: Color(0xFF866E03),
-          height: 1.5, // بۆ ئەوەی تەشکیلەکان نەلکێن بە دێڕی سەرەوە
-        ),
+    return Center(
+      child: Image.asset(
+        'assets/images/basmala.png',
+        width: double.infinity,
+        height: 60,
+        fit: BoxFit.fitWidth,
       ),
     );
   }
@@ -761,7 +758,7 @@ class _QuranScreenState extends State<QuranScreen> {
               end: Alignment.bottomCenter,
               colors: [
                 Color(0xFFFDF6E3),
-                Color.fromARGB(255, 194, 228, 194),
+                Color(0xFFC2E4C2),
               ],
             ),
             border: Border.all(color: const Color(0xFF4A7C59), width: 2),
@@ -884,7 +881,7 @@ class _QuranScreenState extends State<QuranScreen> {
 
         // ── بازنەی نیمچەگۆ لەسەر لێواری سەرەوە ──
         Positioned(
-          bottom: 45,
+          bottom: 48,
           child: ClipRect(
             child: Align(
               alignment: Alignment.topCenter,
