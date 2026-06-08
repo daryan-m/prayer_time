@@ -329,26 +329,30 @@ class _QuranScreenState extends State<QuranScreen> {
       );
     }
 
-    return Scaffold(
-      backgroundColor: const Color(0xFF006627),
-      body: SafeArea(
-        child: Stack(
-          children: [
-            // لاپەرەی قورئان — پڕ دەگرێت
-            GestureDetector(
-              behavior: HitTestBehavior.translucent,
-              child: _buildPageView(),
-            ),
-            // تولبارى سەرەوە
-
-            // پلەیەری خوارەوە
-            Positioned(
-              bottom: 0,
-              left: 0,
-              right: 0,
-              child: _buildBottomBar(),
-            ),
-          ],
+    return PopScope(
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) {
+          _audio.stop();
+          WakelockPlus.disable();
+        }
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xFF006627),
+        body: SafeArea(
+          child: Stack(
+            children: [
+              GestureDetector(
+                behavior: HitTestBehavior.translucent,
+                child: _buildPageView(),
+              ),
+              Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                child: _buildBottomBar(),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -624,15 +628,19 @@ class _QuranScreenState extends State<QuranScreen> {
       }
     }
 
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-        child: Image.asset(
-          'assets/images/besmelah1.png',
-          height: 55,
-          fit: BoxFit.fitWidth,
-        ),
-      ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+            child: Image.asset(
+              'assets/images/besmelah1.png',
+              width: constraints.maxWidth * 0.76,
+              fit: BoxFit.contain,
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -812,12 +820,10 @@ class _QuranScreenState extends State<QuranScreen> {
                             : Icons.play_arrow,
                         label: '',
                         onTap: () {
-                          if (isPlaying) {
+                          if (isPlaying || isLoading) {
                             _audio.pause();
                           } else if (isPaused) {
                             _audio.resume();
-                          } else if (isLoading) {
-                            // loading دا کلیک کرا — چاوەڕێ بکە
                           } else {
                             if (_pageWords.isNotEmpty) {
                               _audio.playAyah(
@@ -1579,9 +1585,10 @@ class _QuranScreenState extends State<QuranScreen> {
   @override
   void dispose() {
     _audio.removeListener(_onAudioChanged);
+    _audio.stop();
     _pageController.dispose();
-    super.dispose();
     WakelockPlus.disable();
+    super.dispose();
   }
 }
 
