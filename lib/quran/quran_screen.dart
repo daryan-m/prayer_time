@@ -445,87 +445,79 @@ class _QuranScreenState extends State<QuranScreen> {
 
     return Container(
       margin: const EdgeInsets.only(top: 0),
-      padding: const EdgeInsets.only(
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 1,
-      ),
-      child: Container(
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFFFDF6E3),
-              Color(0xFFC2E4C2),
-            ],
-          ),
-          border: Border.all(color: const Color(0xFF4A7C59), width: 2),
-          borderRadius: const BorderRadius.only(
-            bottomLeft: Radius.circular(16),
-            bottomRight: Radius.circular(16),
-          ),
-        ),
-        padding: const EdgeInsets.only(left: 4, right: 4, bottom: 4, top: 6),
-        child: Row(
-          children: [
-            // لای چەپ فیزیکی: سەهمی گەرانەوە
-            Padding(
-              padding: const EdgeInsets.only(left: 8),
-              child: GestureDetector(
-                onTap: () => Navigator.of(context).maybePop(),
-                child: const Icon(
-                  Icons.arrow_back_ios,
-                  size: 16,
-                  color: Color(0xFF215B33),
-                ),
-              ),
-            ),
-
-            // ناوەراست: ناوی سورە + (مکی/مدنی)
-            Expanded(
-              child: RichText(
-                textAlign: TextAlign.center,
-                text: TextSpan(
-                  children: [
-                    TextSpan(
-                      text: surahName,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        color: Color(0xFF215B33),
-                        fontFamily: 'Notonaskh',
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    TextSpan(
-                      text: ' ($placeText)',
-                      style: const TextStyle(
-                        fontSize: 11,
-                        color: Color(0xFF215B33),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            // لای راست فیزیکی: فراغ بۆ توازن
-            SizedBox(
-              width: 60,
-              child: Text(
-                juzText,
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: Color(0xFF215B33),
-                  fontFamily: 'Notonaskh',
-                  fontWeight: FontWeight.bold,
-                ),
-                textAlign: TextAlign.right,
-                textDirection: TextDirection.rtl,
-              ),
-            ),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Color(0xFFC2E4C2),
+            Color(0xFFFDF6E3),
           ],
         ),
+        border: Border.all(color: const Color(0xFF4A7C59), width: 2),
+        borderRadius: const BorderRadius.only(
+          bottomLeft: Radius.circular(16),
+          bottomRight: Radius.circular(16),
+        ),
+      ),
+      padding: const EdgeInsets.only(left: 4, right: 4, bottom: 4, top: 6),
+      child: Row(
+        children: [
+          // لای چەپ فیزیکی: سەهمی گەرانەوە
+          Padding(
+            padding: const EdgeInsets.only(left: 8),
+            child: GestureDetector(
+              onTap: () => Navigator.of(context).maybePop(),
+              child: const Icon(
+                Icons.arrow_back_ios,
+                size: 16,
+                color: Color(0xFF215B33),
+              ),
+            ),
+          ),
+
+          // ناوەراست: ناوی سورە + (مکی/مدنی)
+          Expanded(
+            child: RichText(
+              textAlign: TextAlign.center,
+              text: TextSpan(
+                children: [
+                  TextSpan(
+                    text: surahName,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      color: Color(0xFF215B33),
+                      fontFamily: 'Notonaskh',
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  TextSpan(
+                    text: ' ($placeText)',
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: Color(0xFF215B33),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          // لای راست فیزیکی: فراغ بۆ توازن
+          SizedBox(
+            width: 60,
+            child: Text(
+              juzText,
+              style: const TextStyle(
+                fontSize: 14,
+                color: Color(0xFF215B33),
+                fontFamily: 'Notonaskh',
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.right,
+              textDirection: TextDirection.rtl,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -571,7 +563,7 @@ class _QuranScreenState extends State<QuranScreen> {
             padding: const EdgeInsets.only(
               left: 16,
               right: 16,
-              top: 3,
+              top: 0,
               bottom: 76,
             ),
             child: isLandscape
