@@ -477,14 +477,26 @@ class _PrayerDrawerState extends State<PrayerDrawer> {
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              Text("دیزاینەر: داریان مەزهەر",
+              Text("Concept by:  Daryan_M",
                   style: TextStyle(
                       color: pal.listText.withOpacity(0.7), fontSize: 13)),
               const SizedBox(width: 8),
-              Icon(Icons.brush_outlined, color: pal.primary, size: 16),
+              Icon(Icons.lightbulb_outline, color: pal.primary, size: 16),
             ],
           ),
+         const SizedBox(height: 6),
 
+          // ── دیزاینەر ──
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Text("Developer :  M_R_M",
+                  style: TextStyle(
+                      color: pal.listText.withOpacity(0.7), fontSize: 13)),
+              const SizedBox(width: 8),
+              Icon(Icons.code, color: pal.primary, size: 16),
+            ],
+          ),
           const SizedBox(height: 12),
           Divider(color: pal.primary.withOpacity(0.3), thickness: 1),
           const SizedBox(height: 10),
@@ -507,7 +519,7 @@ class _PrayerDrawerState extends State<PrayerDrawer> {
 
 // ── تێبینی بچووک ──
           Text(
-            "داتای کاتەکانی بانگ و تێکستی قورئانی پیرۆز لەم سەرچاوانە وەرگیراوە",
+            "داتای کاتەکانی بانگ و تێکست و دەنگى قورئانی پیرۆز لەم سەرچاوانە وەرگیراوە",
             textAlign: TextAlign.right,
             style: TextStyle(
                 color: pal.listText.withOpacity(0.4),
@@ -552,14 +564,14 @@ class _PrayerDrawerState extends State<PrayerDrawer> {
               InkWell(
                 onTap: () async {
                   final Uri url =
-                      Uri.parse('https://docs.globalquran.com/about');
+                      Uri.parse('https://everyayah.com/');
                   if (!await launchUrl(url,
                       mode: LaunchMode.externalApplication)) {
                     debugPrint("کێشەیەک هەیە");
                   }
                 },
                 child: Text(
-                  "globalquran.com",
+                  "everyayah",
                   style: TextStyle(
                       color: pal.primary,
                       fontSize: 12,
@@ -567,7 +579,7 @@ class _PrayerDrawerState extends State<PrayerDrawer> {
                 ),
               ),
               const SizedBox(width: 8),
-              Text(":تێکستی قورئانی پیرۆز",
+              Text(":دەنگى قورئانی پیرۆز",
                   style: TextStyle(
                       color: pal.listText.withOpacity(0.7), fontSize: 13)),
             ],
@@ -579,14 +591,14 @@ class _PrayerDrawerState extends State<PrayerDrawer> {
               InkWell(
                 onTap: () async {
                   final Uri url =
-                      Uri.parse('https://alquran.cloud/terms-and-conditions');
+                      Uri.parse('https://qul.tarteel.ai/resources/');
                   if (!await launchUrl(url,
                       mode: LaunchMode.externalApplication)) {
                     debugPrint("کێشەیەک هەیە");
                   }
                 },
                 child: Text(
-                  "alquran.cloud",
+                  "qul.tarteel.ai",
                   style: TextStyle(
                       color: pal.primary,
                       fontSize: 12,
@@ -594,7 +606,7 @@ class _PrayerDrawerState extends State<PrayerDrawer> {
                 ),
               ),
               const SizedBox(width: 8),
-              Text(":دەنگى قورئانخوێن",
+              Text("تێکست و داتاى لاپەڕەکانى قورئانى پیرۆز",
                   style: TextStyle(
                       color: pal.listText.withOpacity(0.7), fontSize: 13)),
             ],

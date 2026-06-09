@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:audio_session/audio_session.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:just_audio/just_audio.dart';
@@ -27,13 +28,14 @@ class QuranAudioService extends ChangeNotifier {
   int _currentAyah = 0;
   int _pendingNextSurah = 0;
   int _pendingNextAyah = 0;
-  int _highlightedWordIndex = 0; // 1-based word index
-  bool _completionHandled = false; // بۆ ئەوەی دووبارە fire نەبێت
+  int _highlightedWordIndex = 0;
+  bool _completionHandled = false;
   String _currentReciterId = '953';
   String _currentReciterFileName =
       'ayah-recitation-mishari-rashid-al-afasy-murattal-hafs-953.json';
 
   Timer? _segmentTimer;
+  StreamSubscription? _playerStateSubscription;
   AyahRecitation? _currentRecitation;
 
   // Download progress
@@ -56,12 +58,22 @@ class QuranAudioService extends ChangeNotifier {
   // ─── Init ──────────────────────────────────────────────────────────────────
 
   Future<void> init() async {
-    // Load built-in reciter (Afasy)
     await _db.loadBuiltInRecitation(_currentReciterFileName);
     await _checkDownloadedReciters();
     await _resumePendingDownloads();
 
-    _player.playerStateStream.listen((playerState) {
+    // Fix 3: audio session بۆ background audio و lockscreen controls
+    final session = await AudioSession.instance;
+    await session.configure(const AudioSessionConfiguration.music());
+    session.interruptionEventStream.listen((event) {
+      if (event.begin) {
+        if (_state == AudioState.playing) pause();
+      }
+    });
+
+    // Fix 1+2: StreamSubscription کە cancel دەکرێت
+    _playerStateSubscription?.cancel();
+    _playerStateSubscription = _player.playerStateStream.listen((playerState) {
       if (playerState.processingState == ProcessingState.completed) {
         if (!_completionHandled) {
           _completionHandled = true;
@@ -78,7 +90,6 @@ class QuranAudioService extends ChangeNotifier {
         final dir = await _getReciterDir();
         final mp3Dir = Directory('${dir.path}/$id');
         if (await mp3Dir.exists()) {
-          // فۆڵدەر هەیە بەڵام تەواو نەبووە — دووبارە دەست پێ بکە
           final doneFile = File('${mp3Dir.path}/.done');
           if (!await doneFile.exists()) {
             downloadReciter(id);
@@ -134,16 +145,13 @@ class QuranAudioService extends ChangeNotifier {
     }
 
     if (wasPlaying && resumeSurah > 0 && resumeAyah > 0) {
-      // دەنگ بوو → بەردەوام بخوێنێت
       await playAyah(resumeSurah, resumeAyah);
     } else if (wasPaused && resumeSurah > 0 && resumeAyah > 0) {
-      // پاوز بوو → پاوز بمێنێت
       _currentSurah = resumeSurah;
       _currentAyah = resumeAyah;
       _state = AudioState.paused;
       notifyListeners();
     } else {
-      // دەنگ نەبوو → state ریسێت بکە
       _state = AudioState.stopped;
       _currentSurah = 0;
       _currentAyah = 0;
@@ -186,7 +194,7 @@ class QuranAudioService extends ChangeNotifier {
         final local = File('${mp3Dir.path}/$fname');
 
         if (!await local.exists()) {
-          final url = 'https://audio-cdn.tarteel.ai/quran/$slug/$fname';
+          final url = 'https://everyayah.com/data/$slug/$fname';
           final res = await http.get(Uri.parse(url));
           if (res.statusCode == 200) {
             await local.writeAsBytes(res.bodyBytes);
@@ -197,7 +205,6 @@ class QuranAudioService extends ChangeNotifier {
         if (done % 20 == 0) notifyListeners();
       }
 
-      // marker
       await File('${mp3Dir.path}/.done').writeAsString('ok');
       _downloadedReciters.add(reciterId);
       _downloadProgress.remove(reciterId);
@@ -219,9 +226,9 @@ class QuranAudioService extends ChangeNotifier {
 
   // ─── Playback ──────────────────────────────────────────────────────────────
 
-  Future<void> playAyah(int surah, int ayah, {bool continuous = false}) async {
+  Future<void> playAyah(int surah, int ayah) async {
     _segmentTimer?.cancel();
-    _completionHandled = false; // ریسێت بکە بۆ هەر ئایەتێکی نوێ
+    _completionHandled = false;
     _currentSurah = surah;
     _currentAyah = ayah;
     _highlightedWordIndex = 0;
@@ -237,9 +244,6 @@ class QuranAudioService extends ChangeNotifier {
     }
 
     try {
-      final audioUrl = _currentRecitation!.audioUrl;
-
-      // ئۆفلاین چێک — لە فۆڵدەری نوێ
       final fname =
           '${surah.toString().padLeft(3, '0')}${ayah.toString().padLeft(3, '0')}.mp3';
       final dir = await _getReciterDir();
@@ -248,7 +252,7 @@ class QuranAudioService extends ChangeNotifier {
       if (await localFile.exists()) {
         await _player.setFilePath(localFile.path);
       } else {
-        await _player.setUrl(audioUrl);
+        await _player.setUrl(_currentRecitation!.audioUrl);
       }
 
       await _player.play();
@@ -259,6 +263,45 @@ class QuranAudioService extends ChangeNotifier {
       _state = AudioState.error;
       notifyListeners();
       debugPrint('Audio play error: $e');
+    }
+  }
+
+  /// بسمەڵە دەخوێنێت بەبێ ئەوەی currentSurah/currentAyah بگۆڕێت
+  /// لاپەرەکە لە شوێنی خۆیدا دەمێنێتەوە — UI ناگەڕێتەوە بۆ لاپەرەی ١
+  Future<void> _playBasmallahOnly(int pendingSurah, int pendingAyah) async {
+    _segmentTimer?.cancel();
+    _completionHandled = false;
+    _pendingNextSurah = pendingSurah;
+    _pendingNextAyah = pendingAyah;
+    _highlightedWordIndex = 0;
+    _state = AudioState.loading;
+    notifyListeners();
+
+    final recitation = _db.getAyahRecitation(1, 1);
+    if (recitation == null) {
+      _state = AudioState.error;
+      notifyListeners();
+      return;
+    }
+    _currentRecitation = recitation;
+
+    try {
+      const fname = '001001.mp3';
+      final dir = await _getReciterDir();
+      final localFile = File('${dir.path}/$_currentReciterId/$fname');
+      if (await localFile.exists()) {
+        await _player.setFilePath(localFile.path);
+      } else {
+        await _player.setUrl(recitation.audioUrl);
+      }
+      await _player.play();
+      _state = AudioState.playing;
+      _startSegmentTracking();
+      notifyListeners();
+    } catch (e) {
+      _state = AudioState.error;
+      notifyListeners();
+      debugPrint('Basmallah play error: $e');
     }
   }
 
@@ -273,7 +316,6 @@ class QuranAudioService extends ChangeNotifier {
         return;
       }
       final pos = _player.position.inMilliseconds;
-      // Find current segment
       for (int i = segments.length - 1; i >= 0; i--) {
         if (pos >= segments[i].startMs) {
           if (_highlightedWordIndex != segments[i].wordIndex) {
@@ -293,7 +335,7 @@ class QuranAudioService extends ChangeNotifier {
       final a = _pendingNextAyah;
       _pendingNextSurah = 0;
       _pendingNextAyah = 0;
-      playAyah(s, a, continuous: true);
+      playAyah(s, a);
     } else {
       _playNextAyah();
     }
@@ -304,43 +346,40 @@ class QuranAudioService extends ChangeNotifier {
   }
 
   Future<void> _playNextAyah() async {
-  final surahInfo = await _db.getSurahInfo(_currentSurah);
-  if (surahInfo == null) {
-    _state = AudioState.stopped;
-    notifyListeners();
-    return;
-  }
-
-  int nextSurah = _currentSurah;
-  int nextAyah = _currentAyah + 1;
-
-  if (nextAyah > surahInfo.versesCount) {
-    nextSurah++;
-    nextAyah = 1;
-    if (nextSurah > 114) {
+    final surahInfo = await _db.getSurahInfo(_currentSurah);
+    if (surahInfo == null) {
       _state = AudioState.stopped;
       notifyListeners();
       return;
     }
+
+    int nextSurah = _currentSurah;
+    int nextAyah = _currentAyah + 1;
+
+    if (nextAyah > surahInfo.versesCount) {
+      nextSurah++;
+      nextAyah = 1;
+      if (nextSurah > 114) {
+        _state = AudioState.stopped;
+        notifyListeners();
+        return;
+      }
+    }
+
+    if (_needsBasmallah(nextSurah, nextAyah)) {
+      // بسمەڵە بخوێنە بەبێ گەڕانەوەی لاپەرە
+      await _playBasmallahOnly(nextSurah, nextAyah);
+      return;
+    }
+
+    await playAyah(nextSurah, nextAyah);
   }
 
-  if (_needsBasmallah(nextSurah, nextAyah)) {
-    _pendingNextSurah = nextSurah;
-    _pendingNextAyah = nextAyah;
-    await playAyah(1, 1, continuous: true);
-    return;
-  }
-
-  await playAyah(nextSurah, nextAyah, continuous: true);
-}
-
-  // public next
   Future<void> playNextAyah() async {
     if (_currentSurah == 0) return;
     await _playNextAyah();
   }
 
-// public previous
   Future<void> playPreviousAyah() async {
     if (_currentSurah == 0) return;
     int prevSurah = _currentSurah;
@@ -355,17 +394,23 @@ class QuranAudioService extends ChangeNotifier {
     await playAyah(prevSurah, prevAyah);
   }
 
+  // Fix 2: _completionHandled=true لە pause بۆ ئەوەی completed event
+  // لە کاتی پاوز fire نەکات
   Future<void> pause() async {
     if (_state == AudioState.playing) {
       _segmentTimer?.cancel();
+      _completionHandled = true;
       await _player.pause();
       _state = AudioState.paused;
       notifyListeners();
     }
   }
 
+  // Fix 2: _completionHandled=false لە resume بۆ ئەوەی
+  // ئایەتەکە تەواو بوو completed fire بکات
   Future<void> resume() async {
     if (_state == AudioState.paused) {
+      _completionHandled = false;
       await _player.play();
       _state = AudioState.playing;
       _startSegmentTracking();
@@ -375,7 +420,7 @@ class QuranAudioService extends ChangeNotifier {
 
   Future<void> stop() async {
     _segmentTimer?.cancel();
-    _completionHandled = true; // بێستە ئەوەی completed event کاریگەر نەبێت
+    _completionHandled = true;
     await _player.stop();
     _state = AudioState.stopped;
     _highlightedWordIndex = 0;
@@ -409,6 +454,7 @@ class QuranAudioService extends ChangeNotifier {
   @override
   void dispose() {
     _segmentTimer?.cancel();
+    _playerStateSubscription?.cancel();
     _player.dispose();
     super.dispose();
   }

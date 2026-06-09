@@ -627,7 +627,8 @@ class _QuranScreenState extends State<QuranScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
             child: Image.asset(
               'assets/images/besmelah1.png',
-              width: constraints.maxWidth * 0.76,
+              width: constraints.maxWidth * 0.55,
+              height: 40,
               fit: BoxFit.contain,
             ),
           ),
