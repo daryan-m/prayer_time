@@ -1,16 +1,13 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:vibration/vibration.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:hijri/hijri_calendar.dart';
 import '../utils/app_permissions.dart';
 import '../utils/constants.dart';
 import '../services/prayer_service.dart';
 import 'allah_names_widget.dart';
 import 'dart:convert';
-import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import 'tasbih_widget.dart';
 import 'date_converter_widget.dart';
@@ -219,14 +216,12 @@ class _PrayerDrawerState extends State<PrayerDrawer> {
                       ListTile(
                         leading: Icon(Icons.notifications_active_outlined,
                             color: pal.primary, size: 22),
-                        title: Text(
-                            "مۆڵەتەکانی دەنگى بانگ و قورئان",
+                        title: Text("مۆڵەتەکانی دەنگى بانگ و قورئان",
                             style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.bold,
                                 color: pal.listText)),
-                        subtitle: Text(
-                            "ئەگەر مۆڵەت نەدرابێت",
+                        subtitle: Text("ئەگەر مۆڵەت نەدرابێت",
                             textAlign: TextAlign.right,
                             style: TextStyle(
                                 color: pal.listText.withOpacity(0.5),
@@ -237,8 +232,7 @@ class _PrayerDrawerState extends State<PrayerDrawer> {
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: const Text(
-                                    " مۆڵەت دراوە "),
+                                content: const Text(" مۆڵەت دراوە "),
                                 backgroundColor: pal.primary.withOpacity(0.5),
                                 behavior: SnackBarBehavior.floating,
                               ),
@@ -250,7 +244,7 @@ class _PrayerDrawerState extends State<PrayerDrawer> {
                     ListTile(
                       leading: const Icon(Icons.play_circle_fill,
                           color: Colors.red, size: 28),
-                      title: Text("ئێمە لە یوتیوب",
+                      title: Text("یوتیوب",
                           style: TextStyle(
                               color: pal.listText,
                               fontSize: 14,
@@ -265,6 +259,25 @@ class _PrayerDrawerState extends State<PrayerDrawer> {
                       },
                     ),
                     _divider(pal),
+
+                    ListTile(
+                      leading: const Icon(Icons.facebook,
+                          color: Colors.blue, size: 28),
+                      title: Text("ئێمە لە فەیسبووک",
+                          style: TextStyle(
+                              color: pal.listText,
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold)),
+                      onTap: () async {
+                        final Uri url = Uri.parse(
+                            'https://www.facebook.com/profile.php?id=61590536199169');
+                        if (!await launchUrl(url,
+                            mode: LaunchMode.externalApplication)) {
+                          debugPrint("کێشەیەک هەیە");
+                        }
+                      },
+                    ),
+
                     // ── دەربارە — ئێستا وەک دیالۆگ ──
                     ListTile(
                       leading: Icon(Icons.info_outline,
@@ -484,7 +497,7 @@ class _PrayerDrawerState extends State<PrayerDrawer> {
               Icon(Icons.lightbulb_outline, color: pal.primary, size: 16),
             ],
           ),
-         const SizedBox(height: 6),
+          const SizedBox(height: 6),
 
           // ── دیزاینەر ──
           Row(
@@ -563,8 +576,7 @@ class _PrayerDrawerState extends State<PrayerDrawer> {
             children: [
               InkWell(
                 onTap: () async {
-                  final Uri url =
-                      Uri.parse('https://everyayah.com/');
+                  final Uri url = Uri.parse('https://everyayah.com/');
                   if (!await launchUrl(url,
                       mode: LaunchMode.externalApplication)) {
                     debugPrint("کێشەیەک هەیە");
@@ -609,6 +621,50 @@ class _PrayerDrawerState extends State<PrayerDrawer> {
               Text("تێکست و داتاى لاپەڕەکانى قورئانى پیرۆز",
                   style: TextStyle(
                       color: pal.listText.withOpacity(0.7), fontSize: 13)),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Divider(color: pal.primary.withOpacity(0.3), thickness: 1),
+          const SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Text("پەیوەندیمان پێوە بکە",
+                  style: TextStyle(
+                      color: pal.listText,
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold)),
+              const SizedBox(width: 8),
+              Icon(Icons.connect_without_contact, color: pal.primary, size: 16),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              InkWell(
+                onTap: () async {
+                  final Uri url = Uri.parse(
+                      'https://www.facebook.com/profile.php?id=61590536199169');
+                  if (!await launchUrl(url,
+                      mode: LaunchMode.externalApplication)) {
+                    debugPrint("کێشەیەک هەیە");
+                  }
+                },
+                child: const Text(
+                  "بانگ - Bang",
+                  style: TextStyle(
+                      color: Colors.blue,
+                      fontSize: 12,
+                      decoration: TextDecoration.underline),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(":پەیجی فەیسبووک",
+                  style: TextStyle(
+                      color: pal.listText.withOpacity(0.7), fontSize: 13)),
+              const SizedBox(width: 4),
+              const Icon(Icons.facebook, color: Colors.blue, size: 16),
             ],
           ),
         ],

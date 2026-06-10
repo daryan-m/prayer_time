@@ -2,11 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:vibration/vibration.dart';
-import 'package:hijri/hijri_calendar.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-import '../utils/constants.dart';
-import '../services/prayer_service.dart';
 
 // ==================== ویدجەتی تەسبیح ====================
 enum _FeedbackType { haptic, tick, silent }

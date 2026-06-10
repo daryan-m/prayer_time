@@ -1,10 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:audioplayers/audioplayers.dart';
-import 'package:vibration/vibration.dart';
 import 'package:hijri/hijri_calendar.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import '../utils/constants.dart';
 import '../services/prayer_service.dart';
 
@@ -577,19 +572,6 @@ class _DateConverterDialogState extends State<DateConverterDialog>
     });
   }
 
-  Widget _resultLine(String value, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 10),
-      decoration: BoxDecoration(
-          color: color.withOpacity(0.07),
-          borderRadius: BorderRadius.circular(6),
-          border: Border.all(color: color.withOpacity(0.2))),
-      child: Text(value,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-              color: color, fontSize: 12, fontWeight: FontWeight.bold)),
-    );
-  }
 
   Widget _rowDates(Color pc,
       {required TextEditingController dayCtrl,
@@ -628,21 +610,6 @@ class _DateConverterDialogState extends State<DateConverterDialog>
     );
   }
 
-  Widget _readonlyBox(String val, Color pc) {
-    return Container(
-      height: 34,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-          color: pc.withOpacity(0.05),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: pc.withOpacity(0.3))),
-      child: Text(val.isEmpty ? "—" : val,
-          style: TextStyle(
-              color: pc.withOpacity(0.8),
-              fontSize: 15,
-              fontWeight: FontWeight.bold)),
-    );
-  }
 
   Widget _row3(TextEditingController d, TextEditingController m,
       TextEditingController y, Color pc, VoidCallback? onSubmit,
@@ -681,16 +648,6 @@ class _DateConverterDialogState extends State<DateConverterDialog>
       if (v != null && v > max) {
         ctrl.text = max.toString();
         ctrl.selection = TextSelection.collapsed(offset: ctrl.text.length);
-      }
-    }
-
-    void toKu(TextEditingController ctrl) {
-      final converted = _toKurdish(ctrl.text);
-      if (converted != ctrl.text) {
-        ctrl.value = TextEditingValue(
-          text: converted,
-          selection: TextSelection.collapsed(offset: converted.length),
-        );
       }
     }
 

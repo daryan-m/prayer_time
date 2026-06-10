@@ -4,7 +4,6 @@ import 'dart:async';
 import 'dart:ui' as ui;
 import 'package:intl/intl.dart';
 import 'package:audioplayers/audioplayers.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'dart:convert';
 import 'package:http/http.dart' as http;

@@ -7,15 +7,18 @@
 
 # The following line activates a set of recommended lints for Flutter apps,
 # packages, and plugins designed to encourage good coding practices.
+include: package:flutter_lints/flutter.yaml
+ 
 analyzer:
   errors:
-    unused_element: ignore
+    unused_element: warning
+    unused_import: warning
+    unused_local_variable: warning
+    dead_code: warning
     deprecated_member_use: ignore
-    unused_import: ignore
     undefined_hidden_name: ignore
     await_only_futures: ignore
-include: package:flutter_lints/flutter.yaml
-
+ 
 linter:
   # The lint rules applied to this project can be customized in the
   # section below to disable rules from the `package:flutter_lints/flutter.yaml`

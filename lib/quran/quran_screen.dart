@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:archive/archive_io.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'quran_models.dart';
@@ -193,13 +192,6 @@ class _QuranScreenState extends State<QuranScreen> {
   }
 
   /// Download fonts for current page + next 2 pages in background
-  void _downloadAllFonts() {
-    for (int p = 2; p <= 604; p++) {
-      if (_fontReady[p] != true) {
-        _downloadFontForPage(p);
-      }
-    }
-  }
 
   /// Download current page font + prefetch nearby pages
   void _prefetchFonts(int currentPage) {
@@ -1203,147 +1195,6 @@ class _QuranScreenState extends State<QuranScreen> {
     );
   }
 
-  void _showSearchSheet() {
-    final controller = TextEditingController();
-    List<Map<String, dynamic>> results = [];
-    bool searched = false;
-
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setS) => Container(
-          height: MediaQuery.of(context).size.height * 0.85,
-          decoration: const BoxDecoration(
-            color: Color(0xFF1A2E14),
-            borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-          ),
-          child: Column(
-            children: [
-              // هێدەر
-              Container(
-                padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
-                decoration: const BoxDecoration(
-                  color: Color(0xFF2D5016),
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-                ),
-                child: Row(
-                  children: [
-                    const Expanded(
-                      child: Text('گەڕان لە ئایەتەکانى قورئانى پیرۆز',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold)),
-                    ),
-                    GestureDetector(
-                      onTap: () => Navigator.pop(ctx),
-                      child: const Icon(Icons.close,
-                          color: Colors.white54, size: 20),
-                    ),
-                  ],
-                ),
-              ),
-              // سێرچ باکس
-              Padding(
-                padding: const EdgeInsets.all(12),
-                child: TextField(
-                  controller: controller,
-                  autofocus: true,
-                  textDirection: TextDirection.rtl,
-                  style: const TextStyle(color: Colors.white, fontSize: 16),
-                  decoration: InputDecoration(
-                    hintText: 'وشەیەک بنووسە...',
-                    hintStyle: TextStyle(color: Colors.white.withOpacity(0.4)),
-                    filled: true,
-                    fillColor: Colors.white.withOpacity(0.08),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide.none,
-                    ),
-                    prefixIcon: const Icon(Icons.search, color: Colors.white54),
-                    suffixIcon: IconButton(
-                      icon: const Icon(Icons.arrow_forward,
-                          color: Color(0xFF4A7C59)),
-                      onPressed: () async {
-                        if (controller.text.trim().isEmpty) return;
-                        final r = await _db.searchAyahs(controller.text.trim());
-                        setS(() {
-                          results = r;
-                          searched = true;
-                        });
-                      },
-                    ),
-                  ),
-                  onSubmitted: (val) async {
-                    if (val.trim().isEmpty) return;
-                    final r = await _db.searchAyahs(val.trim());
-                    setS(() {
-                      results = r;
-                      searched = true;
-                    });
-                  },
-                ),
-              ),
-              // ئەنجامەکان
-              Expanded(
-                child: searched && results.isEmpty
-                    ? Center(
-                        child: Text('هیچ ئەنجامێک نەدۆزرایەوە',
-                            style: TextStyle(
-                                color: Colors.white.withOpacity(0.5))),
-                      )
-                    : ListView.separated(
-                        itemCount: results.length,
-                        separatorBuilder: (_, __) => Divider(
-                          height: 1,
-                          color: Colors.white.withOpacity(0.08),
-                          indent: 16,
-                        ),
-                        itemBuilder: (ctx, i) {
-                          final r = results[i];
-                          final surah = r['surah_number'] as int;
-                          final ayah = r['ayah_number'] as int;
-                          final text = r['text'] as String;
-                          return ListTile(
-                            contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 4),
-                            title: Text(
-                              text,
-                              textDirection: TextDirection.rtl,
-                              style: const TextStyle(
-                                fontFamily: 'Notonaskh',
-                                color: Colors.white,
-                                fontSize: 15,
-                              ),
-                            ),
-                            subtitle: Text(
-                              '${_allSurahs.firstWhere((s) => s.id == surah).nameArabic} — ئایە ${_toKNum(ayah)}',
-                              textDirection: TextDirection.rtl,
-                              style: TextStyle(
-                                color: Colors.white.withOpacity(0.45),
-                                fontSize: 11,
-                              ),
-                            ),
-                            onTap: () async {
-                              Navigator.pop(ctx);
-                              final page =
-                                  await _db.getPageForAyah(surah, ayah);
-                              _goToPage(page);
-                            },
-                          );
-                        },
-                      ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   void _showPageJump() {
     final controller = TextEditingController(text: '$_currentPage');
     showDialog(
@@ -1585,62 +1436,6 @@ class _QuranScreenState extends State<QuranScreen> {
   }
 }
 
-class _WaveClipper extends CustomClipper<Path> {
-  @override
-  Path getClip(Size size) {
-    final path = Path();
-    const waveHeight = 16.0;
-    const waveWidth = 60.0;
-    final centerX = size.width / 2;
 
-    path.moveTo(0, waveHeight);
-    path.lineTo(centerX - waveWidth / 2, waveHeight);
-    path.quadraticBezierTo(
-      centerX,
-      -waveHeight * 0.6,
-      centerX + waveWidth / 2,
-      waveHeight,
-    );
-    path.lineTo(size.width, waveHeight);
-    path.lineTo(size.width, size.height);
-    path.lineTo(0, size.height);
-    path.close();
-    return path;
-  }
 
-  @override
-  bool shouldReclip(_WaveClipper old) => false;
-}
-
-class _WaveBorderPainter extends CustomPainter {
-  final Color color;
-  _WaveBorderPainter({required this.color});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.5;
-
-    const waveHeight = 16.0;
-    const waveWidth = 60.0;
-    final centerX = size.width / 2;
-
-    final path = Path();
-    path.moveTo(0, waveHeight);
-    path.lineTo(centerX - waveWidth / 2, waveHeight);
-    path.quadraticBezierTo(
-      centerX,
-      -waveHeight * 0.6,
-      centerX + waveWidth / 2,
-      waveHeight,
-    );
-    path.lineTo(size.width, waveHeight);
-
-    canvas.drawPath(path, paint);
-  }
-
-  @override
-  bool shouldRepaint(_WaveBorderPainter old) => false;
-}
+ 
