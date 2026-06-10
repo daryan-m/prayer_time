@@ -49,14 +49,6 @@ flutter:
     - assets/audio/allah_names/
     - assets/quran/
   fonts:
-    - family: Amiri
-      fonts:
-        - asset: assets/fonts/Amiri-Regular.ttf
-
-    - family: Uthmanic
-      fonts:
-        - asset: assets/fonts/ScheherazadeNew-Regular.ttf
-
     - family: Notonaskh
       fonts:
         - asset: assets/fonts/noto.ttf
