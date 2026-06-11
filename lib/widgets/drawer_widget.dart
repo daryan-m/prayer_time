@@ -109,7 +109,8 @@ class _PrayerDrawerState extends State<PrayerDrawer> {
                 Border(left: BorderSide(color: pal.drawerBorder, width: 2.0)),
           ),
           child: SafeArea(
-            top: false,
+            top: true,
+            bottom: true,
             child: Column(
               children: [
                 _buildHeader(context, pal),
@@ -373,9 +374,7 @@ class _PrayerDrawerState extends State<PrayerDrawer> {
                             color: pal.listText.withOpacity(0.4), size: 14),
                         onTap: () => _showFeedbackSheet(context, pal),
                       ),
-                      SizedBox(
-                          height:
-                              MediaQuery.of(context).viewPadding.bottom + 20),
+                      const SizedBox(height: 12)
                     ],
                   ),
                 ),
@@ -395,7 +394,7 @@ class _PrayerDrawerState extends State<PrayerDrawer> {
 
   Widget _buildHeader(BuildContext context, ThemePalette pal) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(10, 40, 10, 2),
+      padding: const EdgeInsets.fromLTRB(10, 12, 10, 2),
       child: Row(children: [
         Icon(Icons.mosque, size: 30, color: pal.secondary),
         const SizedBox(width: 12),

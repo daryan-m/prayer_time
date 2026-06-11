@@ -375,11 +375,14 @@ class _QuranScreenState extends State<QuranScreen> {
             final newPage = index + 1;
             _loadPage(newPage).then((_) {
               if (!mounted) return;
-              if (_pageWords.isNotEmpty &&
-                  (_audio.isPlaying || _audio.isPaused)) {
-                // خاڵ ٢: دەنگ ببات بۆ ئایەتی یەکەمی لاپەرەی سوایپکراو
+              if (_pageWords.isNotEmpty && _audio.isPlaying) {
+                // خاڵ ٢: تەنها ئەگەر playing بوو دەنگ ببات بۆ ئایەتی یەکەمی لاپەرەی سوایپکراو
                 final firstWord = _pageWords.first;
                 _audio.playAyah(firstWord.surah, firstWord.ayah);
+              } else if (_pageWords.isNotEmpty && _audio.isPaused) {
+                // ئەگەر paused بوو، ئایەتەکە گۆڕبێت بەڵام پاوز بمێنێتەوە
+                final firstWord = _pageWords.first;
+                _audio.moveToAyah(firstWord.surah, firstWord.ayah);
               } else {
                 setState(() {});
               }
@@ -1357,14 +1360,25 @@ class _QuranScreenState extends State<QuranScreen> {
                                     ClipRRect(
                                       borderRadius: BorderRadius.circular(3),
                                       child: LinearProgressIndicator(
-                                        value: progress ?? (isDl ? 1.0 : 0.0),
+                                        value: progress ??
+                                            (_audio.pausedDownloads.contains(id)
+                                                ? (_audio.pausedDownloadProgress[
+                                                        id] ??
+                                                    0.0)
+                                                : (isDl ? 1.0 : 0.0)),
                                         minHeight: 3,
                                         backgroundColor: Colors.white10,
                                         valueColor:
                                             AlwaysStoppedAnimation<Color>(
-                                          isDl && progress == null
+                                          isDl &&
+                                                  progress == null &&
+                                                  !_audio.pausedDownloads
+                                                      .contains(id)
                                               ? const Color(0xFF4A7C59)
-                                              : const Color(0xFF8BC34A),
+                                              : _audio.pausedDownloads
+                                                      .contains(id)
+                                                  ? Colors.orange
+                                                  : const Color(0xFF8BC34A),
                                         ),
                                       ),
                                     ),
@@ -1376,21 +1390,67 @@ class _QuranScreenState extends State<QuranScreen> {
                                             color: Color(0xFF8BC34A),
                                             fontSize: 10),
                                       ),
+                                    ] else if (_audio.pausedDownloads
+                                        .contains(id)) ...[
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        '${_toKNum(((_audio.pausedDownloadProgress[id] ?? 0.0) * 100).toInt())}٪ وەستێنراوە',
+                                        style: const TextStyle(
+                                            color: Colors.orange, fontSize: 10),
+                                      ),
                                     ],
                                   ],
                                 ),
                               ),
                               const SizedBox(width: 8),
-                              // دوگمەی دابەزاندن / سڕینەوە
+                              // دوگمەی دابەزاندن / وەستان / بەردەوامبوون / سڕینەوە
                               if (id != '') ...[
                                 if (progress != null)
-                                  GestureDetector(
-                                    behavior: HitTestBehavior.opaque,
-                                    onTap: () => _audio.cancelDownload(id),
-                                    child: const Icon(Icons.close,
-                                        color: Colors.white38, size: 18),
+                                  // لە کاتی داگرتن: ⏸ وەستان + ✕ سڕینەوە
+                                  Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      GestureDetector(
+                                        behavior: HitTestBehavior.opaque,
+                                        onTap: () => _audio.pauseDownload(id),
+                                        child: const Icon(
+                                            Icons.pause_circle_outline,
+                                            color: Color(0xFF8BC34A),
+                                            size: 22),
+                                      ),
+                                      const SizedBox(width: 6),
+                                      GestureDetector(
+                                        behavior: HitTestBehavior.opaque,
+                                        onTap: () => _audio.cancelDownload(id),
+                                        child: const Icon(Icons.close,
+                                            color: Colors.white38, size: 18),
+                                      ),
+                                    ],
+                                  )
+                                else if (_audio.pausedDownloads.contains(id))
+                                  // وەستێنراوە: ▶ بەردەوامبوون + ✕ سڕینەوە
+                                  Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      GestureDetector(
+                                        behavior: HitTestBehavior.opaque,
+                                        onTap: () => _audio.resumeDownload(id),
+                                        child: const Icon(
+                                            Icons.play_circle_outline,
+                                            color: Color(0xFF8BC34A),
+                                            size: 22),
+                                      ),
+                                      const SizedBox(width: 6),
+                                      GestureDetector(
+                                        behavior: HitTestBehavior.opaque,
+                                        onTap: () => _audio.cancelDownload(id),
+                                        child: const Icon(Icons.close,
+                                            color: Colors.white38, size: 18),
+                                      ),
+                                    ],
                                   )
                                 else if (isDl)
+                                  // تەواو دابەزێنراوە: سڕینەوە
                                   GestureDetector(
                                     behavior: HitTestBehavior.opaque,
                                     onTap: () =>
@@ -1400,11 +1460,10 @@ class _QuranScreenState extends State<QuranScreen> {
                                         size: 18),
                                   )
                                 else
+                                  // هێشتا دابەزێنراو نییە
                                   GestureDetector(
                                     behavior: HitTestBehavior.opaque,
-                                    onTap: () {
-                                      _audio.downloadReciter(id);
-                                    },
+                                    onTap: () => _audio.downloadReciter(id),
                                     child: Container(
                                       padding: const EdgeInsets.symmetric(
                                           horizontal: 9, vertical: 4),

@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'quran_models.dart';
 import 'quran_database_helper.dart';
 
@@ -40,8 +41,10 @@ class QuranAudioService extends ChangeNotifier {
 
   // Download progress
   final Map<String, double> _downloadProgress = {};
+  final Map<String, double> _pausedDownloadProgress = {};
   final Set<String> _downloadedReciters = {};
   final Set<String> _cancelledDownloads = {};
+  final Set<String> _pausedDownloads = {};
 
   // ─── Getters ───────────────────────────────────────────────────────────────
 
@@ -55,6 +58,8 @@ class QuranAudioService extends ChangeNotifier {
   bool get isPaused => _state == AudioState.paused;
   Map<String, double> get downloadProgress => _downloadProgress;
   Set<String> get downloadedReciters => _downloadedReciters;
+  Set<String> get pausedDownloads => _pausedDownloads;
+  Map<String, double> get pausedDownloadProgress => _pausedDownloadProgress;
 
   // ─── Init ──────────────────────────────────────────────────────────────────
 
@@ -164,6 +169,39 @@ class QuranAudioService extends ChangeNotifier {
   void cancelDownload(String reciterId) {
     _cancelledDownloads.add(reciterId);
     _downloadProgress.remove(reciterId);
+    _pausedDownloads.remove(reciterId);
+    _pausedDownloadProgress.remove(reciterId);
+    // فایلەکانی نیوەکارەکە سڕینەوە
+    _getReciterDir().then((dir) {
+      final mp3Dir = Directory('${dir.path}/$reciterId');
+      if (mp3Dir.existsSync()) mp3Dir.deleteSync(recursive: true);
+    });
+    SharedPreferences.getInstance()
+        .then((p) => p.remove('dl_progress_$reciterId'));
+    notifyListeners();
+  }
+
+  void pauseDownload(String reciterId) {
+    if (!_downloadProgress.containsKey(reciterId)) return;
+    _pausedDownloadProgress[reciterId] = _downloadProgress[reciterId] ?? 0.0;
+    _pausedDownloads.add(reciterId);
+    _cancelledDownloads.add(reciterId);
+    _downloadProgress.remove(reciterId);
+    notifyListeners();
+  }
+
+  Future<void> resumeDownload(String reciterId) async {
+    if (!_pausedDownloads.contains(reciterId)) return;
+    _pausedDownloads.remove(reciterId);
+    _pausedDownloadProgress.remove(reciterId);
+    await downloadReciter(reciterId);
+  }
+
+  /// ئایەتەکە گۆڕبێت بەبێ دەستپێکردنی دەنگ (بۆ کاتی paused)
+  void moveToAyah(int surah, int ayah) {
+    _currentSurah = surah;
+    _currentAyah = ayah;
+    _highlightedWordIndex = 0;
     notifyListeners();
   }
 
@@ -182,9 +220,13 @@ class QuranAudioService extends ChangeNotifier {
         await rootBundle.loadString('assets/quran/${reciterData['file']}');
     final Map<String, dynamic> data = jsonDecode(jsonStr);
     final total = data.length;
-    int done = 0;
 
-    _downloadProgress[reciterId] = 0.0;
+    // خاڵ ٤: پرۆگرەسی پاشەکەوتکراو بار بکە
+    final prefs = await SharedPreferences.getInstance();
+    final savedDone = prefs.getInt('dl_progress_$reciterId') ?? 0;
+    int done = savedDone;
+
+    _downloadProgress[reciterId] = done / total;
     notifyListeners();
 
     try {
@@ -192,11 +234,18 @@ class QuranAudioService extends ChangeNotifier {
       final mp3Dir = Directory('${dir.path}/$reciterId');
       if (!await mp3Dir.exists()) await mp3Dir.create(recursive: true);
 
+      int skipped = 0;
       for (final entry in data.entries) {
         if (_cancelledDownloads.contains(reciterId)) {
           _cancelledDownloads.remove(reciterId);
+          // پاشەکەوت بکە تا جارێکی تر دەست پێ بکاتەوە
+          await prefs.setInt('dl_progress_$reciterId', done);
           return;
         }
+        // ئەگەر پێشتر دابەزێنراوە skip بکە
+        skipped++;
+        if (skipped <= done) continue;
+
         final ayahData = entry.value as Map<String, dynamic>;
         final surah = ayahData['surah_number'] as int;
         final ayah = ayahData['ayah_number'] as int;
@@ -213,14 +262,19 @@ class QuranAudioService extends ChangeNotifier {
         }
         done++;
         _downloadProgress[reciterId] = done / total;
-        if (done % 20 == 0) notifyListeners();
+        if (done % 20 == 0) {
+          notifyListeners();
+          await prefs.setInt('dl_progress_$reciterId', done);
+        }
       }
 
       await File('${mp3Dir.path}/.done').writeAsString('ok');
+      await prefs.remove('dl_progress_$reciterId');
       _downloadedReciters.add(reciterId);
       _downloadProgress.remove(reciterId);
       notifyListeners();
     } catch (e) {
+      await prefs.setInt('dl_progress_$reciterId', done);
       _downloadProgress.remove(reciterId);
       notifyListeners();
       debugPrint('Download failed: $e');
@@ -408,7 +462,7 @@ class QuranAudioService extends ChangeNotifier {
   // Fix 2: _completionHandled=true لە pause بۆ ئەوەی completed event
   // لە کاتی پاوز fire نەکات
   Future<void> pause() async {
-    if (_state == AudioState.playing) {
+    if (_state == AudioState.playing || _state == AudioState.loading) {
       _segmentTimer?.cancel();
       _completionHandled = true;
       await _player.pause();
@@ -439,7 +493,7 @@ class QuranAudioService extends ChangeNotifier {
   }
 
   Future<void> togglePlayPause(int surah, int ayah) async {
-    if (_state == AudioState.playing &&
+    if ((_state == AudioState.playing || _state == AudioState.loading) &&
         _currentSurah == surah &&
         _currentAyah == ayah) {
       await pause();
