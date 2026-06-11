@@ -65,3 +65,6 @@ GEMINI.md
 *.pem
 google-services.json
 GoogleService-Info.plist
+firebase-debug.log
+devtools_options.yaml
+prayer_time_export.zip

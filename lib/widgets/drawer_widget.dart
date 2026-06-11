@@ -11,6 +11,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'tasbih_widget.dart';
 import 'date_converter_widget.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 // ==================== DRAWER ====================
 
@@ -107,283 +108,279 @@ class _PrayerDrawerState extends State<PrayerDrawer> {
             border:
                 Border(left: BorderSide(color: pal.drawerBorder, width: 2.0)),
           ),
-          child: Column(
-            children: [
-              _buildHeader(context, pal),
-              Divider(color: pal.primary, thickness: 1.5),
-              Expanded(
-                child: ListView(
-                  padding: EdgeInsets.zero,
-                  children: [
-                    _buildExpansionTile(
-                        Icons.record_voice_over, "دەنگی بانگبێژ", pal, [
-                      _buildAthanOption("بانگی مەککە", "macca.mp3", pal),
-                      _buildAthanOption("بانگى مەدینە", "madina.mp3", pal),
-                      _buildAthanOption("بانگی کوەیت", "kwait.mp3", pal),
-                    ]),
-                    _divider(pal),
-                    _buildExpansionTile(
-                        Icons.location_city,
-                        "هەڵبژاردنی شار",
+          child: SafeArea(
+            top: false,
+            child: Column(
+              children: [
+                _buildHeader(context, pal),
+                Divider(color: pal.primary, thickness: 1.5),
+                Expanded(
+                  child: ListView(
+                    padding: EdgeInsets.zero,
+                    children: [
+                      _buildExpansionTile(
+                          Icons.record_voice_over, "دەنگی بانگبێژ", pal, [
+                        _buildAthanOption("بانگی مەککە", "macca.mp3", pal),
+                        _buildAthanOption("بانگى مەدینە", "madina.mp3", pal),
+                        _buildAthanOption("بانگی کوەیت", "kwait.mp3", pal),
+                      ]),
+                      _divider(pal),
+                      _buildExpansionTile(
+                          Icons.location_city,
+                          "هەڵبژاردنی شار",
+                          pal,
+                          kurdistanCitiesData
+                              .map((c) => _buildCityOption(c, pal))
+                              .toList()),
+                      _divider(pal),
+                      _buildExpansionTile(
+                        Icons.palette,
+                        "ڕووکارەکان",
                         pal,
-                        kurdistanCitiesData
-                            .map((c) => _buildCityOption(c, pal))
-                            .toList()),
-                    _divider(pal),
-                    _buildExpansionTile(
-                      Icons.palette,
-                      "ڕووکارەکان",
-                      pal,
-                      appThemes.keys
-                          .map((themeName) => ListTile(
-                                title: Text("ڕووکاری $themeName",
-                                    style: TextStyle(
-                                        color: pal.listText, fontSize: 13)),
-                                leading: Radio<String>(
-                                  value: themeName,
-                                  groupValue: widget.selectedThemeName,
-                                  activeColor: appThemes[themeName],
-                                  onChanged: (v) {
-                                    if (v != null) {
-                                      widget.onThemeChanged(v, appThemes[v]!);
-                                    }
-                                  },
-                                ),
-                                onTap: () => widget.onThemeChanged(
-                                    themeName, appThemes[themeName]!),
-                              ))
-                          .toList(),
-                    ),
-                    _divider(pal),
-                    ListTile(
-                      leading: Icon(Icons.grain, color: pal.primary, size: 22),
-                      title: Text("تەسبیح",
-                          style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: pal.listText)),
-                      trailing: Icon(Icons.arrow_forward_ios,
-                          color: pal.listText.withOpacity(0.4), size: 14),
-                      onTap: () => showDialog(
-                          context: context,
-                          builder: (_) => TasbihDialog(
-                                primaryColor: pal.primary,
-                                dialogBg: pal.drawerBg,
-                              )),
-                    ),
-                    _divider(pal),
-                    ListTile(
-                      leading: Icon(Icons.auto_awesome,
-                          color: pal.primary, size: 22),
-                      title: Text("ناوەکانی خوای گەورە",
-                          style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: pal.listText)),
-                      trailing: Icon(Icons.arrow_forward_ios,
-                          color: pal.listText.withOpacity(0.4), size: 14),
-                      onTap: () => showDialog(
-                          context: context,
-                          builder: (_) => AllahNamesDialog(
-                                primaryColor: pal.primary,
-                                dialogBg: pal.drawerBg,
-                              )),
-                    ),
-                    _divider(pal),
-                    ListTile(
-                      leading: Icon(Icons.calendar_month,
-                          color: pal.primary, size: 22),
-                      title: Text("گۆڕینی بەروار و دۆزینەوەی کاتی بانگ",
-                          style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: pal.listText)),
-                      trailing: Icon(Icons.arrow_forward_ios,
-                          color: pal.listText.withOpacity(0.4), size: 14),
-                      onTap: () => showDialog(
-                          context: context,
-                          builder: (_) => DateConverterDialog(
-                                primaryColor: pal.primary,
-                                palette: pal,
-                                dataService: PrayerDataService(),
-                                timeService: TimeService(),
-                                currentCity: widget.currentCity,
-                                dialogBg: pal.drawerBg,
-                              )),
-                    ),
-                    _divider(pal),
-                    if (Platform.isAndroid)
+                        appThemes.keys
+                            .map((themeName) => ListTile(
+                                  title: Text("ڕووکاری $themeName",
+                                      style: TextStyle(
+                                          color: pal.listText, fontSize: 13)),
+                                  leading: Radio<String>(
+                                    value: themeName,
+                                    groupValue: widget.selectedThemeName,
+                                    activeColor: appThemes[themeName],
+                                    onChanged: (v) {
+                                      if (v != null) {
+                                        widget.onThemeChanged(v, appThemes[v]!);
+                                      }
+                                    },
+                                  ),
+                                  onTap: () => widget.onThemeChanged(
+                                      themeName, appThemes[themeName]!),
+                                ))
+                            .toList(),
+                      ),
+                      _divider(pal),
                       ListTile(
-                        leading: Icon(Icons.notifications_active_outlined,
-                            color: pal.primary, size: 22),
-                        title: Text("مۆڵەتەکانی دەنگى بانگ و قورئان",
+                        leading:
+                            Icon(Icons.grain, color: pal.primary, size: 22),
+                        title: Text("تەسبیح",
                             style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.bold,
                                 color: pal.listText)),
-                        subtitle: Text("ئەگەر مۆڵەت نەدرابێت",
-                            textAlign: TextAlign.right,
-                            style: TextStyle(
-                                color: pal.listText.withOpacity(0.5),
-                                fontSize: 11)),
-                        onTap: () async {
-                          await AppPermissions
-                              .requestNotificationAndBatteryIfMissing();
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: const Text(" مۆڵەت دراوە "),
-                                backgroundColor: pal.primary.withOpacity(0.5),
-                                behavior: SnackBarBehavior.floating,
-                              ),
-                            );
-                          }
-                        },
+                        trailing: Icon(Icons.arrow_forward_ios,
+                            color: pal.listText.withOpacity(0.4), size: 14),
+                        onTap: () => showDialog(
+                            context: context,
+                            builder: (_) => TasbihDialog(
+                                  primaryColor: pal.primary,
+                                  dialogBg: pal.drawerBg,
+                                )),
                       ),
-                    if (Platform.isAndroid) _divider(pal),
-                    ListTile(
-                      leading: const Icon(Icons.play_circle_fill,
-                          color: Colors.red, size: 28),
-                      title: Text("یوتیوب",
-                          style: TextStyle(
-                              color: pal.listText,
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold)),
-                      onTap: () async {
-                        final Uri url =
-                            Uri.parse('https://www.youtube.com/@daryan111');
-                        if (!await launchUrl(url,
-                            mode: LaunchMode.externalApplication)) {
-                          debugPrint("کێشەیەک هەیە");
-                        }
-                      },
-                    ),
-                    _divider(pal),
-
-                    ListTile(
-                      leading: const Icon(Icons.facebook,
-                          color: Colors.blue, size: 28),
-                      title: Text("ئێمە لە فەیسبووک",
-                          style: TextStyle(
-                              color: pal.listText,
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold)),
-                      onTap: () async {
-                        final Uri url = Uri.parse(
-                            'https://www.facebook.com/profile.php?id=61590536199169');
-                        if (!await launchUrl(url,
-                            mode: LaunchMode.externalApplication)) {
-                          debugPrint("کێشەیەک هەیە");
-                        }
-                      },
-                    ),
-
-                    // ── دەربارە — ئێستا وەک دیالۆگ ──
-                    ListTile(
-                      leading: Icon(Icons.info_outline,
-                          color: pal.primary, size: 22),
-                      title: Text("دەربارە",
-                          style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: pal.listText)),
-                      trailing: Icon(Icons.arrow_forward_ios,
-                          color: pal.listText.withOpacity(0.4), size: 14),
-                      onTap: () => showDialog(
-                        context: context,
-                        barrierDismissible: true,
-                        builder: (ctx) => Dialog(
-                          backgroundColor: Colors.transparent,
-                          insetPadding: const EdgeInsets.only(
-                            left: 20,
-                            right: 20,
-                            top: 40,
-                            bottom: 40,
-                          ),
-                          child: Container(
-                            constraints: BoxConstraints(
-                              maxHeight: MediaQuery.of(ctx).size.height * 0.85,
-                            ),
-                            decoration: BoxDecoration(
-                              color: pal.drawerBg,
-                              borderRadius: BorderRadius.circular(24),
-                              border: Border.all(
-                                  color: pal.primary.withOpacity(0.3),
-                                  width: 1.5),
-                            ),
-                            padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    GestureDetector(
-                                      onTap: () => Navigator.pop(ctx),
-                                      child: Icon(Icons.close,
-                                          color: pal.listText.withOpacity(0.5),
-                                          size: 20),
-                                    ),
-                                    Text("دەربارە",
-                                        style: TextStyle(
-                                            color: pal.listText,
-                                            fontSize: 15,
-                                            fontWeight: FontWeight.bold)),
-                                    Icon(Icons.info_outline,
-                                        color: pal.primary, size: 24),
-                                  ],
-                                ),
-                                const SizedBox(height: 20),
-                                _buildAboutContent(pal),
-                                const SizedBox(height: 20),
-                                SizedBox(
-                                  width: double.infinity,
-                                  child: ElevatedButton(
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor:
-                                          pal.primary.withOpacity(0.15),
-                                      foregroundColor: pal.primary,
-                                      side: BorderSide(
-                                          color: pal.primary.withOpacity(0.4)),
-                                      shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(14)),
+                      _divider(pal),
+                      ListTile(
+                        leading: Icon(Icons.auto_awesome,
+                            color: pal.primary, size: 22),
+                        title: Text("ناوەکانی خوای گەورە",
+                            style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: pal.listText)),
+                        trailing: Icon(Icons.arrow_forward_ios,
+                            color: pal.listText.withOpacity(0.4), size: 14),
+                        onTap: () => showDialog(
+                            context: context,
+                            builder: (_) => AllahNamesDialog(
+                                  primaryColor: pal.primary,
+                                  dialogBg: pal.drawerBg,
+                                )),
+                      ),
+                      _divider(pal),
+                      ListTile(
+                        leading: Icon(Icons.calendar_month,
+                            color: pal.primary, size: 22),
+                        title: Text("گۆڕینی بەروار و دۆزینەوەی کاتی بانگ",
+                            style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: pal.listText)),
+                        trailing: Icon(Icons.arrow_forward_ios,
+                            color: pal.listText.withOpacity(0.4), size: 14),
+                        onTap: () => showDialog(
+                            context: context,
+                            builder: (_) => DateConverterDialog(
+                                  primaryColor: pal.primary,
+                                  palette: pal,
+                                  dataService: PrayerDataService(),
+                                  timeService: TimeService(),
+                                  currentCity: widget.currentCity,
+                                  dialogBg: pal.drawerBg,
+                                )),
+                      ),
+                      _divider(pal),
+                      if (Platform.isAndroid)
+                        ListTile(
+                          leading: Icon(Icons.notifications_active_outlined,
+                              color: pal.primary, size: 22),
+                          title: Text("مۆڵەتەکانی دەنگى بانگ و قورئان",
+                              style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: pal.listText)),
+                          subtitle: Text("ئەگەر مۆڵەت نەدرابێت",
+                              textAlign: TextAlign.right,
+                              style: TextStyle(
+                                  color: pal.listText.withOpacity(0.5),
+                                  fontSize: 11)),
+                          onTap: () async {
+                            await AppPermissions
+                                .requestNotificationAndBatteryIfMissing();
+                            if (context.mounted) {
+                              showDialog(
+                                context: context,
+                                barrierDismissible: true,
+                                barrierColor: Colors.transparent,
+                                builder: (_) => Align(
+                                  alignment: Alignment.bottomCenter,
+                                  child: Material(
+                                    color: Colors.transparent,
+                                    child: Container(
+                                      margin: const EdgeInsets.only(
+                                          bottom: 30, left: 16, right: 16),
                                       padding: const EdgeInsets.symmetric(
-                                          vertical: 14),
-                                    ),
-                                    onPressed: () => Navigator.pop(ctx),
-                                    child: const Text("داخستن",
+                                          horizontal: 20, vertical: 12),
+                                      decoration: BoxDecoration(
+                                        color: pal.primary.withOpacity(0.9),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: const Text(
+                                        "مۆڵەت دراوە",
                                         style: TextStyle(
-                                            fontSize: 15,
-                                            fontWeight: FontWeight.bold)),
+                                            color: Colors.white, fontSize: 14),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ),
                                   ),
                                 ),
-                              ],
+                              );
+                              // خۆکارانە دادەخرێتەوە لە دوای ٢ چرکە
+                              await Future.delayed(const Duration(seconds: 2));
+                              if (context.mounted) Navigator.of(context).pop();
+                            }
+                          },
+                        ),
+                      if (Platform.isAndroid) _divider(pal),
+
+                      // ── دەربارە — ئێستا وەک دیالۆگ ──
+                      ListTile(
+                        leading: Icon(Icons.info_outline,
+                            color: pal.primary, size: 22),
+                        title: Text("دەربارە",
+                            style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: pal.listText)),
+                        trailing: Icon(Icons.arrow_forward_ios,
+                            color: pal.listText.withOpacity(0.4), size: 14),
+                        onTap: () => showDialog(
+                          context: context,
+                          barrierDismissible: true,
+                          builder: (ctx) => Dialog(
+                            backgroundColor: Colors.transparent,
+                            insetPadding: const EdgeInsets.only(
+                              left: 20,
+                              right: 20,
+                              top: 30,
+                              bottom: 30,
+                            ),
+                            child: Container(
+                              constraints: BoxConstraints(
+                                maxHeight:
+                                    MediaQuery.of(ctx).size.height * 0.85,
+                              ),
+                              decoration: BoxDecoration(
+                                color: pal.drawerBg,
+                                borderRadius: BorderRadius.circular(24),
+                                border: Border.all(
+                                    color: pal.primary.withOpacity(0.3),
+                                    width: 1.5),
+                              ),
+                              padding:
+                                  const EdgeInsets.fromLTRB(20, 20, 20, 20),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      GestureDetector(
+                                        onTap: () => Navigator.pop(ctx),
+                                        child: Icon(Icons.close,
+                                            color:
+                                                pal.listText.withOpacity(0.5),
+                                            size: 20),
+                                      ),
+                                      Text("دەربارە",
+                                          style: TextStyle(
+                                              color: pal.listText,
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.bold)),
+                                      Icon(Icons.info_outline,
+                                          color: pal.primary, size: 24),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 18),
+                                  _buildAboutContent(pal),
+                                  const SizedBox(height: 18),
+                                  SizedBox(
+                                    width: double.infinity,
+                                    child: ElevatedButton(
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor:
+                                            pal.primary.withOpacity(0.15),
+                                        foregroundColor: pal.primary,
+                                        side: BorderSide(
+                                            color:
+                                                pal.primary.withOpacity(0.4)),
+                                        shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(14)),
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 12),
+                                      ),
+                                      onPressed: () => Navigator.pop(ctx),
+                                      child: const Text("داخستن",
+                                          style: TextStyle(
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.bold)),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                    _divider(pal),
-                    ListTile(
-                      leading: Icon(Icons.feedback_outlined,
-                          color: pal.primary, size: 22),
-                      title: Text("پەیوەندی و راوبۆچوون",
-                          style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: pal.listText)),
-                      trailing: Icon(Icons.arrow_forward_ios,
-                          color: pal.listText.withOpacity(0.4), size: 14),
-                      onTap: () => _showFeedbackSheet(context, pal),
-                    ),
-                    SizedBox(
-                        height: MediaQuery.of(context).padding.bottom + 20),
-                  ],
+                      _divider(pal),
+                      ListTile(
+                        leading: Icon(Icons.feedback_outlined,
+                            color: pal.primary, size: 22),
+                        title: Text("پەیوەندی و راوبۆچوون",
+                            style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: pal.listText)),
+                        trailing: Icon(Icons.arrow_forward_ios,
+                            color: pal.listText.withOpacity(0.4), size: 14),
+                        onTap: () => _showFeedbackSheet(context, pal),
+                      ),
+                      SizedBox(
+                          height:
+                              MediaQuery.of(context).viewPadding.bottom + 20),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -618,7 +615,7 @@ class _PrayerDrawerState extends State<PrayerDrawer> {
                 ),
               ),
               const SizedBox(width: 8),
-              Text("تێکست و داتاى لاپەڕەکانى قورئانى پیرۆز",
+              Text("داتاى لاپەڕەکانى قورئانى پیرۆز",
                   style: TextStyle(
                       color: pal.listText.withOpacity(0.7), fontSize: 13)),
             ],
@@ -638,33 +635,71 @@ class _PrayerDrawerState extends State<PrayerDrawer> {
               Icon(Icons.connect_without_contact, color: pal.primary, size: 16),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
           Row(
-            mainAxisAlignment: MainAxisAlignment.end,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              InkWell(
-                onTap: () async {
-                  final Uri url = Uri.parse(
-                      'https://www.facebook.com/profile.php?id=61590536199169');
-                  if (!await launchUrl(url,
-                      mode: LaunchMode.externalApplication)) {
-                    debugPrint("کێشەیەک هەیە");
-                  }
-                },
-                child: const Text(
-                  "بانگ - Bang",
-                  style: TextStyle(
-                      color: Colors.blue,
-                      fontSize: 12,
-                      decoration: TextDecoration.underline),
+              // فەیسبووک
+              Tooltip(
+                message: 'فەیسبووک',
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(20),
+                  onTap: () async {
+                    final Uri url = Uri.parse(
+                        'https://www.facebook.com/profile.php?id=61590536199169');
+                    if (!await launchUrl(url,
+                        mode: LaunchMode.externalApplication)) {
+                      debugPrint("کێشەیەک هەیە");
+                    }
+                  },
+                  child: const Padding(
+                    padding: EdgeInsets.all(6),
+                    child: Icon(Icons.facebook, color: Colors.blue, size: 28),
+                  ),
                 ),
               ),
-              const SizedBox(width: 8),
-              Text(":پەیجی فەیسبووک",
-                  style: TextStyle(
-                      color: pal.listText.withOpacity(0.7), fontSize: 13)),
-              const SizedBox(width: 4),
-              const Icon(Icons.facebook, color: Colors.blue, size: 16),
+              const SizedBox(width: 16),
+              // یوتیوب
+              Tooltip(
+                message: 'یوتیوب',
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(20),
+                  onTap: () async {
+                    final Uri url =
+                        Uri.parse('https://www.youtube.com/@daryan111');
+                    if (!await launchUrl(url,
+                        mode: LaunchMode.externalApplication)) {
+                      debugPrint("کێشەیەک هەیە");
+                    }
+                  },
+                  child: const Padding(
+                    padding: EdgeInsets.all(6),
+                    child:
+                        Icon(Icons.smart_display, color: Colors.red, size: 28),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              // ئینستاگرام
+              Tooltip(
+                message: 'ئینستاگرام',
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(20),
+                  onTap: () async {
+                    final Uri url = Uri.parse(
+                        'https://www.instagram.com/prayer_time_ku/'); // ← لینکەکەت لێرە
+                    if (!await launchUrl(url,
+                        mode: LaunchMode.externalApplication)) {
+                      debugPrint("کێشەیەک هەیە");
+                    }
+                  },
+                  child: const Padding(
+                    padding: EdgeInsets.all(6),
+                    child: FaIcon(FontAwesomeIcons.instagram,
+                        color: Color(0xFFFF7AA6), size: 28),
+                  ),
+                ),
+              ),
             ],
           ),
         ],

@@ -90,6 +90,19 @@ class _QuranScreenState extends State<QuranScreen> {
 
     final prefs = await SharedPreferences.getInstance();
     final savedPage = prefs.getInt('quran_last_page') ?? 1;
+
+    // خاڵ ٥: قاریئی پاشەکەوتکراو بارکە
+    final savedReciterId = prefs.getString('quran_last_reciter');
+    if (savedReciterId != null && savedReciterId != _audio.currentReciterId) {
+      final reciterData = kAllReciters.firstWhere(
+        (r) => r['id'] == savedReciterId,
+        orElse: () => <String, String>{},
+      );
+      if (reciterData.isNotEmpty) {
+        await _audio.switchReciter(savedReciterId, reciterData['file']!);
+      }
+    }
+
     await _loadPage(savedPage);
     if (mounted) {
       setState(() => _isInitialized = true);
@@ -362,13 +375,13 @@ class _QuranScreenState extends State<QuranScreen> {
             final newPage = index + 1;
             _loadPage(newPage).then((_) {
               if (!mounted) return;
-              if (_pageWords.isNotEmpty) {
+              if (_pageWords.isNotEmpty &&
+                  (_audio.isPlaying || _audio.isPaused)) {
+                // خاڵ ٢: دەنگ ببات بۆ ئایەتی یەکەمی لاپەرەی سوایپکراو
                 final firstWord = _pageWords.first;
-                if (_audio.isPlaying || _audio.isPaused) {
-                  _audio.playAyah(firstWord.surah, firstWord.ayah);
-                } else {
-                  setState(() {});
-                }
+                _audio.playAyah(firstWord.surah, firstWord.ayah);
+              } else {
+                setState(() {});
               }
             });
           },
@@ -619,8 +632,8 @@ class _QuranScreenState extends State<QuranScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
             child: Image.asset(
               'assets/images/besmelah1.png',
-              width: constraints.maxWidth * 0.55,
-              height: 40,
+              width: constraints.maxWidth * 0.63,
+              height: 45,
               fit: BoxFit.contain,
             ),
           ),
@@ -656,6 +669,8 @@ class _QuranScreenState extends State<QuranScreen> {
       behavior: HitTestBehavior.opaque,
       onTap: () {
         if (words.isNotEmpty) {
+          // خاڵ ٣: ئەگەر دەنگ هەیە و ئایەتەکە ئیستا چالاکە، پاوس/ریزوم
+          // ئەگەر ئایەتەکە جیاواز بوو، دەست پێ بکە
           _audio.togglePlayPause(words.first.surah, words.first.ayah);
         }
       },
@@ -1290,6 +1305,8 @@ class _QuranScreenState extends State<QuranScreen> {
                         onTap: () {
                           Navigator.pop(ctx);
                           _audio.switchReciter(id, r['file']!);
+                          SharedPreferences.getInstance().then(
+                              (p) => p.setString('quran_last_reciter', id));
                         },
                         child: Padding(
                           padding: const EdgeInsets.symmetric(
@@ -1369,8 +1386,7 @@ class _QuranScreenState extends State<QuranScreen> {
                                 if (progress != null)
                                   GestureDetector(
                                     behavior: HitTestBehavior.opaque,
-                                    onTap: () =>
-                                        _audio.deleteDownloadedReciter(id),
+                                    onTap: () => _audio.cancelDownload(id),
                                     child: const Icon(Icons.close,
                                         color: Colors.white38, size: 18),
                                   )
@@ -1435,7 +1451,3 @@ class _QuranScreenState extends State<QuranScreen> {
     super.dispose();
   }
 }
-
-
-
- 

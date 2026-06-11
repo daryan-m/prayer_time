@@ -32,6 +32,7 @@ dependencies:
   path: ^1.9.0
   just_audio: ^0.9.39
   audio_session: ^0.1.21
+  font_awesome_flutter: ^11.0.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

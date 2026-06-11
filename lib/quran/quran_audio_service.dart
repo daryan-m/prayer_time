@@ -41,6 +41,7 @@ class QuranAudioService extends ChangeNotifier {
   // Download progress
   final Map<String, double> _downloadProgress = {};
   final Set<String> _downloadedReciters = {};
+  final Set<String> _cancelledDownloads = {};
 
   // ─── Getters ───────────────────────────────────────────────────────────────
 
@@ -123,6 +124,7 @@ class QuranAudioService extends ChangeNotifier {
 
     final wasPlaying = _state == AudioState.playing;
     final wasPaused = _state == AudioState.paused;
+    final wasLoading = _state == AudioState.loading;
     final resumeSurah = _currentSurah;
     final resumeAyah = _currentAyah;
 
@@ -144,7 +146,7 @@ class QuranAudioService extends ChangeNotifier {
       _mode = AudioMode.online;
     }
 
-    if (wasPlaying && resumeSurah > 0 && resumeAyah > 0) {
+    if ((wasPlaying || wasLoading) && resumeSurah > 0 && resumeAyah > 0) {
       await playAyah(resumeSurah, resumeAyah);
     } else if (wasPaused && resumeSurah > 0 && resumeAyah > 0) {
       _currentSurah = resumeSurah;
@@ -157,6 +159,12 @@ class QuranAudioService extends ChangeNotifier {
       _currentAyah = 0;
       notifyListeners();
     }
+  }
+
+  void cancelDownload(String reciterId) {
+    _cancelledDownloads.add(reciterId);
+    _downloadProgress.remove(reciterId);
+    notifyListeners();
   }
 
   Future<void> downloadReciter(String reciterId) async {
@@ -185,7 +193,10 @@ class QuranAudioService extends ChangeNotifier {
       if (!await mp3Dir.exists()) await mp3Dir.create(recursive: true);
 
       for (final entry in data.entries) {
-        if (!_downloadProgress.containsKey(reciterId)) return;
+        if (_cancelledDownloads.contains(reciterId)) {
+          _cancelledDownloads.remove(reciterId);
+          return;
+        }
         final ayahData = entry.value as Map<String, dynamic>;
         final surah = ayahData['surah_number'] as int;
         final ayah = ayahData['ayah_number'] as int;
