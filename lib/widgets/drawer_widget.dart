@@ -93,24 +93,32 @@ class _PrayerDrawerState extends State<PrayerDrawer> {
   @override
   Widget build(BuildContext context) {
     final pal = _pal;
+    final topPadding = MediaQuery.of(context).padding.top;
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
+
     return SizedBox(
       width: MediaQuery.of(context).size.width * 0.84,
       child: Drawer(
         backgroundColor: pal.drawerBg,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(52),
-            bottomLeft: Radius.circular(20),
+            topLeft: Radius.circular(35),
+            bottomLeft: Radius.circular(35),
           ),
         ),
-        child: Container(
-          decoration: BoxDecoration(
-            border:
-                Border(left: BorderSide(color: pal.drawerBorder, width: 2.0)),
+        child: Padding(
+          padding: EdgeInsets.only(
+            top: topPadding,
+            bottom: bottomPadding,
           ),
-          child: SafeArea(
-            top: true,
-            bottom: true,
+          child: Container(
+            decoration: BoxDecoration(
+              border: Border(
+                left: BorderSide(color: pal.drawerBorder, width: 2.0),
+                top: BorderSide(color: pal.drawerBorder, width: 2.0),
+                bottom: BorderSide(color: pal.drawerBorder, width: 2.0),
+              ),
+            ),
             child: Column(
               children: [
                 _buildHeader(context, pal),
@@ -200,7 +208,7 @@ class _PrayerDrawerState extends State<PrayerDrawer> {
                             color: pal.primary, size: 22),
                         title: Text("گۆڕینی بەروار و دۆزینەوەی کاتی بانگ",
                             style: TextStyle(
-                                fontSize: 13,
+                                fontSize: 12,
                                 fontWeight: FontWeight.bold,
                                 color: pal.listText)),
                         trailing: Icon(Icons.arrow_forward_ios,
@@ -394,7 +402,7 @@ class _PrayerDrawerState extends State<PrayerDrawer> {
 
   Widget _buildHeader(BuildContext context, ThemePalette pal) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(10, 12, 10, 2),
+      padding: const EdgeInsets.fromLTRB(10, 8, 10, 0),
       child: Row(children: [
         Icon(Icons.mosque, size: 30, color: pal.secondary),
         const SizedBox(width: 12),
@@ -614,7 +622,7 @@ class _PrayerDrawerState extends State<PrayerDrawer> {
                 ),
               ),
               const SizedBox(width: 8),
-              Text("داتاى لاپەڕەکانى قورئانى پیرۆز",
+              Text("داتاى لاپەڕەى قورئانى پیرۆز",
                   style: TextStyle(
                       color: pal.listText.withOpacity(0.7), fontSize: 13)),
             ],
@@ -631,7 +639,7 @@ class _PrayerDrawerState extends State<PrayerDrawer> {
                       fontSize: 13,
                       fontWeight: FontWeight.bold)),
               const SizedBox(width: 8),
-              Icon(Icons.connect_without_contact, color: pal.primary, size: 16),
+              Icon(Icons.chat_bubble_outline, color: pal.primary, size: 16),
             ],
           ),
           const SizedBox(height: 10),
