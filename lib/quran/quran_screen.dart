@@ -58,11 +58,10 @@ class _QuranScreenState extends State<QuranScreen> {
 
   void _onAudioChanged() {
     if (!mounted) return;
-    if (_isSwiping) return; // کاتی سوایپ، listener کار نەکات
+    if (_isSwiping) return;
     final s = _audio.currentSurah;
     final a = _audio.currentAyah;
     if (s <= 0 || a <= 0) return;
-    // بزانە ئایەتەکە لە کام لاپەرەیەدایە
     _db.getPageForAyah(s, a).then((page) {
       if (!mounted) return;
       if (page != _currentPage) {
@@ -71,6 +70,8 @@ class _QuranScreenState extends State<QuranScreen> {
           duration: const Duration(milliseconds: 400),
           curve: Curves.easeInOut,
         );
+      } else {
+        setState(() {});
       }
     });
   }
@@ -1217,11 +1218,17 @@ class _QuranScreenState extends State<QuranScreen> {
                     onTap: () async {
                       Navigator.pop(ctx);
                       final parts = juz.firstVerseKey.split(':');
-                      final page = await _db.getPageForAyah(
-                        int.parse(parts[0]),
-                        int.parse(parts[1]),
-                      );
+                      final surah = int.parse(parts[0]);
+                      final ayah = int.parse(parts[1]);
+                      final page = await _db.getPageForAyah(surah, ayah);
                       _goToPage(page);
+                      if (_audio.isPlaying || _audio.isPaused) {
+                        if (ayah == 1 && surah != 1 && surah != 9) {
+                          await _audio.playFromSurahStart(surah);
+                        } else {
+                          await _audio.playAyah(surah, ayah);
+                        }
+                      }
                     },
                   );
                 },
@@ -1460,7 +1467,7 @@ class _QuranScreenState extends State<QuranScreen> {
                               onTap: () => _audio.downloadReciter(id),
                               child: Container(
                                 padding: const EdgeInsets.symmetric(
-                                    horizontal: 10, vertical: 5),
+                                    horizontal: 12, vertical: 6),
                                 decoration: BoxDecoration(
                                   border: Border.all(
                                       color: const Color(0xFF4A7C59)),
@@ -1470,12 +1477,12 @@ class _QuranScreenState extends State<QuranScreen> {
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     Icon(Icons.download,
-                                        color: Color(0xFF8BC34A), size: 13),
+                                        color: Color(0xFF8BC34A), size: 15),
                                     SizedBox(width: 4),
                                     Text('داگرتن',
                                         style: TextStyle(
                                             color: Color(0xFF8BC34A),
-                                            fontSize: 10)),
+                                            fontSize: 12)),
                                   ],
                                 ),
                               ),
@@ -1503,7 +1510,7 @@ class _QuranScreenState extends State<QuranScreen> {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
-      child: Icon(icon, color: color, size: 22),
+      child: Icon(icon, color: color, size: 26),
     );
   }
 

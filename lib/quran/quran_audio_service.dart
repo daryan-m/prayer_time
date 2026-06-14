@@ -111,9 +111,10 @@ class QuranAudioService extends ChangeNotifier {
   Future<void> _checkDownloadedReciters() async {
     final dir = await _getReciterDir();
     for (final reciter in kAllReciters) {
-      final file = File('${dir.path}/${reciter['file']}');
-      if (await file.exists()) {
-        _downloadedReciters.add(reciter['id']!);
+      final id = reciter['id']!;
+      final doneFile = File('${dir.path}/$id/.done');
+      if (await doneFile.exists()) {
+        _downloadedReciters.add(id);
       }
     }
   }
@@ -267,10 +268,8 @@ class QuranAudioService extends ChangeNotifier {
 
         done++;
         _downloadProgress[reciterId] = done / total;
-        if (done % 20 == 0) {
-          notifyListeners();
-          await prefs.setInt('dl_done_$reciterId', done);
-        }
+        await prefs.setInt('dl_done_$reciterId', done); // ← هەر ئایەتێک
+        if (done % 20 == 0) notifyListeners();
       }
 
       // تەواو بوو
@@ -327,7 +326,12 @@ class QuranAudioService extends ChangeNotifier {
       if (await localFile.exists()) {
         await _player.setFilePath(localFile.path);
       } else {
-        await _player.setUrl(_currentRecitation!.audioUrl);
+        final reciterData = kAllReciters.firstWhere(
+          (r) => r['id'] == _currentReciterId,
+          orElse: () => {},
+        );
+        final slug = reciterData['slug'] ?? '';
+        await _player.setUrl('https://everyayah.com/data/$slug/$fname');
       }
 
       await _player.play();
@@ -367,7 +371,12 @@ class QuranAudioService extends ChangeNotifier {
       if (await localFile.exists()) {
         await _player.setFilePath(localFile.path);
       } else {
-        await _player.setUrl(recitation.audioUrl);
+        final reciterData = kAllReciters.firstWhere(
+          (r) => r['id'] == _currentReciterId,
+          orElse: () => {},
+        );
+        final slug = reciterData['slug'] ?? '';
+        await _player.setUrl('https://everyayah.com/data/$slug/$fname');
       }
       await _player.play();
       _state = AudioState.playing;
