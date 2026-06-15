@@ -213,6 +213,8 @@ class QuranAudioService extends ChangeNotifier {
   Future<void> downloadReciter(String reciterId) async {
     if (_downloadProgress.containsKey(reciterId)) return;
     if (_downloadedReciters.contains(reciterId)) return;
+    _downloadProgress[reciterId] = 0.0;
+    notifyListeners();
 
     final reciterData = kAllReciters.firstWhere(
       (r) => r['id'] == reciterId,
@@ -356,16 +358,12 @@ class QuranAudioService extends ChangeNotifier {
     _state = AudioState.loading;
     notifyListeners();
 
-    final recitation = _db.getAyahRecitation(1, 1);
-    if (recitation == null) {
-      _state = AudioState.error;
-      notifyListeners();
-      return;
-    }
-    _currentRecitation = recitation;
+    // ← ئەمە لابەرە:
+    // final recitation = _db.getAyahRecitation(1, 1);
 
     try {
-      const fname = '001001.mp3';
+      // ← بسم اللەی ئەو سورەتەی دەیخوێنرێت
+      final fname = '${pendingSurah.toString().padLeft(3, '0')}001000.mp3';
       final dir = await _getReciterDir();
       final localFile = File('${dir.path}/$_currentReciterId/$fname');
       if (await localFile.exists()) {
@@ -380,7 +378,7 @@ class QuranAudioService extends ChangeNotifier {
       }
       await _player.play();
       _state = AudioState.playing;
-      _startSegmentTracking();
+      // segment tracking لابەرە چونکە XXX000 segment نییە
       notifyListeners();
     } catch (e) {
       _state = AudioState.error;

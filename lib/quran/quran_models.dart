@@ -266,62 +266,81 @@ class ReciterInfo {
   });
 }
 
-// هەموو قاریئەکان لە assets/quran پێشکەوتوون
-// slug بۆ دابەزاندنی MP3 لە audio-cdn.tarteel.ai
 const List<Map<String, String>> kAllReciters = [
   {
-    'id': '953',
-    'nameArabic': 'مشاري راشد العفاسي',
-    'file': 'ayah-recitation-mishari-rashid-al-afasy-murattal-hafs-953.json',
-    'slug': 'alafasy',
+    'id': '959',
+    'nameArabic': 'محمد صديق المنشاوي (مرتّل)',
+    'file':
+        'ayah-recitation-muhammad-siddiq-al-minshawi-murattal-hafs-959.json',
+    'slug': 'Minshawy_Murattal_128kbps', // ✅ گۆڕاو
   },
   {
     'id': '950',
-    'nameArabic': 'عبد الباسط عبد الصمد',
+    'nameArabic': 'عبد الباسط عبد الصمد (مرتّل)',
     'file': 'ayah-recitation-abdul-basit-abdul-samad-murattal-hafs-950.json',
-    'slug': 'abdulBasitMurattal',
+    'slug': 'Abdul_Basit_Murattal_192kbps', // ✅ گۆڕاو
   },
   {
-    'id': '952',
-    'nameArabic': 'أبو بكر الشاطري',
-    'file': 'ayah-recitation-abu-bakr-al-shatri-murattal-hafs-952.json',
-    'slug': 'abuBakrAlShatri',
-  },
-  {
-    'id': '958',
-    'nameArabic': 'خليفة الطنيجي',
-    'file': 'ayah-recitation-khalifa-al-tunaiji-murattal-hafs-958.json',
-    'slug': 'khalifaAlTunaiji',
-  },
-  {
-    'id': '948',
-    'nameArabic': 'ماهر المعيقلي',
-    'file': 'ayah-recitation-maher-al-mu-aiqly-murattal-hafs-948.json',
-    'slug': 'maherAlMuaiqly',
-  },
-  {
-    'id': '957',
-    'nameArabic': 'محمود خليل الحصري',
-    'file': 'ayah-recitation-mahmoud-khalil-al-husary-murattal-hafs-957.json',
-    'slug': 'husary',
-  },
-  {
-    'id': '959',
-    'nameArabic': 'محمد صديق المنشاوي',
+    'id': '962',
+    'nameArabic': 'محمد صديق المنشاوي (مجوّد)',
     'file':
-        'ayah-recitation-muhammad-siddiq-al-minshawi-murattal-hafs-959.json',
-    'slug': 'minshawyMurattal',
+        'ayah-recitation-muhammad-siddiq-al-minshawi-murattal-hafs-959.json', // هەمان json
+    'slug': 'Minshawy_Mujawwad_192kbps',
+  },
+  {
+    'id': '960',
+    'nameArabic': 'عبد الباسط عبد الصمد (مجوّد)',
+    'file':
+        'ayah-recitation-abdul-basit-abdul-samad-murattal-hafs-950.json', // هەمان json
+    'slug': 'Abdul_Basit_Mujawwad_128kbps',
   },
   {
     'id': '954',
     'nameArabic': 'سعد الغامدي',
     'file': 'ayah-recitation-saad-al-ghamdi-murattal-hafs-954.json',
-    'slug': 'ghamadi',
+    'slug': 'Ghamadi_40kbps', // ✅ گۆڕاو
+  },
+  {
+    'id': '963',
+    'nameArabic': 'أحمد بن علي العجمي',
+    'file':
+        'ayah-recitation-mishari-rashid-al-afasy-murattal-hafs-953.json', // نزیکترین json
+    'slug': 'Ahmed_ibn_Ali_al-Ajamy_128kbps_ketaballah.net',
+  },
+  {
+    'id': '948',
+    'nameArabic': 'ماهر المعيقلي',
+    'file': 'ayah-recitation-maher-al-mu-aiqly-murattal-hafs-948.json',
+    'slug': 'MaherAlMuaiqly128kbps', // ✅ گۆڕاو
+  },
+  {
+    'id': '953',
+    'nameArabic': 'مشاري راشد العفاسي',
+    'file': 'ayah-recitation-mishari-rashid-al-afasy-murattal-hafs-953.json',
+    'slug': 'Alafasy_128kbps', // ✅ گۆڕاو
+  },
+  {
+    'id': '952',
+    'nameArabic': 'أبو بكر الشاطري',
+    'file': 'ayah-recitation-abu-bakr-al-shatri-murattal-hafs-952.json',
+    'slug': 'Abu_Bakr_Ash-Shaatree_128kbps', // ✅ گۆڕاو
+  },
+  {
+    'id': '958',
+    'nameArabic': 'خليفة الطنيجي',
+    'file': 'ayah-recitation-khalifa-al-tunaiji-murattal-hafs-958.json',
+    'slug': 'khalefa_al_tunaiji_64kbps', // ✅ گۆڕاو
+  },
+  {
+    'id': '957',
+    'nameArabic': 'محمود خليل الحصري',
+    'file': 'ayah-recitation-mahmoud-khalil-al-husary-murattal-hafs-957.json',
+    'slug': 'Husary_128kbps', // ✅ گۆڕاو
   },
   {
     'id': '961',
     'nameArabic': 'ياسر الدوسري',
     'file': 'ayah-recitation-yasser-al-dosari-murattal-hafs-961.json',
-    'slug': 'yasserAlDosari',
+    'slug': 'Yasser_Ad-Dussary_128kbps', // ✅ گۆڕاو
   },
 ];
