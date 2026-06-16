@@ -337,12 +337,14 @@ class QuranAudioService extends ChangeNotifier {
     _completionHandled = false;
     _pendingNextSurah = pendingSurah;
     _pendingNextAyah = pendingAyah;
+    _currentSurah = pendingSurah; // ← زیاد بکە
+    _currentAyah = 0;
     _highlightedWordIndex = 0;
     _state = AudioState.loading;
     notifyListeners();
 
     try {
-      final fname = '${pendingSurah.toString().padLeft(3, '0')}001000.mp3';
+      final fname = '${pendingSurah.toString().padLeft(3, '0')}000.mp3';
       final dir = await _getReciterDir();
       final localFile = File('${dir.path}/$_currentReciterId/$fname');
 
@@ -420,8 +422,7 @@ class QuranAudioService extends ChangeNotifier {
   }
 
   Future<void> togglePlayPause(int surah, int ayah) async {
-    final isCurrentAndActive =
-        _currentSurah == surah && _currentAyah == ayah;
+    final isCurrentAndActive = _currentSurah == surah && _currentAyah == ayah;
     if (isCurrentAndActive &&
         (_state == AudioState.playing || _state == AudioState.loading)) {
       await pause();

@@ -261,22 +261,30 @@ class MushafPageLines extends StatelessWidget {
   }
 
   Widget _buildWordLine(List<QuranWord> words, bool centered) {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: () {
-        if (words.isNotEmpty) {
-          audio.togglePlayPause(words.first.surah, words.first.ayah);
+    return LayoutBuilder(
+      builder: (_, constraints) {
+        final isLandscape = constraints.maxWidth > constraints.maxHeight;
+        if (isLandscape) {
+          return FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.center,
+            child: Row(
+              textDirection: TextDirection.rtl,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: words.map((w) => _buildWord(w)).toList(),
+            ),
+          );
         }
+        return SizedBox(
+          width: double.infinity,
+          child: Wrap(
+            textDirection: TextDirection.rtl,
+            alignment: WrapAlignment.center,
+            runAlignment: WrapAlignment.center,
+            children: words.map((w) => _buildWord(w)).toList(),
+          ),
+        );
       },
-      child: SizedBox(
-        width: double.infinity,
-        child: Wrap(
-          textDirection: TextDirection.rtl,
-          alignment: WrapAlignment.center,
-          runAlignment: WrapAlignment.center,
-          children: words.map((w) => _buildWord(w)).toList(),
-        ),
-      ),
     );
   }
 
@@ -284,20 +292,22 @@ class MushafPageLines extends StatelessWidget {
     final isHighlighted =
         audio.isCurrentAyah(word.surah, word.ayah) && audio.hasHighlightedAyah;
 
-    return Container(
-      color: isHighlighted
-          ? const Color(0xFFFFD700).withOpacity(0.35)
-          : null,
-      padding: const EdgeInsets.symmetric(horizontal: 1),
-      child: Text(
-        word.text,
-        style: TextStyle(
-          fontFamily: fontName,
-          fontSize: 18,
-          color: isHighlighted
-              ? const Color(0xFF2D5016)
-              : const Color(0xFF1A1A1A),
-          height: 1.6,
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => audio.togglePlayPause(word.surah, word.ayah),
+      child: Container(
+        color: isHighlighted ? const Color(0xFFFFD700).withOpacity(0.35) : null,
+        padding: const EdgeInsets.symmetric(horizontal: 1),
+        child: Text(
+          word.text,
+          style: TextStyle(
+            fontFamily: fontName,
+            fontSize: 18,
+            color: isHighlighted
+                ? const Color(0xFF2D5016)
+                : const Color(0xFF1A1A1A),
+            height: 1.6,
+          ),
         ),
       ),
     );
@@ -451,15 +461,14 @@ class QuranBottomBar extends StatelessWidget {
             ),
             const SizedBox(width: 8),
             _CenterBarButton(
-              icon: (isPlaying || isLoading) ? Icons.pause : Icons.play_arrow,
+              icon: (isPlaying || isLoading || isPaused) ? Icons.pause : Icons.play_arrow,
               onTap: () {
                 if (isPlaying || isLoading) {
                   audio.pause();
                 } else if (isPaused) {
                   audio.resume();
                 } else if (pageWords.isNotEmpty) {
-                  audio.playAyah(
-                      pageWords.first.surah, pageWords.first.ayah);
+                  audio.playAyah(pageWords.first.surah, pageWords.first.ayah);
                 }
               },
             ),
@@ -490,7 +499,7 @@ class QuranBottomBar extends StatelessWidget {
             width: 60,
             height: 60,
             alignment: Alignment.center,
-            padding: const EdgeInsets.only(bottom: 14),
+            padding: const EdgeInsets.only(bottom: 18),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               gradient: const LinearGradient(
@@ -502,8 +511,7 @@ class QuranBottomBar extends StatelessWidget {
                   Color(0xFFC2E4C2),
                 ],
               ),
-              border:
-                  Border.all(color: const Color(0xFFC2E4C2), width: 1.5),
+              border: Border.all(color: const Color(0xFFC2E4C2), width: 1.5),
             ),
             child: Text(
               toKNum(currentPage),
@@ -521,13 +529,13 @@ class QuranBottomBar extends StatelessWidget {
 
   Widget _buildTopNotch() {
     return Positioned(
-      top: 28,
+      top: 32,
       left: 0,
       right: 0,
       child: Center(
         child: Container(
           width: 56,
-          height: 6,
+          height: 4,
           color: const Color(0xFFFDF6E3),
         ),
       ),

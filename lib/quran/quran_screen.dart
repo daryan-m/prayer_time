@@ -167,8 +167,7 @@ class _QuranScreenState extends State<QuranScreen> {
   bool _isPageFontReady(int page) =>
       page == 1 ? true : _fontReady[page] == true;
 
-  String _fontNameForPage(int page) =>
-      'QCFp${page.toString().padLeft(3, '0')}';
+  String _fontNameForPage(int page) => 'QCFp${page.toString().padLeft(3, '0')}';
 
   Future<void> _downloadFontForPage(int page) async {
     if (page == 1 || _fontReady[page] == true) return;
@@ -190,8 +189,7 @@ class _QuranScreenState extends State<QuranScreen> {
         sink.add(chunk);
         received += chunk.length;
         if (totalBytes > 0 && mounted) {
-          setState(
-              () => _pageDownloadProgress[page] = received / totalBytes);
+          setState(() => _pageDownloadProgress[page] = received / totalBytes);
         }
       }
       await sink.flush();
@@ -417,6 +415,7 @@ class _QuranScreenState extends State<QuranScreen> {
     final firstWord = _pageWords.isNotEmpty ? _pageWords.first : null;
     if (firstWord != null) {
       if (wasPlaying) {
+        _isSwiping = false;
         await _audio.playAyah(firstWord.surah, firstWord.ayah);
       } else {
         _audio.moveToAyah(firstWord.surah, firstWord.ayah);
