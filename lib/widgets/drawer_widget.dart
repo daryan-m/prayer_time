@@ -114,9 +114,9 @@ class _PrayerDrawerState extends State<PrayerDrawer> {
           child: Container(
             decoration: BoxDecoration(
               border: Border(
-                left: BorderSide(color: pal.drawerBorder, width: 2.0),
-                top: BorderSide(color: pal.drawerBorder, width: 2.0),
-                bottom: BorderSide(color: pal.drawerBorder, width: 2.0),
+                left: BorderSide(color: pal.drawerBorder, width: 1.0),
+                top: BorderSide(color: pal.drawerBorder, width: 0.5),
+                bottom: BorderSide(color: pal.drawerBorder, width: 0.5),
               ),
             ),
             child: Column(

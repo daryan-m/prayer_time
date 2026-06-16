@@ -249,7 +249,6 @@ class AyahRecitation {
   String get verseKey => '$surahNumber:$ayahNumber';
 }
 
-// Reciter info model
 class ReciterInfo {
   final String id;
   final String name;
@@ -272,75 +271,74 @@ const List<Map<String, String>> kAllReciters = [
     'nameArabic': 'محمد صديق المنشاوي (مرتّل)',
     'file':
         'ayah-recitation-muhammad-siddiq-al-minshawi-murattal-hafs-959.json',
-    'slug': 'Minshawy_Murattal_128kbps', // ✅ گۆڕاو
+    'slug': 'Minshawy_Murattal_128kbps',
   },
   {
     'id': '950',
     'nameArabic': 'عبد الباسط عبد الصمد (مرتّل)',
     'file': 'ayah-recitation-abdul-basit-abdul-samad-murattal-hafs-950.json',
-    'slug': 'Abdul_Basit_Murattal_192kbps', // ✅ گۆڕاو
+    'slug': 'Abdul_Basit_Murattal_192kbps',
   },
   {
     'id': '962',
     'nameArabic': 'محمد صديق المنشاوي (مجوّد)',
     'file':
-        'ayah-recitation-muhammad-siddiq-al-minshawi-murattal-hafs-959.json', // هەمان json
+        'ayah-recitation-muhammad-siddiq-al-minshawi-murattal-hafs-959.json',
     'slug': 'Minshawy_Mujawwad_192kbps',
   },
   {
     'id': '960',
     'nameArabic': 'عبد الباسط عبد الصمد (مجوّد)',
-    'file':
-        'ayah-recitation-abdul-basit-abdul-samad-murattal-hafs-950.json', // هەمان json
+    'file': 'ayah-recitation-abdul-basit-abdul-samad-murattal-hafs-950.json',
     'slug': 'Abdul_Basit_Mujawwad_128kbps',
   },
   {
     'id': '954',
     'nameArabic': 'سعد الغامدي',
     'file': 'ayah-recitation-saad-al-ghamdi-murattal-hafs-954.json',
-    'slug': 'Ghamadi_40kbps', // ✅ گۆڕاو
+    'slug': 'Ghamadi_40kbps',
   },
   {
     'id': '963',
     'nameArabic': 'أحمد بن علي العجمي',
     'file':
-        'ayah-recitation-mishari-rashid-al-afasy-murattal-hafs-953.json', // نزیکترین json
+        'ayah-recitation-mishari-rashid-al-afasy-murattal-hafs-953.json',
     'slug': 'Ahmed_ibn_Ali_al-Ajamy_128kbps_ketaballah.net',
   },
   {
     'id': '948',
     'nameArabic': 'ماهر المعيقلي',
     'file': 'ayah-recitation-maher-al-mu-aiqly-murattal-hafs-948.json',
-    'slug': 'MaherAlMuaiqly128kbps', // ✅ گۆڕاو
+    'slug': 'MaherAlMuaiqly128kbps',
   },
   {
     'id': '953',
     'nameArabic': 'مشاري راشد العفاسي',
     'file': 'ayah-recitation-mishari-rashid-al-afasy-murattal-hafs-953.json',
-    'slug': 'Alafasy_128kbps', // ✅ گۆڕاو
+    'slug': 'Alafasy_128kbps',
   },
   {
     'id': '952',
     'nameArabic': 'أبو بكر الشاطري',
     'file': 'ayah-recitation-abu-bakr-al-shatri-murattal-hafs-952.json',
-    'slug': 'Abu_Bakr_Ash-Shaatree_128kbps', // ✅ گۆڕاو
+    'slug': 'Abu_Bakr_Ash-Shaatree_128kbps',
   },
   {
     'id': '958',
     'nameArabic': 'خليفة الطنيجي',
     'file': 'ayah-recitation-khalifa-al-tunaiji-murattal-hafs-958.json',
-    'slug': 'khalefa_al_tunaiji_64kbps', // ✅ گۆڕاو
+    'slug': 'khalefa_al_tunaiji_64kbps',
   },
   {
     'id': '957',
     'nameArabic': 'محمود خليل الحصري',
     'file': 'ayah-recitation-mahmoud-khalil-al-husary-murattal-hafs-957.json',
-    'slug': 'Husary_128kbps', // ✅ گۆڕاو
+    'slug': 'Husary_128kbps',
   },
   {
     'id': '961',
     'nameArabic': 'ياسر الدوسري',
     'file': 'ayah-recitation-yasser-al-dosari-murattal-hafs-961.json',
-    'slug': 'Yasser_Ad-Dussary_128kbps', // ✅ گۆڕاو
+    'slug': 'Yasser_Ad-Dussary_128kbps',
   },
 ];

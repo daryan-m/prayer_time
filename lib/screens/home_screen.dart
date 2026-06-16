@@ -860,22 +860,11 @@ class _PrayerHomePageState extends State<PrayerHomePage>
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              ClockWidget(
-                  now: _now, timeService: _timeService, palette: _palette),
-              const SizedBox(height: 30),
-              DatesWidget(
-                timeService: _timeService,
-                now: _now,
-                gregorianDate: prayerTimes.gregorianDate,
-                palette: _palette,
-              ),
-              const SizedBox(height: 30),
-              NextPrayerBar(
-                remainingTime: _getNextRemaining(prayerTimes),
-                nextPrayerName: _getNextPrayerName(prayerTimes),
-                palette: _palette,
-              ),
-            ],
+      Expanded(child: Center(child: ClockWidget(now: _now, timeService: _timeService, palette: _palette))),
+      Expanded(child: Center(child: DatesWidget(timeService: _timeService, now: _now, gregorianDate: prayerTimes.gregorianDate, palette: _palette))),
+      Expanded(child: Center(child: NextPrayerBar(remainingTime: _getNextRemaining(prayerTimes), nextPrayerName: _getNextPrayerName(prayerTimes), palette: _palette))),
+      Expanded(child: Center(child: _buildBottomBar(context))),
+    ],
           ),
         ),
       ],
