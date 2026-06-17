@@ -461,7 +461,7 @@ class QuranBottomBar extends StatelessWidget {
             ),
             const SizedBox(width: 8),
             _CenterBarButton(
-              icon: (isPlaying || isLoading || isPaused) ? Icons.pause : Icons.play_arrow,
+              icon: (isPlaying || isLoading) ? Icons.pause : Icons.play_arrow,
               onTap: () {
                 if (isPlaying || isLoading) {
                   audio.pause();

@@ -95,6 +95,11 @@ class QuranAudioService extends ChangeNotifier {
     });
   }
 
+  void setCurrentAyah(int surah, int ayah) {
+    _currentSurah = surah;
+    _currentAyah = ayah;
+  }
+
   // ─── Download Management ──────────────────────────────────────────────────
 
   Future<void> _checkDownloadedReciters() async {

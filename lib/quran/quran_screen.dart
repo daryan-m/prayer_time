@@ -416,6 +416,7 @@ class _QuranScreenState extends State<QuranScreen> {
     if (firstWord != null) {
       if (wasPlaying) {
         _isSwiping = false;
+        _audio.setCurrentAyah(firstWord.surah, firstWord.ayah);
         await _audio.playAyah(firstWord.surah, firstWord.ayah);
       } else {
         _audio.moveToAyah(firstWord.surah, firstWord.ayah);
