@@ -55,10 +55,41 @@ class QuranPageHeader extends StatelessWidget {
             padding: const EdgeInsets.only(left: 12),
             child: GestureDetector(
               onTap: onBack,
-              child: const Icon(
-                Icons.arrow_back_ios,
-                size: 16,
-                color: Color(0xFF215B33),
+              child: Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Color(0xFFFDF6E3), Color(0xFFC2E4C2)],
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF4A7C59).withOpacity(0.4),
+                      blurRadius: 8,
+                      spreadRadius: 1,
+                      offset: const Offset(2, 3),
+                    ),
+                    const BoxShadow(
+                      color: Colors.white,
+                      blurRadius: 4,
+                      spreadRadius: 0,
+                      offset: Offset(-1, -1),
+                    ),
+                  ],
+                ),
+                child: const Center(
+                  child: Padding(
+                    padding: EdgeInsets.only(left: 4),
+                    child: Icon(
+                      Icons.arrow_back_ios,
+                      size: 16,
+                      color: Color(0xFF215B33),
+                    ),
+                  ),
+                ),
               ),
             ),
           ),
@@ -81,6 +112,8 @@ class QuranPageHeader extends StatelessWidget {
                     style: const TextStyle(
                       fontSize: 11,
                       color: Color(0xFF6AA17A),
+                      fontFamily: 'Notonaskh',
+                      fontWeight: FontWeight.normal,
                     ),
                   ),
                 ],
@@ -91,16 +124,22 @@ class QuranPageHeader extends StatelessWidget {
             width: 60,
             child: Padding(
               padding: const EdgeInsets.only(right: 12),
-              child: Text(
-                juzText,
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: Color(0xFF4A7C59),
-                  fontFamily: 'Notonaskh',
-                  fontWeight: FontWeight.normal,
-                ),
+              child: RichText(
                 textAlign: TextAlign.right,
                 textDirection: TextDirection.rtl,
+                text: TextSpan(
+                  children: [
+                    TextSpan(
+                      text: juzText,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        color: Color(0xFF4A7C59),
+                        fontFamily: 'Notonaskh',
+                        fontWeight: FontWeight.normal,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -109,7 +148,6 @@ class QuranPageHeader extends StatelessWidget {
     );
   }
 }
-
 // ─── Font Loading Placeholder ─────────────────────────────────────────────────
 
 class FontLoadingPage extends StatelessWidget {
@@ -266,7 +304,7 @@ class MushafPageLines extends StatelessWidget {
         final isLandscape = constraints.maxWidth > constraints.maxHeight;
         if (isLandscape) {
           return FittedBox(
-            fit: BoxFit.scaleDown,
+            fit: BoxFit.fitWidth,
             alignment: Alignment.center,
             child: Row(
               textDirection: TextDirection.rtl,
@@ -496,12 +534,12 @@ class QuranBottomBar extends StatelessWidget {
           alignment: Alignment.topCenter,
           heightFactor: 0.5,
           child: Container(
-            width: 60,
-            height: 60,
+            width: 120,
+            height: 50,
             alignment: Alignment.center,
             padding: const EdgeInsets.only(bottom: 18),
             decoration: BoxDecoration(
-              shape: BoxShape.circle,
+              borderRadius: const BorderRadius.all(Radius.elliptical(16, 16)),
               gradient: const LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
@@ -534,7 +572,7 @@ class QuranBottomBar extends StatelessWidget {
       right: 0,
       child: Center(
         child: Container(
-          width: 56,
+          width: 67,
           height: 4,
           color: const Color(0xFFFDF6E3),
         ),

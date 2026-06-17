@@ -114,7 +114,7 @@ class _PrayerDrawerState extends State<PrayerDrawer> {
           child: Container(
             decoration: BoxDecoration(
               border: Border(
-                left: BorderSide(color: pal.drawerBorder, width: 0.5),
+                left: BorderSide(color: pal.drawerBorder, width: 0.3),
                 top: BorderSide(color: pal.drawerBorder, width: 0.1),
                 bottom: BorderSide(color: pal.drawerBorder, width: 0.1),
               ),
@@ -122,7 +122,7 @@ class _PrayerDrawerState extends State<PrayerDrawer> {
             child: Column(
               children: [
                 _buildHeader(context, pal),
-                Divider(color: pal.primary, thickness: 0.5),
+                Divider(color: pal.primary, thickness: 0.4),
                 Expanded(
                   child: ListView(
                     padding: EdgeInsets.zero,

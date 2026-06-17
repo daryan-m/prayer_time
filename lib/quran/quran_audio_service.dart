@@ -31,6 +31,9 @@ class QuranAudioService extends ChangeNotifier {
   int _pendingNextSurah = 0;
   int _pendingNextAyah = 0;
   int _highlightedWordIndex = 0;
+  int _playingPage = 0; // ← زیاد بکە
+  int get playingPage => _playingPage; // ← زیاد بکە
+  void setPlayingPage(int page) => _playingPage = page; // ← زیاد بکە
   bool _completionHandled = false;
 
   String _currentReciterId = '959';
@@ -434,12 +437,12 @@ class QuranAudioService extends ChangeNotifier {
     } else if (isCurrentAndActive && _state == AudioState.paused) {
       await resume();
     } else {
-  if (_needsBasmallah(surah, ayah)) {
-    await _playBasmallahOnly(surah, ayah);
-  } else {
-    await playAyah(surah, ayah);
-  }
-}
+      if (_needsBasmallah(surah, ayah)) {
+        await _playBasmallahOnly(surah, ayah);
+      } else {
+        await playAyah(surah, ayah);
+      }
+    }
   }
 
   /// ئایەتەکە گۆڕبێت بەبێ دەستپێکردنی دەنگ (بۆ کاتی paused)

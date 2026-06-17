@@ -49,7 +49,8 @@ class _QuranSheetContainer extends StatelessWidget {
                 ),
                 GestureDetector(
                   onTap: () => Navigator.pop(context),
-                  child: const Icon(Icons.close, color: Colors.white54, size: 20),
+                  child:
+                      const Icon(Icons.close, color: Colors.white54, size: 20),
                 ),
               ],
             ),
@@ -75,15 +76,16 @@ void showSurahListSheet({
     context: context,
     backgroundColor: Colors.transparent,
     isScrollControlled: true,
-    builder: (ctx) => _QuranSheetContainer(
-      title: 'سورەکان',
-      child: ListView.separated(
-        itemCount: surahs.length,
-        separatorBuilder: (_, __) => Divider(
-          height: 1,
-          color: Colors.white.withOpacity(0.08),
-          indent: 56,
-        ),
+    builder: (ctx) => SafeArea(
+      child: _QuranSheetContainer(
+        title: 'سورەکان',
+        child: ListView.separated(
+          itemCount: surahs.length,
+          separatorBuilder: (_, __) => Divider(
+            height: 1,
+            color: Colors.white.withOpacity(0.08),
+            indent: 56,
+          ),
         itemBuilder: (_, i) {
           final surah = surahs[i];
           final isCurrent = currentSurah?.id == surah.id;
@@ -137,6 +139,7 @@ void showSurahListSheet({
         },
       ),
     ),
+    ),
   );
 }
 
@@ -154,15 +157,16 @@ void showJuzListSheet({
     context: context,
     backgroundColor: Colors.transparent,
     isScrollControlled: true,
-    builder: (ctx) => _QuranSheetContainer(
-      title: 'جزء',
-      child: ListView.separated(
-        itemCount: juzList.length,
-        separatorBuilder: (_, __) => Divider(
-          height: 1,
-          color: Colors.white.withOpacity(0.08),
-          indent: 56,
-        ),
+    builder: (ctx) => SafeArea(
+      child: _QuranSheetContainer(
+        title: 'جزء',
+        child: ListView.separated(
+          itemCount: juzList.length,
+          separatorBuilder: (_, __) => Divider(
+            height: 1,
+            color: Colors.white.withOpacity(0.08),
+            indent: 56,
+          ),
         itemBuilder: (_, i) {
           final juz = juzList[i];
           final isCurrent = currentJuz == juz.juzNumber;
@@ -220,6 +224,7 @@ void showJuzListSheet({
           );
         },
       ),
+    ),
     ),
   );
 }
@@ -279,9 +284,11 @@ void showReciterSheet({
     context: context,
     backgroundColor: Colors.transparent,
     isScrollControlled: true,
-    builder: (ctx) => _QuranSheetContainer(
-      title: 'دەنگەکان',
-      heightFactor: 0.65,
+    useSafeArea: true,
+    builder: (ctx) => SafeArea(
+  child: _QuranSheetContainer(
+    title: 'دەنگەکان',
+    heightFactor: 0.75,
       child: ListenableBuilder(
         listenable: audio,
         builder: (_, __) => ListView.separated(
@@ -303,8 +310,7 @@ void showReciterSheet({
             final pausedPct = audio.pausedProgress[id] ?? 0.0;
 
             return Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               child: Row(
                 children: [
                   // بازنەی هەڵبژاردن
@@ -455,6 +461,7 @@ void showReciterSheet({
           },
         ),
       ),
+    ),
     ),
   );
 }

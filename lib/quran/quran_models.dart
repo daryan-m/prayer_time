@@ -301,8 +301,7 @@ const List<Map<String, String>> kAllReciters = [
   {
     'id': '963',
     'nameArabic': 'أحمد بن علي العجمي',
-    'file':
-        'ayah-recitation-mishari-rashid-al-afasy-murattal-hafs-953.json',
+    'file': 'ayah-recitation-mishari-rashid-al-afasy-murattal-hafs-953.json',
     'slug': 'Ahmed_ibn_Ali_al-Ajamy_128kbps_ketaballah.net',
   },
   {
@@ -318,6 +317,34 @@ const List<Map<String, String>> kAllReciters = [
     'slug': 'Alafasy_128kbps',
   },
   {
+    'id': '976',
+    'nameArabic': 'عبد الرحمن السديس',
+    'file':
+        'ayah-recitation-muhammad-siddiq-al-minshawi-murattal-hafs-959.json',
+    'slug': 'Abdurrahmaan_As-Sudais_192kbps',
+  },
+  {
+    'id': '972',
+    'nameArabic': 'پرهیزگار',
+    'file':
+        'ayah-recitation-muhammad-siddiq-al-minshawi-murattal-hafs-959.json',
+    'slug': 'Parhizgar_48kbps',
+  },
+  {
+    'id': '973',
+    'nameArabic': 'سهل ياسين',
+    'file':
+        'ayah-recitation-muhammad-siddiq-al-minshawi-murattal-hafs-959.json',
+    'slug': 'Sahl_Yassin_128kbps',
+  },
+  {
+    'id': '974',
+    'nameArabic': 'سعود الشريم',
+    'file':
+        'ayah-recitation-muhammad-siddiq-al-minshawi-murattal-hafs-959.json',
+    'slug': 'Saood_ash-Shuraym_128kbps',
+  },
+  {
     'id': '952',
     'nameArabic': 'أبو بكر الشاطري',
     'file': 'ayah-recitation-abu-bakr-al-shatri-murattal-hafs-952.json',
@@ -330,15 +357,36 @@ const List<Map<String, String>> kAllReciters = [
     'slug': 'khalefa_al_tunaiji_64kbps',
   },
   {
+    'id': '961',
+    'nameArabic': 'ياسر الدوسري',
+    'file': 'ayah-recitation-yasser-al-dosari-murattal-hafs-961.json',
+    'slug': 'Yasser_Ad-Dussary_128kbps',
+  },
+  {
+    'id': '970',
+    'nameArabic': 'محمد أيوب',
+    'file':
+        'ayah-recitation-muhammad-siddiq-al-minshawi-murattal-hafs-959.json',
+    'slug': 'Muhammad_Ayyoub_128kbps',
+  },
+  {
     'id': '957',
     'nameArabic': 'محمود خليل الحصري',
     'file': 'ayah-recitation-mahmoud-khalil-al-husary-murattal-hafs-957.json',
     'slug': 'Husary_128kbps',
   },
   {
-    'id': '961',
-    'nameArabic': 'ياسر الدوسري',
-    'file': 'ayah-recitation-yasser-al-dosari-murattal-hafs-961.json',
-    'slug': 'Yasser_Ad-Dussary_128kbps',
+    'id': '971',
+    'nameArabic': 'علي الحذيفي',
+    'file':
+        'ayah-recitation-muhammad-siddiq-al-minshawi-murattal-hafs-959.json',
+    'slug': 'Hudhaify_128kbps',
+  },
+  {
+    'id': '975',
+    'nameArabic': 'أيمن سويد',
+    'file':
+        'ayah-recitation-muhammad-siddiq-al-minshawi-murattal-hafs-959.json',
+    'slug': 'Ayman_Sowaid_64kbps',
   },
 ];
