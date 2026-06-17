@@ -434,8 +434,12 @@ class QuranAudioService extends ChangeNotifier {
     } else if (isCurrentAndActive && _state == AudioState.paused) {
       await resume();
     } else {
-      await playAyah(surah, ayah);
-    }
+  if (_needsBasmallah(surah, ayah)) {
+    await _playBasmallahOnly(surah, ayah);
+  } else {
+    await playAyah(surah, ayah);
+  }
+}
   }
 
   /// ئایەتەکە گۆڕبێت بەبێ دەستپێکردنی دەنگ (بۆ کاتی paused)
