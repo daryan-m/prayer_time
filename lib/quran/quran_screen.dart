@@ -9,6 +9,7 @@ import 'quran_database_helper.dart';
 import 'quran_audio_service.dart';
 import 'quran_page_builder.dart';
 import 'quran_navigation_sheets.dart';
+import 'quran_audio_coordinator.dart';
 
 class QuranScreen extends StatefulWidget {
   const QuranScreen({super.key});
@@ -25,7 +26,7 @@ class _QuranScreenState extends State<QuranScreen> {
 
   bool _isInitialized = false;
   bool _isLoadingPage = false;
-  bool _isSwiping = false;
+  late QuranPageAudioBridge _bridge;
 
   // Font management
   final Map<int, bool> _fontReady = {};
@@ -56,12 +57,11 @@ class _QuranScreenState extends State<QuranScreen> {
   void initState() {
     super.initState();
     _init();
-    _audio.addListener(_onAudioChanged);
   }
 
   @override
   void dispose() {
-    _audio.removeListener(_onAudioChanged);
+    _bridge.dispose();
     _audio.stop();
     _pageController.dispose();
     WakelockPlus.disable();
@@ -73,6 +73,12 @@ class _QuranScreenState extends State<QuranScreen> {
   Future<void> _init() async {
     await _db.initAll();
     await _audio.init();
+    _bridge = QuranPageAudioBridge(
+      audio: _audio,
+      db: _db,
+      pageController: _pageController,
+      setState: setState,
+    );
     _allSurahs = await _db.getAllSurahs();
 
     final appDir = await getApplicationDocumentsDirectory();
@@ -112,27 +118,6 @@ class _QuranScreenState extends State<QuranScreen> {
 
     if (!_allFontsDone) _runFontQueue();
     WakelockPlus.enable();
-  }
-
-  // ─── Audio Listener ───────────────────────────────────────────────────────
-
-  void _onAudioChanged() {
-    if (!mounted || _isSwiping) return;
-    final s = _audio.currentSurah;
-    final a = _audio.currentAyah;
-    if (s <= 0 || a <= 0) return;
-    _db.getPageForAyah(s, a).then((page) {
-      if (!mounted) return;
-      if (page != _currentPage) {
-        _pageController.animateToPage(
-          page - 1,
-          duration: const Duration(milliseconds: 400),
-          curve: Curves.easeInOut,
-        );
-      } else {
-        setState(() {});
-      }
-    });
   }
 
   // ─── Font Management ──────────────────────────────────────────────────────
@@ -402,41 +387,11 @@ class _QuranScreenState extends State<QuranScreen> {
   }
 
   Future<void> _onPageChanged(int index) async {
-    final newPage = index + 1;
-    final wasPlaying = _audio.isPlaying;
-    final wasPaused = _audio.isPaused;
-
-    _isSwiping = true;
-    if (wasPlaying) await _audio.pause();
-
-    await _loadPage(newPage);
-    if (!mounted) return;
-
-    final firstWord = _pageWords.isNotEmpty ? _pageWords.first : null;
-    if (firstWord != null) {
-      if (wasPlaying) {
-        _isSwiping = false;
-        if (_audio.playingPage != newPage) {
-          _audio.setPlayingPage(newPage);
-          _audio.setCurrentAyah(firstWord.surah, firstWord.ayah);
-          if (firstWord.ayah == 1 &&
-              firstWord.surah != 1 &&
-              firstWord.surah != 9) {
-            await _audio.playFromSurahStart(firstWord.surah);
-          } else {
-            await _audio.playAyah(firstWord.surah, firstWord.ayah);
-          }
-        }
-      } else {
-        _audio.moveToAyah(firstWord.surah, firstWord.ayah);
-        if (!wasPlaying && !wasPaused) setState(() {});
-      }
-    } else {
-      setState(() {});
-    }
-
-    _isSwiping = false;
-  }
+  final newPage = index + 1;
+  await _loadPage(newPage);
+  if (!mounted) return;
+  await _bridge.handlePageChanged(newPage, _pageWords);
+}
 
   Widget _buildMushafPage(int pageNumber) {
     if (pageNumber != _currentPage) {
@@ -483,27 +438,25 @@ class _QuranScreenState extends State<QuranScreen> {
 
   // ─── Navigation Delegates ─────────────────────────────────────────────────
 
-  void _showSurahList() => showSurahListSheet(
-        context: context,
-        surahs: _allSurahs,
-        currentSurah: _currentSurah,
-        db: _db,
-        audio: _audio,
-        goToPage: _goToPage,
-      );
+ void _showSurahList() => showSurahListSheet(
+  context: context,
+  surahs: _allSurahs,
+  currentSurah: _currentSurah,
+  db: _db,
+  onSurahSelected: (surahId, page) => _bridge.handleSurahSelected(surahId, page),
+);
 
   void _showJuzList() async {
-    final juzList = await _db.getAllJuz();
-    if (!mounted) return;
-    showJuzListSheet(
-      context: context,
-      juzList: juzList,
-      currentJuz: _currentJuz,
-      db: _db,
-      audio: _audio,
-      goToPage: _goToPage,
-    );
-  }
+  final juzList = await _db.getAllJuz();
+  if (!mounted) return;
+  showJuzListSheet(
+    context: context,
+    juzList: juzList,
+    currentJuz: _currentJuz,
+    db: _db,
+    onJuzSelected: (surah, ayah, page) => _bridge.handleJuzSelected(surah, ayah, page),
+  );
+}
 
   void _showPageJump() => showPageJumpDialog(
         context: context,
