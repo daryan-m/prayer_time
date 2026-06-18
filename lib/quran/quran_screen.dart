@@ -285,11 +285,6 @@ class _QuranScreenState extends State<QuranScreen> {
     _prefetchFonts(_currentPage);
   }
 
-  void _goToPage(int page) {
-    if (page < 1 || page > 604) return;
-    _pageController.jumpToPage(page - 1);
-  }
-
   // ─── Build ────────────────────────────────────────────────────────────────
 
   @override
@@ -387,11 +382,11 @@ class _QuranScreenState extends State<QuranScreen> {
   }
 
   Future<void> _onPageChanged(int index) async {
-  final newPage = index + 1;
-  await _loadPage(newPage);
-  if (!mounted) return;
-  await _bridge.handlePageChanged(newPage, _pageWords);
-}
+    final newPage = index + 1;
+    await _loadPage(newPage);
+    if (!mounted) return;
+    await _bridge.handlePageChanged(newPage, _pageWords);
+  }
 
   Widget _buildMushafPage(int pageNumber) {
     if (pageNumber != _currentPage) {
@@ -438,30 +433,37 @@ class _QuranScreenState extends State<QuranScreen> {
 
   // ─── Navigation Delegates ─────────────────────────────────────────────────
 
- void _showSurahList() => showSurahListSheet(
-  context: context,
-  surahs: _allSurahs,
-  currentSurah: _currentSurah,
-  db: _db,
-  onSurahSelected: (surahId, page) => _bridge.handleSurahSelected(surahId, page),
-);
+  void _showSurahList() => showSurahListSheet(
+        context: context,
+        surahs: _allSurahs,
+        currentSurah: _currentSurah,
+        db: _db,
+        onSurahSelected: (surahId, page) =>
+            _bridge.handleSurahSelected(surahId, page),
+      );
 
   void _showJuzList() async {
-  final juzList = await _db.getAllJuz();
-  if (!mounted) return;
-  showJuzListSheet(
-    context: context,
-    juzList: juzList,
-    currentJuz: _currentJuz,
-    db: _db,
-    onJuzSelected: (surah, ayah, page) => _bridge.handleJuzSelected(surah, ayah, page),
-  );
-}
+    final juzList = await _db.getAllJuz();
+    if (!mounted) return;
+    showJuzListSheet(
+      context: context,
+      juzList: juzList,
+      currentJuz: _currentJuz,
+      db: _db,
+      onJuzSelected: (surah, ayah, page) =>
+          _bridge.handleJuzSelected(surah, ayah, page),
+    );
+  }
 
   void _showPageJump() => showPageJumpDialog(
         context: context,
         currentPage: _currentPage,
-        goToPage: _goToPage,
+        goToPage: (page) async {
+          _pageController.jumpToPage(page - 1);
+          await _loadPage(page);
+          if (!mounted) return;
+          await _bridge.handlePageJump(page, _pageWords);
+        },
       );
 
   void _showReciterSheet() => showReciterSheet(

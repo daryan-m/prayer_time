@@ -113,8 +113,7 @@ class QuranPageAudioBridge {
 
   // ── ٢. هاندەڵ کردنی گۆڕینی لاپەڕە ───────────────────────────────────────────
   // ئەمە لە _onPageChanged() دوای _loadPage() بانگهێشت بکە
-  Future<void> handlePageChanged(
-      int newPage, List<QuranWord> pageWords) async {
+  Future<void> handlePageChanged(int newPage, List<QuranWord> pageWords) async {
     _currentPage = newPage;
 
     // ئۆتۆماتیک بوو (دەنگ بوو لاپەڕەی گۆڕی) → تەنها ریبیلد
@@ -125,8 +124,57 @@ class QuranPageAudioBridge {
     }
 
     // بەکارهێنەر خۆی سوایپی کرد
-    final wasPlaying =
-        _audio.isPlaying || _audio.state == AudioState.loading;
+    final wasPlaying = _audio.isPlaying || _audio.state == AudioState.loading;
+    final wasPaused = _audio.isPaused;
+
+    if (wasPlaying) await _audio.pause();
+
+    final firstWord = pageWords.isNotEmpty ? pageWords.first : null;
+    if (firstWord == null) {
+      _setState(() {});
+      return;
+    }
+
+    if (wasPlaying) {
+      _currentPage = newPage;
+      _audio.setPlayingPage(newPage);
+      _audio.setCurrentAyah(firstWord.surah, firstWord.ayah);
+      await _playWithBasmallahCheck(firstWord.surah, firstWord.ayah);
+    } else if (wasPaused) {
+      _audio.moveToAyah(firstWord.surah, firstWord.ayah);
+    } else {
+      _setState(() {});
+    }
+  }
+
+  // ── ٣. هاندەڵ کردنی هەڵبژاردنی سورە ─────────────────────────────────────────
+  Future<void> handleSurahSelected(int surahId, int page) async {
+    final wasPlaying = _audio.isPlaying || _audio.state == AudioState.loading;
+    _isAudioNavigation = true;
+    _currentPage = page;
+    _pageController.jumpToPage(page - 1);
+
+    if (wasPlaying || _audio.isPaused) {
+      await _audio.playFromSurahStart(surahId);
+    }
+  }
+
+  // ── ٤. هاندەڵ کردنی هەڵبژاردنی جوز ──────────────────────────────────────────
+  Future<void> handleJuzSelected(int surah, int ayah, int page) async {
+    final wasPlaying = _audio.isPlaying || _audio.state == AudioState.loading;
+    _isAudioNavigation = true;
+    _currentPage = page;
+    _pageController.jumpToPage(page - 1);
+
+    if (wasPlaying || _audio.isPaused) {
+      _audio.setCurrentAyah(surah, ayah);
+      await _playWithBasmallahCheck(surah, ayah);
+    }
+  }
+
+  Future<void> handlePageJump(int newPage, List<QuranWord> pageWords) async {
+    _currentPage = newPage;
+    final wasPlaying = _audio.isPlaying || _audio.state == AudioState.loading;
     final wasPaused = _audio.isPaused;
 
     if (wasPlaying) await _audio.pause();
@@ -145,33 +193,6 @@ class QuranPageAudioBridge {
       _audio.moveToAyah(firstWord.surah, firstWord.ayah);
     } else {
       _setState(() {});
-    }
-  }
-
-  // ── ٣. هاندەڵ کردنی هەڵبژاردنی سورە ─────────────────────────────────────────
-  Future<void> handleSurahSelected(int surahId, int page) async {
-    final wasPlaying =
-        _audio.isPlaying || _audio.state == AudioState.loading;
-    _isAudioNavigation = true;
-    _currentPage = page;
-    _pageController.jumpToPage(page - 1);
-
-    if (wasPlaying || _audio.isPaused) {
-      await _audio.playFromSurahStart(surahId);
-    }
-  }
-
-  // ── ٤. هاندەڵ کردنی هەڵبژاردنی جوز ──────────────────────────────────────────
-  Future<void> handleJuzSelected(int surah, int ayah, int page) async {
-    final wasPlaying =
-        _audio.isPlaying || _audio.state == AudioState.loading;
-    _isAudioNavigation = true;
-    _currentPage = page;
-    _pageController.jumpToPage(page - 1);
-
-    if (wasPlaying || _audio.isPaused) {
-      _audio.setCurrentAyah(surah, ayah);
-      await _playWithBasmallahCheck(surah, ayah);
     }
   }
 

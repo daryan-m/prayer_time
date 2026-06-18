@@ -56,8 +56,8 @@ class QuranPageHeader extends StatelessWidget {
             child: GestureDetector(
               onTap: onBack,
               child: Container(
-                width: 36,
-                height: 36,
+                width: 32,
+                height: 32,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   gradient: const LinearGradient(
@@ -110,7 +110,7 @@ class QuranPageHeader extends StatelessWidget {
                   TextSpan(
                     text: ' ($placeText)',
                     style: const TextStyle(
-                      fontSize: 11,
+                      fontSize: 12,
                       color: Color(0xFF6AA17A),
                       fontFamily: 'Notonaskh',
                       fontWeight: FontWeight.normal,
@@ -334,7 +334,7 @@ class MushafPageLines extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       onTap: () => audio.togglePlayPause(word.surah, word.ayah),
       child: Container(
-        color: isHighlighted ? const Color(0xFFFFD700).withOpacity(0.35) : null,
+        color: isHighlighted ? const Color(0xFFC2E4C2).withOpacity(0.35) : null,
         padding: const EdgeInsets.symmetric(horizontal: 1),
         child: Text(
           word.text,
