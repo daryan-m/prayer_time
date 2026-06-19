@@ -67,8 +67,8 @@ class QuranPageAudioBridge {
   final PageController _pageController;
   final void Function(VoidCallback) _setState;
 
-  // true کاتێک دەنگ بوو لاپەڕەی گۆڕی (نەک بەکارهێنەر)
   bool _isAudioNavigation = false;
+  bool _isSwipeHandling = false; // ← زیاد بکە
   int _currentPage = 1;
 
   QuranPageAudioBridge({
@@ -96,19 +96,29 @@ class QuranPageAudioBridge {
       return;
     }
     _db.getPageForAyah(s, a).then((page) {
+      if (_isSwipeHandling) {
+        _setState(() {});
+        return;
+      }
       if (page != _currentPage) {
-        // دەنگ بوو کە لاپەڕەی گۆڕی
-        // فلاگ دادەنێین تا _onPageChanged بزانێت دەنگ دەستنەکەوێت
-        _isAudioNavigation = true;
-        _pageController.animateToPage(
-          page - 1,
-          duration: const Duration(milliseconds: 400),
-          curve: Curves.easeInOut,
-        );
+        if (_audio.isPlaying || _audio.state == AudioState.loading) {
+          _isAudioNavigation = true;
+          _pageController.animateToPage(
+            page - 1,
+            duration: const Duration(milliseconds: 400),
+            curve: Curves.easeInOut,
+          );
+        } else {
+          _setState(() {});
+        }
       } else {
         _setState(() {});
       }
     });
+  }
+
+  void beginSwipe() {
+    _isSwipeHandling = true;
   }
 
   // ── ٢. هاندەڵ کردنی گۆڕینی لاپەڕە ───────────────────────────────────────────
@@ -127,24 +137,28 @@ class QuranPageAudioBridge {
     final wasPlaying = _audio.isPlaying || _audio.state == AudioState.loading;
     final wasPaused = _audio.isPaused;
 
+    _isSwipeHandling = true; // ← پێش pause()
     if (wasPlaying) await _audio.pause();
 
     final firstWord = pageWords.isNotEmpty ? pageWords.first : null;
     if (firstWord == null) {
+      _isSwipeHandling = false;
       _setState(() {});
       return;
     }
 
     if (wasPlaying) {
-      _currentPage = newPage;
       _audio.setPlayingPage(newPage);
       _audio.setCurrentAyah(firstWord.surah, firstWord.ayah);
+      await Future.delayed(const Duration(milliseconds: 300));
       await _playWithBasmallahCheck(firstWord.surah, firstWord.ayah);
     } else if (wasPaused) {
       _audio.moveToAyah(firstWord.surah, firstWord.ayah);
     } else {
       _setState(() {});
     }
+
+    _isSwipeHandling = false; // ← دوای تەواو بوون
   }
 
   // ── ٣. هاندەڵ کردنی هەڵبژاردنی سورە ─────────────────────────────────────────
@@ -177,10 +191,12 @@ class QuranPageAudioBridge {
     final wasPlaying = _audio.isPlaying || _audio.state == AudioState.loading;
     final wasPaused = _audio.isPaused;
 
+    _isSwipeHandling = true;
     if (wasPlaying) await _audio.pause();
 
     final firstWord = pageWords.isNotEmpty ? pageWords.first : null;
     if (firstWord == null) {
+      _isSwipeHandling = false;
       _setState(() {});
       return;
     }
@@ -194,6 +210,7 @@ class QuranPageAudioBridge {
     } else {
       _setState(() {});
     }
+    _isSwipeHandling = false;
   }
 
   // ── یارمەتیدەر: بسمەڵە چەک ───────────────────────────────────────────────────

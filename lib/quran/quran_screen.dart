@@ -383,6 +383,7 @@ class _QuranScreenState extends State<QuranScreen> {
 
   Future<void> _onPageChanged(int index) async {
     final newPage = index + 1;
+    _bridge.beginSwipe();
     await _loadPage(newPage);
     if (!mounted) return;
     await _bridge.handlePageChanged(newPage, _pageWords);

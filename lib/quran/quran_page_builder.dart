@@ -48,7 +48,7 @@ class QuranPageHeader extends StatelessWidget {
         ),
         border: Border.all(color: const Color(0xFFC2E4C2), width: 1.5),
       ),
-      padding: const EdgeInsets.only(left: 4, right: 4, bottom: 4, top: 6),
+      padding: const EdgeInsets.only(left: 4, right: 4, bottom: 4, top: 1),
       child: Row(
         children: [
           Padding(
@@ -303,13 +303,18 @@ class MushafPageLines extends StatelessWidget {
       builder: (_, constraints) {
         final isLandscape = constraints.maxWidth > constraints.maxHeight;
         if (isLandscape) {
-          return FittedBox(
-            fit: BoxFit.fitWidth,
-            alignment: Alignment.center,
-            child: Row(
-              textDirection: TextDirection.rtl,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: words.map((w) => _buildWord(w)).toList(),
+          return LayoutBuilder(
+            builder: (_, c) => SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              physics: const NeverScrollableScrollPhysics(),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minWidth: c.maxWidth),
+                child: Row(
+                  textDirection: TextDirection.rtl,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: words.map((w) => _buildWord(w)).toList(),
+                ),
+              ),
             ),
           );
         }
