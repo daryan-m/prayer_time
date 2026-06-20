@@ -367,9 +367,10 @@ class QuranAudioService extends ChangeNotifier {
       _state = AudioState.playing;
       notifyListeners();
     } catch (e) {
-      _state = AudioState.error;
-      notifyListeners();
       debugPrint('Basmallah play error: $e');
+      _pendingNextSurah = 0;
+      _pendingNextAyah = 0;
+      await playAyah(pendingSurah, pendingAyah);
     }
   }
 

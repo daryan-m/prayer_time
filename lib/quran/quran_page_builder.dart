@@ -20,14 +20,12 @@ String toKNum(int n) {
 // ─── Page Header ─────────────────────────────────────────────────────────────
 
 class QuranPageHeader extends StatelessWidget {
-  final int pageNumber;
   final int juzNumber;
   final SurahInfo? surahInfo;
   final VoidCallback onBack;
 
   const QuranPageHeader({
     super.key,
-    required this.pageNumber,
     required this.juzNumber,
     required this.surahInfo,
     required this.onBack,
@@ -204,35 +202,23 @@ class MushafPageLines extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final isLandscape = constraints.maxWidth > constraints.maxHeight;
-        final children = lines.map((l) => _buildLine(l)).toList();
+    final children = lines.map((l) => _buildLine(l)).toList();
 
-        return Directionality(
-          textDirection: TextDirection.rtl,
-          child: Padding(
-            padding: const EdgeInsets.only(
-              left: 16,
-              right: 16,
-              top: 0,
-              bottom: 76,
-            ),
-            child: isLandscape
-                ? SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: children,
-                    ),
-                  )
-                : Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: children,
-                  ),
-          ),
-        );
-      },
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Padding(
+        padding: const EdgeInsets.only(
+          left: 16,
+          right: 16,
+          top: 0,
+          bottom: 76,
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: children,
+        ),
+      ),
     );
   }
 
@@ -299,35 +285,14 @@ class MushafPageLines extends StatelessWidget {
   }
 
   Widget _buildWordLine(List<QuranWord> words, bool centered) {
-    return LayoutBuilder(
-      builder: (_, constraints) {
-        final isLandscape = constraints.maxWidth > constraints.maxHeight;
-        if (isLandscape) {
-          return LayoutBuilder(
-            builder: (_, c) => SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              physics: const NeverScrollableScrollPhysics(),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(minWidth: c.maxWidth),
-                child: Row(
-                  textDirection: TextDirection.rtl,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: words.map((w) => _buildWord(w)).toList(),
-                ),
-              ),
-            ),
-          );
-        }
-        return SizedBox(
-          width: double.infinity,
-          child: Wrap(
-            textDirection: TextDirection.rtl,
-            alignment: WrapAlignment.center,
-            runAlignment: WrapAlignment.center,
-            children: words.map((w) => _buildWord(w)).toList(),
-          ),
-        );
-      },
+    return SizedBox(
+      width: double.infinity,
+      child: Wrap(
+        textDirection: TextDirection.rtl,
+        alignment: WrapAlignment.center,
+        runAlignment: WrapAlignment.center,
+        children: words.map((w) => _buildWord(w)).toList(),
+      ),
     );
   }
 

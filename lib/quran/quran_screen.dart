@@ -409,7 +409,6 @@ class _QuranScreenState extends State<QuranScreen> {
       child: Column(
         children: [
           QuranPageHeader(
-            pageNumber: pageNumber,
             juzNumber: _currentJuz,
             surahInfo: _currentSurah,
             onBack: () => Navigator.of(context).maybePop(),
