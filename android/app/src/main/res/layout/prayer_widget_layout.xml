@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@drawable/widget_bg"
+    android:padding="4dp">
+
+    <!-- قەوسی سەرەوە — بانگی داهاتوو -->
+    <LinearLayout
+        android:id="@+id/arch_section"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:background="@drawable/widget_arch_bg"
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp">
+
+        <TextView
+            android:id="@+id/lbl_next"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="بانگی داهاتوو"
+            android:textColor="#99FFFFFF"
+            android:textSize="9sp"
+            android:letterSpacing="0.1" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="2dp">
+
+            <TextView
+                android:id="@+id/txt_next_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="نیوەڕۆ"
+                android:textColor="#FFD700"
+                android:textSize="17sp"
+                android:textStyle="bold"
+                android:layout_marginEnd="8dp" />
+
+            <TextView
+                android:id="@+id/txt_next_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="١٢:٣٠"
+                android:textColor="#FFFFFF"
+                android:textSize="20sp" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/txt_remaining"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="● ٢:٣٠:٠٠ ماوە"
+            android:textColor="#FFD700"
+            android:textSize="10sp"
+            android:layout_marginTop="2dp" />
+    </LinearLayout>
+
+    <!-- ناوەڕاست — سێ ستون -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="4dp">
+
+        <!-- لای ڕاست — ئایکۆنەکان -->
+        <LinearLayout
+            android:id="@+id/icon_panel"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:background="@drawable/widget_card_bg"
+            android:layout_marginEnd="3dp">
+
+            <TextView
+                android:id="@+id/btn_quran"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="📖 قورئان"
+                android:textColor="#FFFFFF"
+                android:textSize="9sp"
+                android:gravity="center"
+                android:padding="7dp"
+                android:clickable="true" />
+
+            <View android:layout_width="match_parent" android:layout_height="0.5dp"
+                android:background="#33FFFFFF" />
+
+            <TextView
+                android:id="@+id/btn_tasbih"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="📿 تەسبیح"
+                android:textColor="#FFFFFF"
+                android:textSize="9sp"
+                android:gravity="center"
+                android:padding="7dp"
+                android:clickable="true" />
+
+            <View android:layout_width="match_parent" android:layout_height="0.5dp"
+                android:background="#33FFFFFF" />
+
+            <TextView
+                android:id="@+id/btn_allah"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="✨ ناوەکان"
+                android:textColor="#FFFFFF"
+                android:textSize="9sp"
+                android:gravity="center"
+                android:padding="7dp"
+                android:clickable="true" />
+
+            <View android:layout_width="match_parent" android:layout_height="0.5dp"
+                android:background="#33FFFFFF" />
+
+            <TextView
+                android:id="@+id/btn_settings"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="⚙️ ڕێکخستن"
+                android:textColor="#FFFFFF"
+                android:textSize="9sp"
+                android:gravity="center"
+                android:padding="7dp"
+                android:clickable="true" />
+        </LinearLayout>
+
+        <!-- ناوەڕاست — کاتی بانگەکان -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="2"
+            android:orientation="vertical"
+            android:background="@drawable/widget_card_bg"
+            android:layout_marginEnd="3dp">
+
+            <TextView android:id="@+id/p0"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="بەیانی — ٠٣:٤٢" android:textColor="#CCFFFFFF"
+                android:textSize="9sp" android:gravity="center"
+                android:padding="5dp" android:gravity="end|center_vertical"
+                android:paddingEnd="6dp" android:paddingStart="6dp" />
+            <View android:layout_width="match_parent" android:layout_height="0.5dp" android:background="#22FFFFFF" />
+
+            <TextView android:id="@+id/p1"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="خۆرهەڵاتن — ٠٥:١٠" android:textColor="#88FFD700"
+                android:textSize="9sp" android:gravity="end|center_vertical"
+                android:padding="5dp" android:paddingEnd="6dp" android:paddingStart="6dp" />
+            <View android:layout_width="match_parent" android:layout_height="0.5dp" android:background="#22FFFFFF" />
+
+            <TextView android:id="@+id/p2"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="نیوەڕۆ — ١٢:٣٠" android:textColor="#CCFFFFFF"
+                android:textSize="9sp" android:gravity="end|center_vertical"
+                android:padding="5dp" android:paddingEnd="6dp" android:paddingStart="6dp" />
+            <View android:layout_width="match_parent" android:layout_height="0.5dp" android:background="#22FFFFFF" />
+
+            <TextView android:id="@+id/p3"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="عەسر — ٠٤:٠٥" android:textColor="#CCFFFFFF"
+                android:textSize="9sp" android:gravity="end|center_vertical"
+                android:padding="5dp" android:paddingEnd="6dp" android:paddingStart="6dp" />
+            <View android:layout_width="match_parent" android:layout_height="0.5dp" android:background="#22FFFFFF" />
+
+            <TextView android:id="@+id/p4"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="ئێوارە — ٠٧:٢٢" android:textColor="#CCFFFFFF"
+                android:textSize="9sp" android:gravity="end|center_vertical"
+                android:padding="5dp" android:paddingEnd="6dp" android:paddingStart="6dp" />
+            <View android:layout_width="match_parent" android:layout_height="0.5dp" android:background="#22FFFFFF" />
+
+            <TextView android:id="@+id/p5"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="خەوتنان — ٠٩:١٠" android:textColor="#CCFFFFFF"
+                android:textSize="9sp" android:gravity="end|center_vertical"
+                android:padding="5dp" android:paddingEnd="6dp" android:paddingStart="6dp" />
+        </LinearLayout>
+
+        <!-- لای چەپ — بەروارەکان -->
+        <LinearLayout
+            android:id="@+id/date_panel"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:background="@drawable/widget_card_bg">
+
+            <TextView android:id="@+id/txt_hijri"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="هـ\n١٥ ذو الحجة ١٤٤٦"
+                android:textColor="#FFD700" android:textSize="8sp"
+                android:gravity="center" android:padding="6dp" android:lineSpacingMultiplier="1.3" />
+
+            <View android:layout_width="match_parent" android:layout_height="0.5dp" android:background="#33FFFFFF" />
+
+            <TextView android:id="@+id/txt_gregorian"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="م\n٢٠٢٥/٠٦/١٣"
+                android:textColor="#64B5F6" android:textSize="8sp"
+                android:gravity="center" android:padding="6dp" android:lineSpacingMultiplier="1.3" />
+
+            <View android:layout_width="match_parent" android:layout_height="0.5dp" android:background="#33FFFFFF" />
+
+            <TextView android:id="@+id/txt_kurdish"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="ک\n٢٣ گەلاوێژ"
+                android:textColor="#81C784" android:textSize="8sp"
+                android:gravity="center" android:padding="6dp" android:lineSpacingMultiplier="1.3" />
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>

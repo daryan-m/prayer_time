@@ -33,6 +33,7 @@ dependencies:
   just_audio: ^0.9.39
   audio_session: ^0.1.21
   font_awesome_flutter: ^11.0.0
+  home_widget: ^0.9.2+1
 dev_dependencies:
   flutter_test:
     sdk: flutter

@@ -1,3 +1,4 @@
+import 'package:bang/services/home_widget_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:async';
@@ -20,6 +21,7 @@ import '../utils/app_permissions.dart';
 import '../utils/constants.dart';
 import '../main.dart';
 import 'package:bang/quran/quran_screen.dart';
+import 'package:home_widget/home_widget.dart';
 
 // ==================== HOME SCREEN ====================
 
@@ -34,6 +36,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
     with TickerProviderStateMixin {
   final TimeService _timeService = TimeService();
   final PrayerDataService _prayerDataService = PrayerDataService();
+  final HomeWidgetService _homeWidgetService = HomeWidgetService();
   final AudioPlayer _athanPlayer = AudioPlayer();
 
   static const _athanChannel = MethodChannel('com.daryan.prayer/athan');
@@ -94,6 +97,23 @@ class _PrayerHomePageState extends State<PrayerHomePage>
             _prayerDataService.getPrayerTimes(currentCity, _now);
       });
     }
+
+    final pt = await _prayerTimesFuture;
+
+    // ⬇️ ئەمە لێرە دابنێ ⬇️
+    todayTimes = [
+      DateFormat('HH:mm').format(pt.fajr),
+      DateFormat('HH:mm').format(pt.sunrise),
+      DateFormat('HH:mm').format(pt.dhuhr),
+      DateFormat('HH:mm').format(pt.asr),
+      DateFormat('HH:mm').format(pt.maghrib),
+      DateFormat('HH:mm').format(pt.isha),
+    ];
+    await _homeWidgetService.update(
+      prayerTimes: pt,
+      now: _now,
+      timeService: _timeService,
+    );
 
     Future.delayed(Duration.zero, _checkForUpdate);
     _updateCheckTimer =
@@ -563,6 +583,23 @@ class _PrayerHomePageState extends State<PrayerHomePage>
     setState(() {
       _prayerTimesFuture = _prayerDataService.getPrayerTimes(currentCity, _now);
     });
+
+    _prayerTimesFuture.then((pt) {
+      // ⬇️ ئەمە لێرە دابنێ ⬇️
+      todayTimes = [
+        DateFormat('HH:mm').format(pt.fajr),
+        DateFormat('HH:mm').format(pt.sunrise),
+        DateFormat('HH:mm').format(pt.dhuhr),
+        DateFormat('HH:mm').format(pt.asr),
+        DateFormat('HH:mm').format(pt.maghrib),
+        DateFormat('HH:mm').format(pt.isha),
+      ];
+      _homeWidgetService.update(
+        prayerTimes: pt,
+        now: _now,
+        timeService: _timeService,
+      );
+    });
   }
 
   String _getNextRemaining(PrayerTimes times) {
@@ -829,6 +866,21 @@ class _PrayerHomePageState extends State<PrayerHomePage>
         child: Container(height: 1, color: const Color(0xFFFFFFFF)),
       ),
       actions: [
+        TextButton.icon(
+          onPressed: () async {
+            await HomeWidget.requestPinWidget(
+                androidName: 'PrayerWidgetProvider');
+          },
+          icon: Icon(Icons.add, color: _palette.secondary, size: 18),
+          label: const Text(
+            "ویدجت",
+            style: TextStyle(
+                color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
+          ),
+          style: TextButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+          ),
+        ),
         Builder(
           builder: (context) => IconButton(
             icon: Icon(Icons.more_vert_rounded,
@@ -860,11 +912,27 @@ class _PrayerHomePageState extends State<PrayerHomePage>
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-      Expanded(child: Center(child: ClockWidget(now: _now, timeService: _timeService, palette: _palette))),
-      Expanded(child: Center(child: DatesWidget(timeService: _timeService, now: _now, gregorianDate: prayerTimes.gregorianDate, palette: _palette))),
-      Expanded(child: Center(child: NextPrayerBar(remainingTime: _getNextRemaining(prayerTimes), nextPrayerName: _getNextPrayerName(prayerTimes), palette: _palette))),
-      Expanded(child: Center(child: _buildBottomBar(context))),
-    ],
+              Expanded(
+                  child: Center(
+                      child: ClockWidget(
+                          now: _now,
+                          timeService: _timeService,
+                          palette: _palette))),
+              Expanded(
+                  child: Center(
+                      child: DatesWidget(
+                          timeService: _timeService,
+                          now: _now,
+                          gregorianDate: prayerTimes.gregorianDate,
+                          palette: _palette))),
+              Expanded(
+                  child: Center(
+                      child: NextPrayerBar(
+                          remainingTime: _getNextRemaining(prayerTimes),
+                          nextPrayerName: _getNextPrayerName(prayerTimes),
+                          palette: _palette))),
+              Expanded(child: Center(child: _buildBottomBar(context))),
+            ],
           ),
         ),
       ],

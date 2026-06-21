@@ -504,12 +504,12 @@ class QuranBottomBar extends StatelessWidget {
           alignment: Alignment.topCenter,
           heightFactor: 0.5,
           child: Container(
-            width: 120,
+            width: 60,
             height: 50,
             alignment: Alignment.center,
             padding: const EdgeInsets.only(bottom: 18),
             decoration: BoxDecoration(
-              borderRadius: const BorderRadius.all(Radius.elliptical(16, 16)),
+              borderRadius: const BorderRadius.all(Radius.elliptical(16, 1)),
               gradient: const LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
@@ -542,7 +542,7 @@ class QuranBottomBar extends StatelessWidget {
       right: 0,
       child: Center(
         child: Container(
-          width: 67,
+          width: 53,
           height: 4,
           color: const Color(0xFFFDF6E3),
         ),
