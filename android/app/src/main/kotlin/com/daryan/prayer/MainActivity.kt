@@ -19,124 +19,122 @@ class MainActivity : FlutterActivity() {
         const val QURAN_MEDIA_EVENTS = "com.daryan.prayer/quran_media_events"
     }
 
-    override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
-        super.configureFlutterEngine(flutterEngine)
-        QuranMediaPlugin().setupChannels(flutterEngine, this)
-        EventChannel(
-            flutterEngine.dartExecutor.binaryMessenger,
-            QURAN_MEDIA_EVENTS
-        ).setStreamHandler(object : StreamHandler {
-            override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
-                QuranMediaPluginEvents.eventSink = events
-            }
-            override fun onCancel(arguments: Any?) {
-                if (QuranMediaPluginEvents.eventSink != null) {
-            QuranMediaPluginEvents.eventSink = null
-        }
-            }
-        })
+   override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
+    super.configureFlutterEngine(flutterEngine)
 
+    // ── کردنەوەی شاشە لە ویدجت ─────────────────────
+    val openScreen = intent?.getStringExtra("open_screen")
+    if (openScreen != null) {
         MethodChannel(
             flutterEngine.dartExecutor.binaryMessenger,
-            QURAN_MEDIA_CHANNEL
-        ).setMethodCallHandler { call, result ->
-            when (call.method) {
-                "play" -> {
-                    try {
-                        val isFile = call.argument<Boolean>("isFile")!!
-                        val source = call.argument<String>("source")!!
-                        val title = call.argument<String>("title")!!
-                        val i = Intent(this, QuranMediaService::class.java).apply {
-                            action = QuranMediaService.ACTION_PLAY
-                            putExtra(QuranMediaService.EXTRA_IS_FILE, isFile)
-                            putExtra(QuranMediaService.EXTRA_SOURCE, source)
-                            putExtra(QuranMediaService.EXTRA_TITLE, title)
-                        }
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                            startForegroundService(i)
-                        } else {
-                            startService(i)
-                        }
-                        result.success(true)
-                    } catch (e: Exception) {
-                        result.error("QURAN_PLAY", e.message, null)
-                    }
-                }
-                "pause" -> {
-                    startService(
-                        Intent(this, QuranMediaService::class.java)
-                            .setAction(QuranMediaService.ACTION_PAUSE)
-                    )
-                    result.success(true)
-                }
-                "resume" -> {
-                    startService(
-                        Intent(this, QuranMediaService::class.java)
-                            .setAction(QuranMediaService.ACTION_RESUME)
-                    )
-                    result.success(true)
-                }
-                "stop" -> {
-                    startService(
-                        Intent(this, QuranMediaService::class.java)
-                            .setAction(QuranMediaService.ACTION_STOP)
-                    )
-                    result.success(true)
-                }
-                else -> result.notImplemented()
+            "com.daryan.prayer/navigation"
+        ).invokeMethod("openScreen", openScreen)
+    }
+
+    QuranMediaPlugin().setupChannels(flutterEngine, this)
+    EventChannel(
+        flutterEngine.dartExecutor.binaryMessenger,
+        QURAN_MEDIA_EVENTS
+    ).setStreamHandler(object : StreamHandler {
+        override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
+            QuranMediaPluginEvents.eventSink = events
+        }
+        override fun onCancel(arguments: Any?) {
+            if (QuranMediaPluginEvents.eventSink != null) {
+                QuranMediaPluginEvents.eventSink = null
             }
         }
+    })
 
-        MethodChannel(
-            flutterEngine.dartExecutor.binaryMessenger,
-            ATHAN_CHANNEL
-        ).setMethodCallHandler { call, result ->
-
-            when (call.method) {
-
-                // ── خشتەکردنی بانگ ──────────────────────────
-                // Flutter scheduleAthan() بانگی دەکات
-                // AlarmManager exact alarm دادەنرێت
-                // کاتی بانگ: AthanAlarmReceiver → AthanService
-                "scheduleAthan" -> {
-                    try {
-                        val id           = call.argument<Int>("id")!!
-                        val prayerName   = call.argument<String>("prayerName")!!
-                        val soundFile    = call.argument<String>("soundFile")!!
-                        val scheduledMs  = call.argument<Long>("scheduledTime")!!
-
-                        scheduleAthanAlarm(id, prayerName, soundFile, scheduledMs)
-                        result.success(true)
-                    } catch (e: Exception) {
-                        result.error("SCHEDULE_ERROR", e.message, null)
+    MethodChannel(
+        flutterEngine.dartExecutor.binaryMessenger,
+        QURAN_MEDIA_CHANNEL
+    ).setMethodCallHandler { call, result ->
+        when (call.method) {
+            "play" -> {
+                try {
+                    val isFile = call.argument<Boolean>("isFile")!!
+                    val source = call.argument<String>("source")!!
+                    val title = call.argument<String>("title")!!
+                    val i = Intent(this, QuranMediaService::class.java).apply {
+                        action = QuranMediaService.ACTION_PLAY
+                        putExtra(QuranMediaService.EXTRA_IS_FILE, isFile)
+                        putExtra(QuranMediaService.EXTRA_SOURCE, source)
+                        putExtra(QuranMediaService.EXTRA_TITLE, title)
                     }
-                }
-
-                // ── کەنسەڵکردنی بانگێک ──────────────────────
-                "cancelAthan" -> {
-                    try {
-                        val id = call.argument<Int>("id")!!
-                        cancelAthanAlarm(id)
-                        result.success(true)
-                    } catch (e: Exception) {
-                        result.error("CANCEL_ERROR", e.message, null)
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        startForegroundService(i)
+                    } else {
+                        startService(i)
                     }
+                    result.success(true)
+                } catch (e: Exception) {
+                    result.error("QURAN_PLAY", e.message, null)
                 }
-
-                // ── کەنسەڵکردنی هەموو بانگەکان ─────────────
-                "cancelAll" -> {
-                    try {
-                        cancelAllAthanAlarms()
-                        result.success(true)
-                    } catch (e: Exception) {
-                        result.error("CANCEL_ALL_ERROR", e.message, null)
-                    }
-                }
-
-                else -> result.notImplemented()
             }
+            "pause" -> {
+                startService(
+                    Intent(this, QuranMediaService::class.java)
+                        .setAction(QuranMediaService.ACTION_PAUSE)
+                )
+                result.success(true)
+            }
+            "resume" -> {
+                startService(
+                    Intent(this, QuranMediaService::class.java)
+                        .setAction(QuranMediaService.ACTION_RESUME)
+                )
+                result.success(true)
+            }
+            "stop" -> {
+                startService(
+                    Intent(this, QuranMediaService::class.java)
+                        .setAction(QuranMediaService.ACTION_STOP)
+                )
+                result.success(true)
+            }
+            else -> result.notImplemented()
         }
     }
+
+    MethodChannel(
+        flutterEngine.dartExecutor.binaryMessenger,
+        ATHAN_CHANNEL
+    ).setMethodCallHandler { call, result ->
+        when (call.method) {
+            "scheduleAthan" -> {
+                try {
+                    val id          = call.argument<Int>("id")!!
+                    val prayerName  = call.argument<String>("prayerName")!!
+                    val soundFile   = call.argument<String>("soundFile")!!
+                    val scheduledMs = call.argument<Long>("scheduledTime")!!
+                    scheduleAthanAlarm(id, prayerName, soundFile, scheduledMs)
+                    result.success(true)
+                } catch (e: Exception) {
+                    result.error("SCHEDULE_ERROR", e.message, null)
+                }
+            }
+            "cancelAthan" -> {
+                try {
+                    val id = call.argument<Int>("id")!!
+                    cancelAthanAlarm(id)
+                    result.success(true)
+                } catch (e: Exception) {
+                    result.error("CANCEL_ERROR", e.message, null)
+                }
+            }
+            "cancelAll" -> {
+                try {
+                    cancelAllAthanAlarms()
+                    result.success(true)
+                } catch (e: Exception) {
+                    result.error("CANCEL_ALL_ERROR", e.message, null)
+                }
+            }
+            else -> result.notImplemented()
+        }
+    }
+}
 
     // ── AlarmManager: خشتەکردن ─────────────────────
     private fun scheduleAthanAlarm(

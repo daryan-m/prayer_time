@@ -57,9 +57,20 @@ class _PrayerHomePageState extends State<PrayerHomePage>
   Timer? _ticker;
   Timer? _updateCheckTimer;
 
+  static const _navChannel = MethodChannel('com.daryan.prayer/navigation');
+
   @override
   void initState() {
     super.initState();
+
+    _navChannel.setMethodCallHandler((call) async {
+      if (call.method == 'openScreen' && call.arguments == 'quran') {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const QuranScreen()),
+        );
+      }
+    });
 
     _prayerTimesFuture = _prayerDataService.getPrayerTimes(
       currentCity,
@@ -870,6 +881,18 @@ class _PrayerHomePageState extends State<PrayerHomePage>
           onPressed: () async {
             await HomeWidget.requestPinWidget(
                 androidName: 'PrayerWidgetProvider');
+            if (!mounted) return;
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                  '📌 ویدجتەکە لەسەر شاشەی هۆمت زیاد بکە',
+                  textAlign: TextAlign.center,
+                ),
+                backgroundColor: Color(0xFF1B5E20),
+                behavior: SnackBarBehavior.floating,
+                duration: Duration(seconds: 3),
+              ),
+            );
           },
           icon: Icon(Icons.add, color: _palette.secondary, size: 18),
           label: const Text(

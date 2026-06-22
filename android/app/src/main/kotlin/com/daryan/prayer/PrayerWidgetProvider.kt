@@ -19,15 +19,19 @@ import android.widget.RemoteViews
 //
 //   Future<void> _updateWidget(PrayerTimes pt) async {
 //     final prefs = await SharedPreferences.getInstance();
-//     await prefs.setString('widget_next_name',    _getNextPrayerName(pt));
-//     await prefs.setString('widget_next_time',    _nextTime(pt));
-//     await prefs.setString('widget_remaining',    _getNextRemaining(pt));
-//     await prefs.setString('widget_p0', '${prayerNames[0]} — ${_timeService.formatTo12Hr(todayTimes[0])}');
-//     await prefs.setString('widget_p1', '${prayerNames[1]} — ${_timeService.formatTo12Hr(todayTimes[1])}');
-//     await prefs.setString('widget_p2', '${prayerNames[2]} — ${_timeService.formatTo12Hr(todayTimes[2])}');
-//     await prefs.setString('widget_p3', '${prayerNames[3]} — ${_timeService.formatTo12Hr(todayTimes[3])}');
-//     await prefs.setString('widget_p4', '${prayerNames[4]} — ${_timeService.formatTo12Hr(todayTimes[4])}');
-//     await prefs.setString('widget_p5', '${prayerNames[5]} — ${_timeService.formatTo12Hr(todayTimes[5])}');
+//     await prefs.setString('widget_next_index',  _getNextPrayerIndex(pt).toString());
+//     await prefs.setString('widget_p0_name', prayerNames[0]);
+//     await prefs.setString('widget_p0_time', _timeService.formatTo12Hr(todayTimes[0]));
+//     await prefs.setString('widget_p1_name', prayerNames[1]);
+//     await prefs.setString('widget_p1_time', _timeService.formatTo12Hr(todayTimes[1]));
+//     await prefs.setString('widget_p2_name', prayerNames[2]);
+//     await prefs.setString('widget_p2_time', _timeService.formatTo12Hr(todayTimes[2]));
+//     await prefs.setString('widget_p3_name', prayerNames[3]);
+//     await prefs.setString('widget_p3_time', _timeService.formatTo12Hr(todayTimes[3]));
+//     await prefs.setString('widget_p4_name', prayerNames[4]);
+//     await prefs.setString('widget_p4_time', _timeService.formatTo12Hr(todayTimes[4]));
+//     await prefs.setString('widget_p5_name', prayerNames[5]);
+//     await prefs.setString('widget_p5_time', _timeService.formatTo12Hr(todayTimes[5]));
 //     await prefs.setString('widget_hijri',     _timeService.hijriDateString());
 //     await prefs.setString('widget_gregorian', _timeService.gregorianDateString(_now));
 //     await prefs.setString('widget_kurdish',   _timeService.kurdishDateString(_now));
@@ -52,6 +56,35 @@ class PrayerWidgetProvider : AppWidgetProvider() {
     }
 
     companion object {
+
+        // slot IDs بەئاستی index — بۆ هایلایت کردن
+        private val SLOT_IDS = intArrayOf(
+            R.id.slot_fajr,
+            R.id.slot_sunrise,
+            R.id.slot_dhuhr,
+            R.id.slot_asr,
+            R.id.slot_maghrib,
+            R.id.slot_isha
+        )
+
+        private val LBL_IDS = intArrayOf(
+            R.id.lbl_fajr,
+            R.id.lbl_sunrise,
+            R.id.lbl_dhuhr,
+            R.id.lbl_asr,
+            R.id.lbl_maghrib,
+            R.id.lbl_isha
+        )
+
+        private val TIME_IDS = intArrayOf(
+            R.id.time_fajr,
+            R.id.time_sunrise,
+            R.id.time_dhuhr,
+            R.id.time_asr,
+            R.id.time_maghrib,
+            R.id.time_isha
+        )
+
         fun updateAppWidget(
             context: Context,
             appWidgetManager: AppWidgetManager,
@@ -59,42 +92,59 @@ class PrayerWidgetProvider : AppWidgetProvider() {
         ) {
             val prefs = context.getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
 
-            // ── داتاکانی بانگ لە Flutter وەردەگرێت ────────────────────────────
-            val nextName   = prefs.getString("flutter.widget_next_name",  "نیوەڕۆ") ?: "نیوەڕۆ"
-            val nextTime   = prefs.getString("flutter.widget_next_time",  "١٢:٣٠") ?: "١٢:٣٠"
-            val remaining  = prefs.getString("flutter.widget_remaining",  "٢:٣٠:٠٠") ?: "--:--"
-            val p0 = prefs.getString("flutter.widget_p0", "بەیانی — ٠٣:٤٢") ?: "بەیانی"
-            val p1 = prefs.getString("flutter.widget_p1", "خۆرهەڵاتن — ٠٥:١٠") ?: "خۆرهەڵاتن"
-            val p2 = prefs.getString("flutter.widget_p2", "نیوەڕۆ — ١٢:٣٠") ?: "نیوەڕۆ"
-            val p3 = prefs.getString("flutter.widget_p3", "عەسر — ٠٤:٠٥") ?: "عەسر"
-            val p4 = prefs.getString("flutter.widget_p4", "ئێوارە — ٠٧:٢٢") ?: "ئێوارە"
-            val p5 = prefs.getString("flutter.widget_p5", "خەوتنان — ٠٩:١٠") ?: "خەوتنان"
-            val hijri     = prefs.getString("flutter.widget_hijri",     "هـ — ١٥ ذو الحجة ١٤٤٦") ?: ""
-            val gregorian = prefs.getString("flutter.widget_gregorian", "م — ١٣/٠٦/٢٠٢٥") ?: ""
-            val kurdish   = prefs.getString("flutter.widget_kurdish",   "ک — ٢٣ گەلاوێژ") ?: ""
+            // ── ئینێکسی بانگی داهاتوو ────────────────────────────────────────
+            val nextIndex = prefs.getString("flutter.widget_next_index", "0")
+                ?.toIntOrNull() ?: 0
 
-            // ── ڕووکارەکان دادەنێین ────────────────────────────────────────────
+            // ── ناو و کاتی شەش بانگ ──────────────────────────────────────────
+            val names = Array(6) { i ->
+                prefs.getString("flutter.widget_p${i}_name", defaultNames[i]) ?: defaultNames[i]
+            }
+            val times = Array(6) { i ->
+                prefs.getString("flutter.widget_p${i}_time", defaultTimes[i]) ?: defaultTimes[i]
+            }
+
+            // ── بەروارەکان ───────────────────────────────────────────────────
+            val hijri     = prefs.getString("flutter.widget_hijri",     "هـ ١٥ ذو الحجة ١٤٤٦") ?: ""
+            val gregorian = prefs.getString("flutter.widget_gregorian", "م ٢٠٢٥/٠٦/١٣") ?: ""
+            val kurdish   = prefs.getString("flutter.widget_kurdish",   "ک ٢٣ گەلاوێژ") ?: ""
+
+            // ── ڕووکارەکان دادەنێین ───────────────────────────────────────────
             val views = RemoteViews(context.packageName, R.layout.prayer_widget_layout)
 
-            // قەوسی سەرەوە
-            views.setTextViewText(R.id.txt_next_name, nextName)
-            views.setTextViewText(R.id.txt_next_time, nextTime)
-            views.setTextViewText(R.id.txt_remaining, "● $remaining ماوە")
+            // بەروارەکان — تەک خەت بەبێ نیوێ
+            views.setTextViewText(R.id.txt_hijri,     hijri.replace("کۆچى: ", ""))
+            views.setTextViewText(R.id.txt_gregorian, gregorian.replace("\u200E", ""))
+            views.setTextViewText(R.id.txt_kurdish,   kurdish)
 
-            // کاتی بانگەکان
-            views.setTextViewText(R.id.p0, p0)
-            views.setTextViewText(R.id.p1, p1)
-            views.setTextViewText(R.id.p2, p2)
-            views.setTextViewText(R.id.p3, p3)
-            views.setTextViewText(R.id.p4, p4)
-            views.setTextViewText(R.id.p5, p5)
+            // کاتەکانی بانگ + هایلایت
+            for (i in 0..5) {
+                views.setTextViewText(LBL_IDS[i],  names[i])
+                views.setTextViewText(TIME_IDS[i], times[i])
 
-            // بەروارەکان
-            views.setTextViewText(R.id.txt_hijri,     "هـ\n${hijri.replace("کۆچى: ", "")}")
-            views.setTextViewText(R.id.txt_gregorian, "م\n${gregorian.replace("\u200E", "")}")
-            views.setTextViewText(R.id.txt_kurdish,   "ک\n$kurdish")
+                when {
+                    i == nextIndex -> {
+                        // بانگی داهاتوو — هایلایتی سەوز
+                        views.setInt(SLOT_IDS[i], "setBackgroundResource", R.drawable.widget_slot_next_bg)
+                        views.setTextColor(LBL_IDS[i],  0xFFFFFFFF.toInt())
+                        views.setTextColor(TIME_IDS[i], 0xFF66BB6A.toInt())
+                    }
+                    i < nextIndex -> {
+                        // بانگی تێپەڕیوو — سارد
+                        views.setInt(SLOT_IDS[i], "setBackgroundResource", R.drawable.widget_slot_past_bg)
+                        views.setTextColor(LBL_IDS[i],  0x66FFFFFF.toInt())
+                        views.setTextColor(TIME_IDS[i], 0x66FFFFFF.toInt())
+                    }
+                    else -> {
+                        // بانگی دواتر — ئاسایی
+                        views.setInt(SLOT_IDS[i], "setBackgroundResource", 0)
+                        views.setTextColor(LBL_IDS[i],  0xCCFFFFFF.toInt())
+                        views.setTextColor(TIME_IDS[i], 0xFFFFFFFF.toInt())
+                    }
+                }
+            }
 
-            // ── کلیکەکان — کردنەوەی ئەپ ───────────────────────────────────────
+            // ── کلیکەکان ─────────────────────────────────────────────────────
             val openApp = Intent(context, MainActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
             }
@@ -103,7 +153,6 @@ class PrayerWidgetProvider : AppWidgetProvider() {
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
 
-            // کردنەوەی قورئان
             val openQuran = Intent(context, MainActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK
                 putExtra("open_screen", "quran")
@@ -113,33 +162,13 @@ class PrayerWidgetProvider : AppWidgetProvider() {
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
 
-            // کردنەوەی تەسبیح
-            val openTasbih = Intent(context, MainActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                putExtra("open_screen", "tasbih")
-            }
-            val pendingTasbih = PendingIntent.getActivity(
-                context, 2, openTasbih,
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-            )
-
-            // کردنەوەی ناوەکانی خوا
-            val openAllah = Intent(context, MainActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                putExtra("open_screen", "allah_names")
-            }
-            val pendingAllah = PendingIntent.getActivity(
-                context, 3, openAllah,
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-            )
-
-            views.setOnClickPendingIntent(R.id.arch_section,  pendingOpen)
-            views.setOnClickPendingIntent(R.id.btn_quran,     pendingQuran)
-            views.setOnClickPendingIntent(R.id.btn_tasbih,    pendingTasbih)
-            views.setOnClickPendingIntent(R.id.btn_allah,     pendingAllah)
-            views.setOnClickPendingIntent(R.id.btn_settings,  pendingOpen)
+            views.setOnClickPendingIntent(R.id.arch_section, pendingOpen)
+            views.setOnClickPendingIntent(R.id.btn_quran,    pendingQuran)
 
             appWidgetManager.updateAppWidget(appWidgetId, views)
         }
+
+        private val defaultNames = arrayOf("بەیانی", "خۆرهەڵاتن", "نیوەڕۆ", "عەسر", "ئێوارە", "خەوتنان")
+        private val defaultTimes = arrayOf("٠٣:٤٢", "٠٥:١٠", "١٢:٣٠", "٠٤:٠٥", "٠٧:٢٢", "٠٩:١٠")
     }
 }

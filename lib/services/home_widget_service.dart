@@ -29,24 +29,14 @@ import 'package:intl/intl.dart';
 class HomeWidgetService {
   static const String _androidWidgetName = 'PrayerWidgetProvider';
 
-  /// ناوی بانگی داهاتوو دەستنیشان دەکات (بەیانی، نیوەڕۆ، عەسر، ئێوارە، خەوتنان)
-  String _getNextPrayerName(PrayerTimes times, DateTime now) {
-    if (now.isBefore(times.fajr)) return "بەیانی";
-    if (now.isBefore(times.dhuhr)) return "نیوەڕۆ";
-    if (now.isBefore(times.asr)) return "عەسر";
-    if (now.isBefore(times.maghrib)) return "ئێوارە";
-    if (now.isBefore(times.isha)) return "خەوتنان";
-    return "بەیانی";
-  }
-
-  /// کاتی DateTime ـی بانگی داهاتوو دەستنیشان دەکات
-  DateTime _getNextPrayerDateTime(PrayerTimes times, DateTime now) {
-    if (now.isBefore(times.fajr)) return times.fajr;
-    if (now.isBefore(times.dhuhr)) return times.dhuhr;
-    if (now.isBefore(times.asr)) return times.asr;
-    if (now.isBefore(times.maghrib)) return times.maghrib;
-    if (now.isBefore(times.isha)) return times.isha;
-    return times.fajr;
+  int _getNextPrayerIndex(PrayerTimes times, DateTime now) {
+    if (now.isBefore(times.fajr)) return 0;
+    if (now.isBefore(times.sunrise)) return 1;
+    if (now.isBefore(times.dhuhr)) return 2;
+    if (now.isBefore(times.asr)) return 3;
+    if (now.isBefore(times.maghrib)) return 4;
+    if (now.isBefore(times.isha)) return 5;
+    return 0;
   }
 
   /// داتای کاتی بانگ، بەروار، و شار دەنووسێت بۆ SharedPreferences
@@ -64,12 +54,6 @@ class HomeWidgetService {
     try {
       final prefs = await SharedPreferences.getInstance();
 
-      final nextName = _getNextPrayerName(prayerTimes, now);
-      final nextDateTime = _getNextPrayerDateTime(prayerTimes, now);
-      final nextTimeStr = timeService
-          .formatTo12Hr('${nextDateTime.hour.toString().padLeft(2, '0')}:'
-              '${nextDateTime.minute.toString().padLeft(2, '0')}');
-
       final formatter = DateFormat('HH:mm');
       final todayTimes = [
         formatter.format(prayerTimes.fajr),
@@ -80,8 +64,8 @@ class HomeWidgetService {
         formatter.format(prayerTimes.isha),
       ];
 
-      await prefs.setString('widget_next_name', nextName);
-      await prefs.setString('widget_next_time', nextTimeStr);
+      final nextIndex = _getNextPrayerIndex(prayerTimes, now);
+      await prefs.setString('widget_next_index', nextIndex.toString());
 
       const prayerLabels = [
         "بەیانی",
@@ -93,10 +77,10 @@ class HomeWidgetService {
       ];
 
       for (int i = 0; i < 6 && i < todayTimes.length; i++) {
-        await prefs.setString('widget_p$i',
-            '${prayerLabels[i]} — ${timeService.formatTo12Hr(todayTimes[i])}');
+        await prefs.setString('widget_p${i}_name', prayerLabels[i]);
+        await prefs.setString(
+            'widget_p${i}_time', timeService.formatTo12Hr(todayTimes[i]));
       }
-
       await prefs.setString('widget_hijri', timeService.hijriDateString());
       await prefs.setString(
           'widget_gregorian', timeService.gregorianDateString(now));
