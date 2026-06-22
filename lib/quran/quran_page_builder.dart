@@ -509,7 +509,7 @@ class QuranBottomBar extends StatelessWidget {
             alignment: Alignment.center,
             padding: const EdgeInsets.only(bottom: 18),
             decoration: BoxDecoration(
-              borderRadius: const BorderRadius.all(Radius.elliptical(16, 1)),
+              borderRadius: const BorderRadius.all(Radius.elliptical(16, 8)),
               gradient: const LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
