@@ -31,11 +31,10 @@ class HomeWidgetService {
 
   int _getNextPrayerIndex(PrayerTimes times, DateTime now) {
     if (now.isBefore(times.fajr)) return 0;
-    if (now.isBefore(times.sunrise)) return 1;
-    if (now.isBefore(times.dhuhr)) return 2;
-    if (now.isBefore(times.asr)) return 3;
-    if (now.isBefore(times.maghrib)) return 4;
-    if (now.isBefore(times.isha)) return 5;
+    if (now.isBefore(times.dhuhr)) return 1;
+    if (now.isBefore(times.asr)) return 2;
+    if (now.isBefore(times.maghrib)) return 3;
+    if (now.isBefore(times.isha)) return 4;
     return 0;
   }
 
@@ -57,7 +56,6 @@ class HomeWidgetService {
       final formatter = DateFormat('HH:mm');
       final todayTimes = [
         formatter.format(prayerTimes.fajr),
-        formatter.format(prayerTimes.sunrise),
         formatter.format(prayerTimes.dhuhr),
         formatter.format(prayerTimes.asr),
         formatter.format(prayerTimes.maghrib),
@@ -69,14 +67,13 @@ class HomeWidgetService {
 
       const prayerLabels = [
         "بەیانی",
-        "خۆرهەڵاتن",
         "نیوەڕۆ",
         "عەسر",
         "ئێوارە",
         "خەوتنان",
       ];
 
-      for (int i = 0; i < 6 && i < todayTimes.length; i++) {
+      for (int i = 0; i < 5 && i < todayTimes.length; i++) {
         await prefs.setString('widget_p${i}_name', prayerLabels[i]);
         await prefs.setString(
             'widget_p${i}_time', timeService.formatTo12Hr(todayTimes[i]));

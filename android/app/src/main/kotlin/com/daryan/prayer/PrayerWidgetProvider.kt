@@ -60,7 +60,6 @@ class PrayerWidgetProvider : AppWidgetProvider() {
         // slot IDs بەئاستی index — بۆ هایلایت کردن
         private val SLOT_IDS = intArrayOf(
             R.id.slot_fajr,
-            R.id.slot_sunrise,
             R.id.slot_dhuhr,
             R.id.slot_asr,
             R.id.slot_maghrib,
@@ -69,7 +68,6 @@ class PrayerWidgetProvider : AppWidgetProvider() {
 
         private val LBL_IDS = intArrayOf(
             R.id.lbl_fajr,
-            R.id.lbl_sunrise,
             R.id.lbl_dhuhr,
             R.id.lbl_asr,
             R.id.lbl_maghrib,
@@ -78,7 +76,6 @@ class PrayerWidgetProvider : AppWidgetProvider() {
 
         private val TIME_IDS = intArrayOf(
             R.id.time_fajr,
-            R.id.time_sunrise,
             R.id.time_dhuhr,
             R.id.time_asr,
             R.id.time_maghrib,
@@ -92,16 +89,20 @@ class PrayerWidgetProvider : AppWidgetProvider() {
         ) {
             val prefs = context.getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
 
-            // ── ئینێکسی بانگی داهاتوو ────────────────────────────────────────
-            val nextIndex = prefs.getString("flutter.widget_next_index", "0")
-                ?.toIntOrNull() ?: 0
+            // ── ئینێکسی بانگی داهاتوو — عەکسەوە بۆ RTL ─────────────────────────
+            val flutterNext = prefs.getString("flutter.widget_next_index", "0")?.toIntOrNull() ?: 0
+            val nextIndex = 4 - flutterNext
 
-            // ── ناو و کاتی شەش بانگ ──────────────────────────────────────────
-            val names = Array(6) { i ->
-                prefs.getString("flutter.widget_p${i}_name", defaultNames[i]) ?: defaultNames[i]
+            // ── ناو و کاتی پێنج بانگ — عەکسەوە بۆ RTL ─────────────────────────
+            // Flutter p0=بەیانی...p4=خەوتنان — ئێمە عەکس دەخوێنینەوە بۆ ڕاستەوە-چەپ
+            val names = Array(5) { i ->
+                val flutterIndex = 4 - i
+                prefs.getString("flutter.widget_p${flutterIndex}_name", defaultNames[i]) ?: defaultNames[i]
             }
-            val times = Array(6) { i ->
-                prefs.getString("flutter.widget_p${i}_time", defaultTimes[i]) ?: defaultTimes[i]
+            val times = Array(5) { i ->
+                val flutterIndex = 4 - i
+                val raw = prefs.getString("flutter.widget_p${flutterIndex}_time", defaultTimes[i]) ?: defaultTimes[i]
+                raw.replace(Regex("(?i)\\s*(AM|PM|د\\.ن|پ\\.ن)\\s*"), "").trim()
             }
 
             // ── بەروارەکان ───────────────────────────────────────────────────
@@ -118,7 +119,7 @@ class PrayerWidgetProvider : AppWidgetProvider() {
             views.setTextViewText(R.id.txt_kurdish,   kurdish)
 
             // کاتەکانی بانگ + هایلایت
-            for (i in 0..5) {
+            for (i in 0..4) {
                 views.setTextViewText(LBL_IDS[i],  names[i])
                 views.setTextViewText(TIME_IDS[i], times[i])
 
@@ -168,7 +169,7 @@ class PrayerWidgetProvider : AppWidgetProvider() {
             appWidgetManager.updateAppWidget(appWidgetId, views)
         }
 
-        private val defaultNames = arrayOf("بەیانی", "خۆرهەڵاتن", "نیوەڕۆ", "عەسر", "ئێوارە", "خەوتنان")
-        private val defaultTimes = arrayOf("٠٣:٤٢", "٠٥:١٠", "١٢:٣٠", "٠٤:٠٥", "٠٧:٢٢", "٠٩:١٠")
+        private val defaultNames = arrayOf("خەوتنان", "ئێوارە", "عەسر", "نیوەڕۆ", "بەیانی")
+        private val defaultTimes = arrayOf("٠٩:١٠", "٠٧:٢٢", "٠٤:٠٥", "١٢:٣٠", "٠٣:٤٢")
     }
 }

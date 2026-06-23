@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
-    android:minWidth="350dp"
-    android:minHeight="120dp"
+    android:minWidth="370dp"
+    android:minHeight="80dp"
     android:targetCellWidth="6"
     android:targetCellHeight="2"
     android:updatePeriodMillis="1800000"
