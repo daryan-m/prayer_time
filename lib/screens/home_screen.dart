@@ -268,7 +268,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
                   TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
               textAlign: TextAlign.center),
           content: const Text(
-            "بۆ ئەوەی گوێ بیستى بانگەکان  ببیت، پێویستە ڕێپێدانی ئاگادارکردنەوە و باکگراوند بدەیت.",
+            "بۆ ئەوەی گوێ بیستى بانگەکان  و قورئانى پیرۆز، پێویستە ڕێپێدانی ئاگادارکردنەوە و باکگراوند بدەیت.",
             style: TextStyle(color: Colors.white70),
             textAlign: TextAlign.center,
           ),
@@ -885,7 +885,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text(
-                  '📌 ویدجتەکە لەسەر شاشەی هۆمت زیاد بکە',
+                  '📌 زیادکردنى ویدجت بۆ سەر شاشەى مۆبایل',
                   textAlign: TextAlign.center,
                 ),
                 backgroundColor: Color(0xFF1B5E20),

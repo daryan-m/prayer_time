@@ -3,7 +3,7 @@
     android:minWidth="370dp"
     android:minHeight="80dp"
     android:targetCellWidth="6"
-    android:targetCellHeight="2"
+    android:targetCellHeight="1"
     android:updatePeriodMillis="1800000"
     android:initialLayout="@layout/prayer_widget_layout"
     android:resizeMode="none"

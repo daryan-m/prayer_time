@@ -373,7 +373,7 @@ class _PrayerDrawerState extends State<PrayerDrawer> {
                       ListTile(
                         leading: Icon(Icons.feedback_outlined,
                             color: pal.primary, size: 22),
-                        title: Text("پەیوەندی و راوبۆچوون",
+                        title: Text(" هەڵسەنگاندن ",
                             style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.bold,
@@ -778,7 +778,7 @@ class _PrayerDrawerState extends State<PrayerDrawer> {
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold)),
                         const SizedBox(height: 6),
-                        Text("راوبۆچوونەکەت وەرگیرا",
+                        Text("هەڵسەنگاندن وەرگیرا",
                             style: TextStyle(
                                 color: pal.listText.withOpacity(0.5),
                                 fontSize: 13)),
@@ -807,7 +807,7 @@ class _PrayerDrawerState extends State<PrayerDrawer> {
                                   color: pal.listText.withOpacity(0.5),
                                   size: 20),
                             ),
-                            Text("پەیوەندی و ڕاوبۆچوون",
+                            Text(" هەڵسەنگاندن ",
                                 style: TextStyle(
                                     color: pal.listText,
                                     fontSize: 15,
@@ -864,7 +864,7 @@ class _PrayerDrawerState extends State<PrayerDrawer> {
                           }).toList(),
                         ),
                         const SizedBox(height: 16),
-                        TextField(
+                        /*TextField(
                           controller: feedbackCtrl,
                           maxLines: 4,
                           textDirection: TextDirection.rtl,
@@ -892,7 +892,7 @@ class _PrayerDrawerState extends State<PrayerDrawer> {
                               borderSide: BorderSide(color: pal.primary),
                             ),
                           ),
-                        ),
+                        ),*/
                         const SizedBox(height: 16),
                         SizedBox(
                           width: double.infinity,

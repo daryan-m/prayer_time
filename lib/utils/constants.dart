@@ -184,24 +184,6 @@ const Map<String, ThemePalette> appThemePalettes = {
     divider: Color(0xFFF4C95D),
   ),
 
-  // ── ڕۆشن ───────────────────────────────────────
-  "ڕەساسی": ThemePalette(
-    primary: Color(0xFF0F766E),
-    secondary: Color(0xFF947E00),
-    glow: Color(0xFF14B8A6),
-    icon: Color(0xFF0F766E),
-    border: Color(0xFF0F766E),
-    background: Color(0xFFFFFFFF),
-    cardBg: Color(0xFFF8FAFC),
-    cardBgActive: Color(0xFFD4F5ED),
-    drawerBg: Color(0xFFFFFFFF),
-    drawerBorder: Color(0xFFD4F5ED),
-    headerText: Color(0xFF1E293B),
-    listText: Color(0xFF1E293B),
-    clockText: Color(0xFF0F172A),
-    divider: Color(0xFFCBD5E1),
-  ),
-
   // ── شەمامەیی ─────────────────────────────────────
   "پیرۆزەیى": ThemePalette(
     primary: Color(0xFF22D3EE),

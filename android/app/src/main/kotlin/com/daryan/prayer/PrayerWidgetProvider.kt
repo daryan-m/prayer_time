@@ -106,9 +106,9 @@ class PrayerWidgetProvider : AppWidgetProvider() {
             }
 
             // ── بەروارەکان ───────────────────────────────────────────────────
-            val hijri     = prefs.getString("flutter.widget_hijri",     "هـ ١٥ ذو الحجة ١٤٤٦") ?: ""
-            val gregorian = prefs.getString("flutter.widget_gregorian", "م ٢٠٢٥/٠٦/١٣") ?: ""
-            val kurdish   = prefs.getString("flutter.widget_kurdish",   "ک ٢٣ گەلاوێژ") ?: ""
+            val hijri     = prefs.getString("flutter.widget_hijri",     " ١٥ ذو الحجة ١٤٤٦") ?: ""
+            val gregorian = prefs.getString("flutter.widget_gregorian", " ٢٠٢٥/٠٦/١٣") ?: ""
+            val kurdish   = prefs.getString("flutter.widget_kurdish",   " ٢٣ گەلاوێژ") ?: ""
 
             // ── ڕووکارەکان دادەنێین ───────────────────────────────────────────
             val views = RemoteViews(context.packageName, R.layout.prayer_widget_layout)
