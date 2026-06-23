@@ -29,12 +29,12 @@
             android:gravity="center"
             android:singleLine="true" />
 
-        <View
-            android:layout_width="0.5dp"
-            android:layout_height="match_parent"
-            android:background="#44FFFFFF"
-            android:layout_marginTop="2dp"
-            android:layout_marginBottom="2dp" />
+        <TextView
+    android:layout_width="0.5dp"
+    android:layout_height="match_parent"
+    android:background="#44FFFFFF"
+    android:layout_marginTop="2dp"
+    android:layout_marginBottom="2dp" />
 
         <TextView
             android:id="@+id/txt_gregorian"
@@ -47,12 +47,12 @@
             android:gravity="center"
             android:singleLine="true" />
 
-        <View
-            android:layout_width="0.5dp"
-            android:layout_height="match_parent"
-            android:background="#44FFFFFF"
-            android:layout_marginTop="2dp"
-            android:layout_marginBottom="2dp" />
+        <TextView
+    android:layout_width="0.5dp"
+    android:layout_height="match_parent"
+    android:background="#44FFFFFF"
+    android:layout_marginTop="2dp"
+    android:layout_marginBottom="2dp" />
 
         <TextView
             android:id="@+id/txt_kurdish"
