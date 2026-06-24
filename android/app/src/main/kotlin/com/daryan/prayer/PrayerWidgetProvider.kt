@@ -130,16 +130,11 @@ class PrayerWidgetProvider : AppWidgetProvider() {
                         views.setTextColor(LBL_IDS[i],  0xFFFFFFFF.toInt())
                         views.setTextColor(TIME_IDS[i], 0xFF66BB6A.toInt())
                     }
-                    i < nextIndex -> {
-                        // بانگی تێپەڕیوو — سارد
-                        views.setInt(SLOT_IDS[i], "setBackgroundResource", R.drawable.widget_slot_past_bg)
-                        views.setTextColor(LBL_IDS[i],  0x66FFFFFF.toInt())
-                        views.setTextColor(TIME_IDS[i], 0x66FFFFFF.toInt())
-                    }
+                    
                     else -> {
                         // بانگی دواتر — ئاسایی
                         views.setInt(SLOT_IDS[i], "setBackgroundResource", 0)
-                        views.setTextColor(LBL_IDS[i],  0xCCFFFFFF.toInt())
+                        views.setTextColor(LBL_IDS[i],  0xFFFFFFFF.toInt())
                         views.setTextColor(TIME_IDS[i], 0xFFFFFFFF.toInt())
                     }
                 }

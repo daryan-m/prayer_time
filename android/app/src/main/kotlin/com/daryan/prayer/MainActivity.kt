@@ -136,6 +136,19 @@ class MainActivity : FlutterActivity() {
     }
 }
 
+override fun onNewIntent(intent: Intent) {
+    super.onNewIntent(intent)
+    setIntent(intent)
+
+    val openScreen = intent.getStringExtra("open_screen")
+    if (openScreen != null) {
+        MethodChannel(
+            flutterEngine?.dartExecutor?.binaryMessenger ?: return,
+            "com.daryan.prayer/navigation"
+        ).invokeMethod("openScreen", openScreen)
+    }
+}
+
     // ── AlarmManager: خشتەکردن ─────────────────────
     private fun scheduleAthanAlarm(
         id: Int,
