@@ -82,13 +82,14 @@
         android:paddingBottom="1dp"
         android:paddingStart="2dp"
         android:paddingEnd="2dp"
+        android:gravity="center_vertical"
         android:layoutDirection="rtl">
 
         <!-- خەوتنان -->
         <LinearLayout
             android:id="@+id/slot_isha"
             android:layout_width="0dp"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
             android:orientation="vertical"
             android:gravity="center"
@@ -110,7 +111,7 @@
                 android:textSize="13sp"
                 android:textStyle="bold"
                 android:gravity="center"
-                android:layout_marginTop="3dp" />
+                android:layout_marginTop="2dp" />
         </LinearLayout>
 
 
@@ -119,7 +120,7 @@
         <LinearLayout
             android:id="@+id/slot_maghrib"
             android:layout_width="0dp"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
             android:orientation="vertical"
             android:gravity="center"
@@ -141,14 +142,14 @@
                 android:textSize="13sp"
                 android:textStyle="bold"
                 android:gravity="center"
-                android:layout_marginTop="3dp" />
+                android:layout_marginTop="2dp" />
         </LinearLayout>
 
         <!-- عەسر -->
         <LinearLayout
             android:id="@+id/slot_asr"
             android:layout_width="0dp"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
             android:orientation="vertical"
             android:gravity="center"
@@ -170,14 +171,14 @@
                 android:textSize="13sp"
                 android:textStyle="bold"
                 android:gravity="center"
-                android:layout_marginTop="3dp" />
+                android:layout_marginTop="2dp" />
         </LinearLayout>
 
         <!-- نیوەڕۆ -->
         <LinearLayout
             android:id="@+id/slot_dhuhr"
             android:layout_width="0dp"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
             android:orientation="vertical"
             android:gravity="center"
@@ -199,14 +200,14 @@
                 android:textSize="13sp"
                 android:textStyle="bold"
                 android:gravity="center"
-                android:layout_marginTop="3dp" />
+                android:layout_marginTop="2dp" />
         </LinearLayout>
 
         <!-- بەیانی -->
         <LinearLayout
             android:id="@+id/slot_fajr"
             android:layout_width="0dp"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
             android:orientation="vertical"
             android:gravity="center"
@@ -228,7 +229,7 @@
                 android:textSize="13sp"
                 android:textStyle="bold"
                 android:gravity="center"
-                android:layout_marginTop="3dp" />
+                android:layout_marginTop="2dp" />
         </LinearLayout>    </LinearLayout>
 
     <!-- ئایکۆنی قورئان — ئاسۆیی لەژێر کاتەکان -->
@@ -237,7 +238,8 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:background="@drawable/widget_card_bg"
-        android:layout_marginTop="3dp">
+        android:layout_marginTop="2dp"
+        android:layout_marginBottom="2dp">
 
         <TextView
             android:id="@+id/btn_quran"
@@ -247,7 +249,7 @@
             android:textColor="#FFFFFF"
             android:textSize="13sp"
             android:gravity="center"
-            android:padding="6dp"
+            android:padding="5dp"
             android:clickable="true" />
 
     </LinearLayout>
