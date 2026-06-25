@@ -164,6 +164,16 @@ class PrayerWidgetProvider : AppWidgetProvider() {
             appWidgetManager.updateAppWidget(appWidgetId, views)
         }
 
+        fun triggerUpdate(context: Context) {
+    val appWidgetManager = AppWidgetManager.getInstance(context)
+    val widgetIds = appWidgetManager.getAppWidgetIds(
+        android.content.ComponentName(context, PrayerWidgetProvider::class.java)
+    )
+    for (id in widgetIds) {
+        updateAppWidget(context, appWidgetManager, id)
+    }
+}
+
         private val defaultNames = arrayOf("خەوتنان", "ئێوارە", "عەسر", "نیوەڕۆ", "بەیانی")
         private val defaultTimes = arrayOf("٠٩:١٠", "٠٧:٢٢", "٠٤:٠٥", "١٢:٣٠", "٠٣:٤٢")
     }

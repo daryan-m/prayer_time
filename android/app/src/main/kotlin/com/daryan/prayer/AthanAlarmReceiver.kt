@@ -41,5 +41,8 @@ class AthanAlarmReceiver : BroadcastReceiver() {
         } else {
             context.startService(serviceIntent)
         }
+
+        PrayerWidgetProvider.triggerUpdate(context)
+
     }
 }
