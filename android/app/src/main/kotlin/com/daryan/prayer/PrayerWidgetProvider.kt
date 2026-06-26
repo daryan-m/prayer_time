@@ -6,42 +6,9 @@ import android.appwidget.AppWidgetProvider
 import android.content.Context
 import android.content.Intent
 import android.widget.RemoteViews
+import java.util.Calendar
+import java.util.Locale
 
-// ══════════════════════════════════════════════════════════════════════════════
-// PrayerWidgetProvider
-//
-// داتا لە SharedPreferences وەردەگرێت کە Flutter پێشتر ذەخیرەی کردووە.
-//
-// لە Flutter (home_screen.dart) ئەمانە زیاد بکە بۆ نوێکردنەوەی ویدجت:
-//
-//   import 'package:shared_preferences/shared_preferences.dart';
-//   import 'package:home_widget/home_widget.dart';
-//
-//   Future<void> _updateWidget(PrayerTimes pt) async {
-//     final prefs = await SharedPreferences.getInstance();
-//     await prefs.setString('widget_next_index',  _getNextPrayerIndex(pt).toString());
-//     await prefs.setString('widget_p0_name', prayerNames[0]);
-//     await prefs.setString('widget_p0_time', _timeService.formatTo12Hr(todayTimes[0]));
-//     await prefs.setString('widget_p1_name', prayerNames[1]);
-//     await prefs.setString('widget_p1_time', _timeService.formatTo12Hr(todayTimes[1]));
-//     await prefs.setString('widget_p2_name', prayerNames[2]);
-//     await prefs.setString('widget_p2_time', _timeService.formatTo12Hr(todayTimes[2]));
-//     await prefs.setString('widget_p3_name', prayerNames[3]);
-//     await prefs.setString('widget_p3_time', _timeService.formatTo12Hr(todayTimes[3]));
-//     await prefs.setString('widget_p4_name', prayerNames[4]);
-//     await prefs.setString('widget_p4_time', _timeService.formatTo12Hr(todayTimes[4]));
-//     await prefs.setString('widget_p5_name', prayerNames[5]);
-//     await prefs.setString('widget_p5_time', _timeService.formatTo12Hr(todayTimes[5]));
-//     await prefs.setString('widget_hijri',     _timeService.hijriDateString());
-//     await prefs.setString('widget_gregorian', _timeService.gregorianDateString(_now));
-//     await prefs.setString('widget_kurdish',   _timeService.kurdishDateString(_now));
-//     await HomeWidget.updateWidget(androidName: 'PrayerWidgetProvider');
-//   }
-//
-//   // _updateWidget بانگ بکە لەدوای بارکردنی داتا:
-//   // لە _initAppData() دوای _loadSavedSettings()
-//   // لە _ticker (هەر ٣٠ چرکە یەک جار)
-// ══════════════════════════════════════════════════════════════════════════════
 
 class PrayerWidgetProvider : AppWidgetProvider() {
 
@@ -82,6 +49,55 @@ class PrayerWidgetProvider : AppWidgetProvider() {
             R.id.time_isha
         )
 
+        /**
+         * کاتژمێری ١٢-کاتژمێری لەگەڵ AM/PM (وەک "03:42 AM") دەگۆڕێت بۆ
+         * ژمارەی خولەک لە نیوەشەوەوە (٠ - ١٤٣٩). ئەگەر parse سەرکەوتوو
+         * نەبوو، -1 دەگەڕێنێتەوە (بۆ پاراستن لە crash).
+         */
+        private fun parseToMinutes(timeStr: String): Int {
+            return try {
+                val cleaned = timeStr.trim().uppercase(Locale.ROOT)
+                val isPM = cleaned.contains("PM")
+                val isAM = cleaned.contains("AM")
+                val numericPart = cleaned.replace("AM", "").replace("PM", "").trim()
+                val parts = numericPart.split(":")
+                var hour = parts[0].trim().toInt()
+                val minute = parts[1].trim().toInt()
+
+                if (isPM && hour != 12) hour += 12
+                if (isAM && hour == 12) hour = 0
+
+                hour * 60 + minute
+            } catch (e: Exception) {
+                -1
+            }
+        }
+
+        /**
+         * کاتی ئێستای سیستەم (لای ئامێر) دەگەڕێنێتەوە بە خولەک لە
+         * نیوەشەوەوە.
+         */
+        private fun currentMinutesOfDay(): Int {
+            val cal = Calendar.getInstance()
+            return cal.get(Calendar.HOUR_OF_DAY) * 60 + cal.get(Calendar.MINUTE)
+        }
+
+        /**
+         * بەپێی کاتی ئێستا، ئینێکسی یەکەم بانگی داهاتوو دەدۆزێتەوە.
+         * [times] دەبێت بەڕیزی فجر→عشاء بێت (0=فجر, 1=دهر, 2=عصر, 3=مغرب, 4=عشاء).
+         * ئەگەر هەموو کاتەکان تێپەربوون (دوای عشاء)، 0 (فجری بەیانی) دەگەڕێنێتەوە.
+         */
+        private fun calculateNextIndex(times: Array<String>): Int {
+            val nowMinutes = currentMinutesOfDay()
+            for (i in times.indices) {
+                val prayerMinutes = parseToMinutes(times[i])
+                if (prayerMinutes != -1 && nowMinutes < prayerMinutes) {
+                    return i
+                }
+            }
+            return 0
+        }
+
         fun updateAppWidget(
             context: Context,
             appWidgetManager: AppWidgetManager,
@@ -89,21 +105,31 @@ class PrayerWidgetProvider : AppWidgetProvider() {
         ) {
             val prefs = context.getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
 
-            // ── ئینێکسی بانگی داهاتوو — عەکسەوە بۆ RTL ─────────────────────────
-            val flutterNext = prefs.getString("flutter.widget_next_index", "0")?.toIntOrNull() ?: 0
-            val nextIndex = 4 - flutterNext
-
-            // ── ناو و کاتی پێنج بانگ — عەکسەوە بۆ RTL ─────────────────────────
+            // ── کاتژمێرە خاوەکراوەکان (لەگەڵ AM/PM) — بەڕیزی RTL‌ـی پیشاندان ──
             // Flutter p0=بەیانی...p4=خەوتنان — ئێمە عەکس دەخوێنینەوە بۆ ڕاستەوە-چەپ
+            val rawTimes = Array(5) { i ->
+                val flutterIndex = 4 - i
+                prefs.getString("flutter.widget_p${flutterIndex}_time", defaultTimes[i]) ?: defaultTimes[i]
+            }
+
+            // ── ناوی پێنج بانگ — عەکسەوە بۆ RTL ────────────────────────────────
             val names = Array(5) { i ->
                 val flutterIndex = 4 - i
                 prefs.getString("flutter.widget_p${flutterIndex}_name", defaultNames[i]) ?: defaultNames[i]
             }
-            val times = Array(5) { i ->
-                val flutterIndex = 4 - i
-                val raw = prefs.getString("flutter.widget_p${flutterIndex}_time", defaultTimes[i]) ?: defaultTimes[i]
+
+            // ── کاتژمێرە پاککراوەکان (بەبێ AM/PM) — بۆ پیشاندان ────────────────
+            val times = rawTimes.map { raw ->
                 raw.replace(Regex("(?i)\\s*(AM|PM|د\\.ن|پ\\.ن)\\s*"), "").trim()
-            }
+            }.toTypedArray()
+
+            // ── حسابکردنی nextIndex بەخۆی Kotlin، بەپێی کاتی ڕاستەقینەی سیستەم ──
+            // rawTimes بەڕیزی RTL‌ـن (i=0 → خەوتنان لای flutterIndex=4)، کەواتە
+            // پێویستە بگوازرێنەوە بۆ ڕیزی Flutter‌ـی ڕاستەقینە (0=فجر...4=عشاء)
+            // پێش ناردن بۆ calculateNextIndex.
+            val flutterOrderedTimes = Array(5) { i -> rawTimes[4 - i] }
+            val flutterNextIndex = calculateNextIndex(flutterOrderedTimes)
+            val nextIndex = 4 - flutterNextIndex
 
             // ── بەروارەکان ───────────────────────────────────────────────────
             val hijri     = prefs.getString("flutter.widget_hijri",     " ١٥ ذو الحجة ١٤٤٦") ?: ""
@@ -123,20 +149,16 @@ class PrayerWidgetProvider : AppWidgetProvider() {
                 views.setTextViewText(LBL_IDS[i],  names[i])
                 views.setTextViewText(TIME_IDS[i], times[i])
 
-                when {
-                    i == nextIndex -> {
-                        // بانگی داهاتوو — هایلایتی سەوز
-                        views.setInt(SLOT_IDS[i], "setBackgroundResource", R.drawable.widget_slot_next_bg)
-                        views.setTextColor(LBL_IDS[i],  0xFFFFFFFF.toInt())
-                        views.setTextColor(TIME_IDS[i], 0xFF66BB6A.toInt())
-                    }
-                    
-                    else -> {
-                        // بانگی دواتر — ئاسایی
-                        views.setInt(SLOT_IDS[i], "setBackgroundResource", 0)
-                        views.setTextColor(LBL_IDS[i],  0xFFFFFFFF.toInt())
-                        views.setTextColor(TIME_IDS[i], 0xFFFFFFFF.toInt())
-                    }
+                if (i == nextIndex) {
+                    // بانگی داهاتوو — هایلایتی سەوز
+                    views.setInt(SLOT_IDS[i], "setBackgroundResource", R.drawable.widget_slot_next_bg)
+                    views.setTextColor(LBL_IDS[i],  0xFFFFFFFF.toInt())
+                    views.setTextColor(TIME_IDS[i], 0xFF66BB6A.toInt())
+                } else {
+                    // بانگی تێپەڕیوو و دواتر — هەردووکیان بەهەمان شێوازی ئاسایی
+                    views.setInt(SLOT_IDS[i], "setBackgroundResource", 0)
+                    views.setTextColor(LBL_IDS[i],  0xCCFFFFFF.toInt())
+                    views.setTextColor(TIME_IDS[i], 0xFFFFFFFF.toInt())
                 }
             }
 
@@ -164,17 +186,7 @@ class PrayerWidgetProvider : AppWidgetProvider() {
             appWidgetManager.updateAppWidget(appWidgetId, views)
         }
 
-        fun triggerUpdate(context: Context) {
-    val appWidgetManager = AppWidgetManager.getInstance(context)
-    val widgetIds = appWidgetManager.getAppWidgetIds(
-        android.content.ComponentName(context, PrayerWidgetProvider::class.java)
-    )
-    for (id in widgetIds) {
-        updateAppWidget(context, appWidgetManager, id)
-    }
-}
-
         private val defaultNames = arrayOf("خەوتنان", "ئێوارە", "عەسر", "نیوەڕۆ", "بەیانی")
-        private val defaultTimes = arrayOf("٠٩:١٠", "٠٧:٢٢", "٠٤:٠٥", "١٢:٣٠", "٠٣:٤٢")
+        private val defaultTimes = arrayOf("09:10 PM", "07:22 PM", "04:05 PM", "12:30 PM", "03:42 AM")
     }
 }

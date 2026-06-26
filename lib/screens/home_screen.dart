@@ -877,7 +877,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
         child: Container(height: 1, color: const Color(0xFFFFFFFF)),
       ),
       actions: [
-        TextButton.icon(
+        TextButton(
           onPressed: () async {
             await HomeWidget.requestPinWidget(
                 androidName: 'PrayerWidgetProvider');
@@ -885,23 +885,31 @@ class _PrayerHomePageState extends State<PrayerHomePage>
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text(
-                  '📌 زیادکردنى ویدجت بۆ سەر شاشەى مۆبایل',
+                  '📌 زیادکردنى ویجت بۆ سەر شاشەى مۆبایل',
                   textAlign: TextAlign.center,
                 ),
                 backgroundColor: Color(0xFF1B5E20),
                 behavior: SnackBarBehavior.floating,
-                duration: Duration(seconds: 3),
+                duration: Duration(seconds: 7),
               ),
             );
           },
-          icon: Icon(Icons.add, color: _palette.secondary, size: 18),
-          label: const Text(
-            "ویدجت",
-            style: TextStyle(
-                color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
-          ),
           style: TextButton.styleFrom(
             padding: const EdgeInsets.symmetric(horizontal: 8),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.add, color: _palette.secondary, size: 18),
+              const SizedBox(width: 4),
+              const Text(
+                "ویجت",
+                style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold),
+              ),
+            ],
           ),
         ),
         Builder(
@@ -1001,7 +1009,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
           decoration: BoxDecoration(
             color: _palette.background,
             border: Border(
-              top: BorderSide(color: _palette.secondary.withOpacity(0.25)),
+              top: BorderSide(color: Colors.white.withOpacity(0.25)),
             ),
           ),
           child: Row(

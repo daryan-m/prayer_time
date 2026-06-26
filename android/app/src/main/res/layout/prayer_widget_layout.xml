@@ -6,231 +6,6 @@
     android:background="@drawable/widget_bg"
     android:padding="6dp">
 
-    <!-- قوبەی بەروارەکان — لەسەرەوەی کاتەکانی بانگ -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:background="@drawable/widget_card_bg"
-        android:paddingTop="2dp"
-        android:paddingBottom="2dp"
-        android:paddingStart="4dp"
-        android:paddingEnd="4dp"
-        android:layout_marginBottom="3dp">
-
-        <TextView
-            android:id="@+id/txt_hijri"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text=" ١٥ ذو الحجة ١٤٤٦"
-            android:textColor="#FFD700"
-            android:textSize="13sp"
-            android:gravity="center"
-            android:maxLines="2"
-            android:ellipsize="none" />
-
-        <TextView
-            android:layout_width="0.5dp"
-            android:layout_height="match_parent"
-            android:background="#52FFFFFF"
-            android:layout_marginTop="1dp"
-            android:layout_marginBottom="2dp" />
-
-        <TextView
-            android:id="@+id/txt_gregorian"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text=" ٢٠٢٥/٠٦/١٣"
-            android:textColor="#64B5F6"
-            android:textSize="13sp"
-            android:gravity="center"
-            android:maxLines="2"
-            android:ellipsize="none" />
-
-        <TextView
-            android:layout_width="0.5dp"
-            android:layout_height="match_parent"
-            android:background="#52FFFFFF"
-            android:layout_marginTop="1dp"
-            android:layout_marginBottom="2dp" />
-
-        <TextView
-            android:id="@+id/txt_kurdish"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text=" ٢٣ گەلاوێژ"
-            android:textColor="#81C784"
-            android:textSize="13sp"
-            android:gravity="center"
-            android:maxLines="2"
-            android:ellipsize="none" />
-
-    </LinearLayout>
-
-    <!-- پێنج کاتی بانگ — ئاسۆیی -->
-    <LinearLayout
-        android:id="@+id/arch_section"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:orientation="horizontal"
-        android:background="@drawable/widget_arch_bg"
-        android:paddingTop="1dp"
-        android:paddingBottom="1dp"
-        android:paddingStart="2dp"
-        android:paddingEnd="2dp"
-        android:gravity="center_vertical"
-        android:layoutDirection="rtl">
-
-        <!-- خەوتنان -->
-        <LinearLayout
-            android:id="@+id/slot_isha"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:padding="1dp">
-            <TextView
-                android:id="@+id/lbl_isha"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="خەوتنان"
-                android:textColor="#CCFFFFFF"
-                android:textSize="14sp"
-                android:gravity="center" />
-            <TextView
-                android:id="@+id/time_isha"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="٠٩:١٠"
-                android:textColor="#FFFFFF"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                android:gravity="center"
-                android:layout_marginTop="2dp" />
-        </LinearLayout>
-
-
-
-        <!-- ئێوارە -->
-        <LinearLayout
-            android:id="@+id/slot_maghrib"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:padding="1dp">
-            <TextView
-                android:id="@+id/lbl_maghrib"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="ئێوارە"
-                android:textColor="#CCFFFFFF"
-                android:textSize="14sp"
-                android:gravity="center" />
-            <TextView
-                android:id="@+id/time_maghrib"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="٠٧:٢٢"
-                android:textColor="#FFFFFF"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                android:gravity="center"
-                android:layout_marginTop="2dp" />
-        </LinearLayout>
-
-        <!-- عەسر -->
-        <LinearLayout
-            android:id="@+id/slot_asr"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:padding="1dp">
-            <TextView
-                android:id="@+id/lbl_asr"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="عەسر"
-                android:textColor="#CCFFFFFF"
-                android:textSize="14sp"
-                android:gravity="center" />
-            <TextView
-                android:id="@+id/time_asr"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="٠٤:٠٥"
-                android:textColor="#FFFFFF"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                android:gravity="center"
-                android:layout_marginTop="2dp" />
-        </LinearLayout>
-
-        <!-- نیوەڕۆ -->
-        <LinearLayout
-            android:id="@+id/slot_dhuhr"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:padding="1dp">
-            <TextView
-                android:id="@+id/lbl_dhuhr"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="نیوەڕۆ"
-                android:textColor="#CCFFFFFF"
-                android:textSize="14sp"
-                android:gravity="center" />
-            <TextView
-                android:id="@+id/time_dhuhr"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="١٢:٣٠"
-                android:textColor="#FFFFFF"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                android:gravity="center"
-                android:layout_marginTop="2dp" />
-        </LinearLayout>
-
-        <!-- بەیانی -->
-        <LinearLayout
-            android:id="@+id/slot_fajr"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:padding="1dp">
-            <TextView
-                android:id="@+id/lbl_fajr"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="بەیانی"
-                android:textColor="#CCFFFFFF"
-                android:textSize="14sp"
-                android:gravity="center" />
-            <TextView
-                android:id="@+id/time_fajr"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="٠٣:٤٢"
-                android:textColor="#FFFFFF"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                android:gravity="center"
-                android:layout_marginTop="2dp" />
-        </LinearLayout>    </LinearLayout>
 
     <!-- ئایکۆنی قورئان — ئاسۆیی لەژێر کاتەکان -->
     <LinearLayout
@@ -253,5 +28,241 @@
             android:clickable="true" />
 
     </LinearLayout>
+
+
+    <!-- پێنج کاتی بانگ — ئاسۆیی -->
+    <LinearLayout
+        android:id="@+id/arch_section"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="horizontal"
+        android:background="@drawable/widget_arch_bg"
+        android:paddingTop="2dp"
+        android:paddingBottom="2dp"
+        android:paddingStart="2dp"
+        android:paddingEnd="2dp"
+        android:gravity="center_vertical"
+        android:layoutDirection="rtl">
+
+        <!-- خەوتنان -->
+        <LinearLayout
+            android:id="@+id/slot_isha"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:paddingTop="0dp"
+            android:paddingBottom="0dp"
+            <TextView
+                android:id="@+id/lbl_isha"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="خەوتنان"
+                android:textColor="#CCFFFFFF"
+                android:textSize="14sp"
+                android:gravity="center" />
+            <TextView
+                android:id="@+id/time_isha"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="٠٩:١٠"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:gravity="center"
+                android:layout_marginTop="0dp" />
+        </LinearLayout>
+
+
+
+        <!-- ئێوارە -->
+        <LinearLayout
+            android:id="@+id/slot_maghrib"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:paddingTop="0dp"
+            android:paddingBottom="0dp"
+            <TextView
+                android:id="@+id/lbl_maghrib"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="ئێوارە"
+                android:textColor="#CCFFFFFF"
+                android:textSize="14sp"
+                android:gravity="center" />
+            <TextView
+                android:id="@+id/time_maghrib"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="٠٧:٢٢"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:gravity="center"
+                android:layout_marginTop="0dp" />
+        </LinearLayout>
+
+        <!-- عەسر -->
+        <LinearLayout
+            android:id="@+id/slot_asr"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:paddingTop="0dp"
+            android:paddingBottom="0dp"
+            <TextView
+                android:id="@+id/lbl_asr"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="عەسر"
+                android:textColor="#CCFFFFFF"
+                android:textSize="14sp"
+                android:gravity="center" />
+            <TextView
+                android:id="@+id/time_asr"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="٠٤:٠٥"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:gravity="center"
+                android:layout_marginTop="0dp" />
+        </LinearLayout>
+
+        <!-- نیوەڕۆ -->
+        <LinearLayout
+            android:id="@+id/slot_dhuhr"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:paddingTop="0dp"
+            android:paddingBottom="0dp"
+            <TextView
+                android:id="@+id/lbl_dhuhr"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="نیوەڕۆ"
+                android:textColor="#CCFFFFFF"
+                android:textSize="14sp"
+                android:gravity="center" />
+            <TextView
+                android:id="@+id/time_dhuhr"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="١٢:٣٠"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:gravity="center"
+                android:layout_marginTop="0dp" />
+        </LinearLayout>
+
+        <!-- بەیانی -->
+        <LinearLayout
+            android:id="@+id/slot_fajr"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+           android:paddingTop="0dp"
+           android:paddingBottom="0dp"
+            <TextView
+                android:id="@+id/lbl_fajr"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="بەیانی"
+                android:textColor="#CCFFFFFF"
+                android:textSize="14sp"
+                android:gravity="center" />
+            <TextView
+                android:id="@+id/time_fajr"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="٠٣:٤٢"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:gravity="center"
+                android:layout_marginTop="0dp" />
+        </LinearLayout>    
+    </LinearLayout>
+
+
+    <!-- قوبەی بەروارەکان — لەسەرەوەی کاتەکانی بانگ -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="@drawable/widget_card_bg"
+        android:paddingTop="2dp"
+        android:paddingBottom="2dp"
+        android:paddingStart="4dp"
+        android:paddingEnd="4dp"
+        android:layout_marginBottom="3dp">
+
+        <TextView
+            android:id="@+id/txt_hijri"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text=" ١٥ ذو الحجة ١٤٤٦"
+            android:textColor="#FFD700"
+            android:textSize="12sp"
+            android:gravity="center"
+            android:maxLines="2"
+            android:ellipsize="none" />
+
+        <TextView
+            android:layout_width="0.5dp"
+            android:layout_height="match_parent"
+            android:background="#52FFFFFF"
+            android:layout_marginTop="1dp"
+            android:layout_marginBottom="2dp" />
+
+        <TextView
+            android:id="@+id/txt_gregorian"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text=" ٢٠٢٥/٠٦/١٣"
+            android:textColor="#64B5F6"
+            android:textSize="12sp"
+            android:gravity="center"
+            android:maxLines="2"
+            android:ellipsize="none" />
+
+        <TextView
+            android:layout_width="0.5dp"
+            android:layout_height="match_parent"
+            android:background="#52FFFFFF"
+            android:layout_marginTop="1dp"
+            android:layout_marginBottom="2dp" />
+
+        <TextView
+            android:id="@+id/txt_kurdish"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text=" ٢٣ گەلاوێژ"
+            android:textColor="#81C784"
+            android:textSize="12sp"
+            android:gravity="center"
+            android:maxLines="2"
+            android:ellipsize="none" />
+
+    </LinearLayout>
+
+    
 
 </LinearLayout>

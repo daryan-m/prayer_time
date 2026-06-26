@@ -5,6 +5,8 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.util.Log
+import android.appwidget.AppWidgetManager
+import android.content.ComponentName
 
 /**
  * AthanAlarmReceiver — AlarmManager کاتی بانگ بەرپا دەکات
@@ -42,7 +44,21 @@ class AthanAlarmReceiver : BroadcastReceiver() {
             context.startService(serviceIntent)
         }
 
-        PrayerWidgetProvider.triggerUpdate(context)
-
+        try {
+            updateWidget(context)
+        } catch (e: Exception) {
+            Log.e(TAG, "Widget update failed (Athan not affected)", e)
+        }
     }
+
+    private fun updateWidget(context: Context) {
+        val appWidgetManager = AppWidgetManager.getInstance(context)
+        val appWidgetIds = appWidgetManager.getAppWidgetIds(
+            ComponentName(context, PrayerWidgetProvider::class.java)
+        )
+        for (appWidgetId in appWidgetIds) {
+            PrayerWidgetProvider.updateAppWidget(context, appWidgetManager, appWidgetId)
+        }
+    }
+
 }
