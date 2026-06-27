@@ -1,5 +1,4 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:home_widget/home_widget.dart';
 import 'prayer_service.dart';
@@ -7,8 +6,6 @@ import 'package:intl/intl.dart';
 
 class HomeWidgetService {
   static const String _androidWidgetName = 'PrayerWidgetProvider';
-  static const _widgetAlarmChannel =
-      MethodChannel('com.daryan.prayer/widget_alarm');
 
   int _getNextPrayerIndex(PrayerTimes times, DateTime now) {
     if (now.isBefore(times.fajr)) return 0;
@@ -60,35 +57,8 @@ class HomeWidgetService {
 
       await HomeWidget.updateWidget(androidName: _androidWidgetName);
 
-      // کاتەکانی بانگ بۆ AlarmManager دادەنرێت — بەبێ دەنگ تەنها بۆ ویدجت
-      await _scheduleWidgetAlarms(prayerTimes);
     } catch (e) {
       debugPrint("❌ HomeWidgetService update error: $e");
-    }
-  }
-
-  Future<void> _scheduleWidgetAlarms(PrayerTimes prayerTimes) async {
-    final prayers = [
-      prayerTimes.fajr,
-      prayerTimes.dhuhr,
-      prayerTimes.asr,
-      prayerTimes.maghrib,
-      prayerTimes.isha,
-    ];
-
-    for (int i = 0; i < prayers.length; i++) {
-      DateTime t = prayers[i];
-      if (t.isBefore(DateTime.now())) {
-        t = t.add(const Duration(days: 1));
-      }
-      try {
-        await _widgetAlarmChannel.invokeMethod('scheduleWidgetAlarm', {
-          'id': i,
-          'scheduledTime': t.millisecondsSinceEpoch,
-        });
-      } catch (e) {
-        debugPrint("❌ scheduleWidgetAlarm $i error: $e");
-      }
     }
   }
 }

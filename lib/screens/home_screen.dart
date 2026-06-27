@@ -21,6 +21,7 @@ import '../utils/constants.dart';
 import '../main.dart';
 import 'package:bang/quran/quran_screen.dart';
 import 'package:home_widget/home_widget.dart';
+import '../services/prayer_times_db.dart';
 
 // ==================== HOME SCREEN ====================
 
@@ -150,6 +151,12 @@ class _PrayerHomePageState extends State<PrayerHomePage>
       _prayerTimesFuture = _prayerDataService.getPrayerTimes(currentCity, _now);
     });
     _applySystemUiColors();
+
+    //سێ دێرى خوارەوە تایبەتە بە ویدجتى شاشە
+    final db = PrayerTimesDatabase();
+    if (!await db.isCitySaved(currentCity)) {
+      await db.saveCityPrayerTimes(currentCity);
+    }
 
     if (savedPrayers != null) {
       for (final prayerName in savedPrayers) {
@@ -806,6 +813,8 @@ class _PrayerHomePageState extends State<PrayerHomePage>
                 setState(() => currentCity = city);
                 _refreshData();
                 _saveSettings();
+                // ئەم دێرەى خوارەوە پەیوەندى بە ویدجتى شاشەوە هەیە
+                PrayerTimesDatabase().saveCityPrayerTimes(city);
               },
               selectedThemeName: selectedThemeName,
               primaryColor: primaryColor,

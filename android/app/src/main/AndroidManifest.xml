@@ -45,17 +45,19 @@
         </activity>
 
 
-
-        <receiver
-            android:name=".PrayerWidgetProvider"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-            </intent-filter>
-            <meta-data
-                 android:name="android.appwidget.provider"
-                android:resource="@xml/prayer_widget_info" />
-        </receiver>
+         // ئەم ریسیڤەرە پەیوەندى بە ویدجتەوە هەیە
+       <receiver
+    android:name=".PrayerWidgetProvider"
+    android:exported="true">
+    <intent-filter>
+        <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+        <action android:name="com.daryan.prayer.PRAYER_ALARM" />
+        <action android:name="com.daryan.prayer.MIDNIGHT_ALARM" />
+    </intent-filter>
+    <meta-data
+        android:name="android.appwidget.provider"
+        android:resource="@xml/prayer_widget_info" />
+</receiver>
 
 
         <!-- ── flutter_local_notifications ── -->
@@ -76,11 +78,6 @@
         <!-- ── AthanAlarmReceiver: AlarmManager trigger ── -->
         <receiver
             android:name=".AthanAlarmReceiver"
-            android:exported="false" />
-
-            <!-- ── WidgetAlarmReceiver: ئەپدەیتکردنی ویدجت ── -->
-        <receiver
-            android:name=".WidgetAlarmReceiver"
             android:exported="false" />
 
         <!-- ── BootReceiver: دووبارە خشتەکردن پاش ریستارت ── -->

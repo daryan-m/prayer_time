@@ -14,7 +14,9 @@
         android:orientation="horizontal"
         android:background="@drawable/widget_card_bg"
         android:layout_marginTop="0dp"
-        android:layout_marginBottom="2dp">
+        android:layout_marginBottom="2dp"
+        android:layout_marginStart="0dp"
+        android:layout_marginEnd="0dp">
 
         <TextView
             android:id="@+id/btn_quran"
@@ -209,7 +211,10 @@
         android:paddingBottom="2dp"
         android:paddingStart="4dp"
         android:paddingEnd="4dp"
-        android:layout_marginBottom="0dp">
+        android:layout_marginTop="0dp"
+        android:layout_marginBottom="0dp"
+        android:layout_marginStart="0dp"
+        android:layout_marginEnd="0dp">
 
         <TextView
             android:id="@+id/txt_hijri"

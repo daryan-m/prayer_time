@@ -97,35 +97,6 @@ class MainActivity : FlutterActivity() {
         }
     }
 
-      //ئەمەى خوارەوە تا ٢٨ دێر هى ویدجتەکەیە
-
-    MethodChannel(
-        flutterEngine.dartExecutor.binaryMessenger,
-        "com.daryan.prayer/widget_alarm"
-    ).setMethodCallHandler { call, result ->
-        when (call.method) {
-            "scheduleWidgetAlarm" -> {
-                try {
-                    val id          = call.argument<Int>("id")!!
-                    val scheduledMs = call.argument<Long>("scheduledTime")!!
-                    scheduleWidgetAlarm(id, scheduledMs)
-                    result.success(true)
-                } catch (e: Exception) {
-                    result.error("WIDGET_SCHEDULE_ERROR", e.message, null)
-                }
-            }
-            "cancelWidgetAlarm" -> {
-                try {
-                    val id = call.argument<Int>("id")!!
-                    cancelWidgetAlarm(id)
-                    result.success(true)
-                } catch (e: Exception) {
-                    result.error("WIDGET_CANCEL_ERROR", e.message, null)
-                }
-            }
-            else -> result.notImplemented()
-        }
-    }
 
     MethodChannel(
         flutterEngine.dartExecutor.binaryMessenger,
@@ -255,33 +226,6 @@ override fun onNewIntent(intent: Intent) {
         }
 
         stopService(Intent(this, AthanService::class.java))
-    }
-
-    //ئەمە هى ویدجتەکەیە ٢٣ دێرە
-
-    private fun scheduleWidgetAlarm(id: Int, scheduledMs: Long) {
-        val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        val intent = Intent(this, WidgetAlarmReceiver::class.java)
-        val flags = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        val pendingIntent = PendingIntent.getBroadcast(this, id + 1000, intent, flags)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            if (alarmManager.canScheduleExactAlarms()) {
-                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, scheduledMs, pendingIntent)
-            } else {
-                alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, scheduledMs, pendingIntent)
-            }
-        } else {
-            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, scheduledMs, pendingIntent)
-        }
-    }
-
-    private fun cancelWidgetAlarm(id: Int) {
-        val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        val intent = Intent(this, WidgetAlarmReceiver::class.java)
-        val flags = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        val pendingIntent = PendingIntent.getBroadcast(this, id + 1000, intent, flags)
-        alarmManager.cancel(pendingIntent)
-        pendingIntent.cancel()
     }
 
 }
