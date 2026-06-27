@@ -78,6 +78,11 @@
             android:name=".AthanAlarmReceiver"
             android:exported="false" />
 
+            <!-- ── WidgetAlarmReceiver: ئەپدەیتکردنی ویدجت ── -->
+        <receiver
+            android:name=".WidgetAlarmReceiver"
+            android:exported="false" />
+
         <!-- ── BootReceiver: دووبارە خشتەکردن پاش ریستارت ── -->
         <receiver
             android:name=".BootReceiver"

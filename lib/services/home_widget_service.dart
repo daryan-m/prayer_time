@@ -1,33 +1,14 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:home_widget/home_widget.dart';
 import 'prayer_service.dart';
 import 'package:intl/intl.dart';
 
-// ══════════════════════════════════════════════════════════════════════════════
-// HomeWidgetService
-//
-// ئەم سرڤیسە بەرپرسیارە لە نووسینی داتای کاتی بانگ، بەروار، و ناوی شار
-// بۆ SharedPreferences، پاشان داوای نوێکردنەوەی widget ـی شاشەی هۆمی مۆبایل
-// دەکات (PrayerWidgetProvider.kt لای Android).
-//
-// بەکارهێنان لە home_screen.dart:
-//
-//   import '../services/home_widget_service.dart';
-//
-//   final HomeWidgetService _homeWidgetService = HomeWidgetService();
-//
-//   // دوای بارکردنی کاتەکانی بانگ:
-//   await _homeWidgetService.update(
-//     prayerTimes: prayerTimes,
-//     todayTimes: todayTimes,
-//     now: _now,
-//     timeService: _timeService,
-//   );
-// ══════════════════════════════════════════════════════════════════════════════
-
 class HomeWidgetService {
   static const String _androidWidgetName = 'PrayerWidgetProvider';
+  static const _widgetAlarmChannel =
+      MethodChannel('com.daryan.prayer/widget_alarm');
 
   int _getNextPrayerIndex(PrayerTimes times, DateTime now) {
     if (now.isBefore(times.fajr)) return 0;
@@ -38,13 +19,6 @@ class HomeWidgetService {
     return 0;
   }
 
-  /// داتای کاتی بانگ، بەروار، و شار دەنووسێت بۆ SharedPreferences
-  /// و widget ـی شاشەی هۆمی مۆبایل نوێ دەکاتەوە.
-  ///
-  /// [prayerTimes]  — کاتەکانی بانگی ئەمڕۆ (لە PrayerDataService)
-  /// [todayTimes]   — لیستی ٦ کاتی بانگ بە فۆرماتی "HH:mm" (بەیانی،خۆرهەڵاتن،نیوەڕۆ،عەسر،ئێوارە،خەوتنان)
-  /// [now]          — کاتی ئێستا
-  /// [timeService]  — TimeService ـی هەمان ئەپ (بۆ فۆرماتکردنی کات و بەروار)
   Future<void> update({
     required PrayerTimes prayerTimes,
     required DateTime now,
@@ -85,8 +59,36 @@ class HomeWidgetService {
           'widget_kurdish', timeService.kurdishDateString(now));
 
       await HomeWidget.updateWidget(androidName: _androidWidgetName);
+
+      // کاتەکانی بانگ بۆ AlarmManager دادەنرێت — بەبێ دەنگ تەنها بۆ ویدجت
+      await _scheduleWidgetAlarms(prayerTimes);
     } catch (e) {
       debugPrint("❌ HomeWidgetService update error: $e");
+    }
+  }
+
+  Future<void> _scheduleWidgetAlarms(PrayerTimes prayerTimes) async {
+    final prayers = [
+      prayerTimes.fajr,
+      prayerTimes.dhuhr,
+      prayerTimes.asr,
+      prayerTimes.maghrib,
+      prayerTimes.isha,
+    ];
+
+    for (int i = 0; i < prayers.length; i++) {
+      DateTime t = prayers[i];
+      if (t.isBefore(DateTime.now())) {
+        t = t.add(const Duration(days: 1));
+      }
+      try {
+        await _widgetAlarmChannel.invokeMethod('scheduleWidgetAlarm', {
+          'id': i,
+          'scheduledTime': t.millisecondsSinceEpoch,
+        });
+      } catch (e) {
+        debugPrint("❌ scheduleWidgetAlarm $i error: $e");
+      }
     }
   }
 }

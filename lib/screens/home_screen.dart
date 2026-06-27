@@ -1,4 +1,3 @@
-import 'package:bang/services/home_widget_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:async';
@@ -36,7 +35,6 @@ class _PrayerHomePageState extends State<PrayerHomePage>
     with TickerProviderStateMixin {
   final TimeService _timeService = TimeService();
   final PrayerDataService _prayerDataService = PrayerDataService();
-  final HomeWidgetService _homeWidgetService = HomeWidgetService();
   final AudioPlayer _athanPlayer = AudioPlayer();
 
   static const _athanChannel = MethodChannel('com.daryan.prayer/athan');
@@ -120,11 +118,6 @@ class _PrayerHomePageState extends State<PrayerHomePage>
       DateFormat('HH:mm').format(pt.maghrib),
       DateFormat('HH:mm').format(pt.isha),
     ];
-    await _homeWidgetService.update(
-      prayerTimes: pt,
-      now: _now,
-      timeService: _timeService,
-    );
 
     Future.delayed(Duration.zero, _checkForUpdate);
     _updateCheckTimer =
@@ -605,11 +598,6 @@ class _PrayerHomePageState extends State<PrayerHomePage>
         DateFormat('HH:mm').format(pt.maghrib),
         DateFormat('HH:mm').format(pt.isha),
       ];
-      _homeWidgetService.update(
-        prayerTimes: pt,
-        now: _now,
-        timeService: _timeService,
-      );
     });
   }
 
