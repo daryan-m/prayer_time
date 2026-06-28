@@ -326,7 +326,7 @@ class PrayerWidgetProvider : AppWidgetProvider() {
                 val m = parts[1].toInt()
                 if (isAfternoon && h < 12) h += 12
                 val h12 = if (h % 12 == 0) 12 else h % 12
-                "${toKurdishNums(h12.toString().padStart(2, '0'))}:${toKurdishNums(m.toString().padStart(2, '0'))} $period"
+                "${toKurdishNums(h12.toString().padStart(2, '0'))}:${toKurdishNums(m.toString().padStart(2, '0'))}"
             } catch (e: Exception) { timeStr }
         }
 
