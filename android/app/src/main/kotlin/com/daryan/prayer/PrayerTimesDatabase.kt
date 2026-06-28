@@ -11,6 +11,17 @@ import java.util.Calendar
 //
 // کاتەکانی بانگ لە SQLite دەخوێنێتەوە کە Flutter پێشتر ذەخیرەی کردووە.
 // بەبێ پێویستی بە Flutter کار دەکات.
+//
+// ── چاککراوەکان ──────────────────────────────────────────────────────────────
+//  ١) getPrayerTimeMillis ئێستا (year, month, day)ـیش وەردەگرێت، بۆیە دەتوانرێت
+//     کاتی بانگی بەیانیی ڕۆژی دواتر (دوای بانگی خەوتنان) بەدروستی بژێردرێت،
+//     نەک هەمیشە بەروارى "ئەمڕۆ"ی سیستەم بەکاربێت.
+//  ٢) "نیوەڕۆ" چیتر بەزۆرى نەکراوەتە "دوای نیوەڕۆ" (forcePm). ئێستا یاسای
+//     ڕاستەقینە بەکاردێت: کاتژمێر ١٢ی دوای بانگی بەیانی (= نیوەڕۆی ڕاستەقینەی
+//     ئەو ڕۆژە) دەکرێتە پیوەر؛ ئەگەر کاتژمێری خوێندراو لە ١٢ کەمتر بوو پێش
+//     نیوەڕۆیە (بەبێ زیادکردن)، ئەگەرنا (١٢) دوای نیوەڕۆیە. پێشتر هەر کاتێک
+//     کاتی ڕاستەقینەی "نیوەڕۆ" دەهاتە بۆ خوار کاتژمێر ١٢ (وەک ١١:٥٨)، کۆدی
+//     کۆن دەیکردە ٢٣:٥٨ کە بەتەواوی هەڵە بوو.
 // ══════════════════════════════════════════════════════════════════════════════
 
 object PrayerTimesDatabase {
@@ -71,20 +82,56 @@ object PrayerTimesDatabase {
         }
     }
 
-    /// millisecond ی کاتی بانگ دەگەڕێنێتەوە بۆ AlarmManager
-    fun getPrayerTimeMillis(timeStr: String, isAfternoon: Boolean = false): Long {
+    /**
+     * کاتژمێری 12-سەعەتی (بەبێ AM/PM لەناو داتاکەدا) دەگۆڕێت بۆ کاتژمێری 24-سەعەتی.
+     *
+     * یاسا: کاتژمێر ١٢ی دوای بانگی بەیانی (= نیوەڕۆی ڕاستەقینەی ئەو ڕۆژە) پیوەرە:
+     *   • کاتژمێری خوێندراو < 12  → پێش ئەو ١٢ـیە دێت لەو ڕۆژەدا → پێش نیوەڕۆیە (AM)، بەبێ زیادکردن.
+     *   • کاتژمێری خوێندراو == 12 → یا لەسەر نیوەڕۆیە یا تازە پەڕیوەتە دوای نیوەڕۆ
+     *                              → لە سیستەمی 24-سعەتیدا خۆی وەک خۆی دەمێنێتەوە (هیچ زیادکردنێک نایەویت).
+     *   • forcePm تەنها بۆ ئەو بانگانە بەکاردێت کە بەدڵنیاییەوە هەرگیز پێش
+     *     نیوەڕۆ نایەن (عەسر، مەغریب، خەوتنان)؛ بۆ ئەوانە، ئەگەر کاتژمێری
+     *     خوێندراو < 12 بوو، ١٢ زیاد دەکرێت چونکە بەدڵنیاییەوە دوای نیوەڕۆن.
+     */
+    private fun resolveHour24(rawHour: Int, forcePm: Boolean): Int {
+        if (rawHour == 12) return 12
+        return if (forcePm) rawHour + 12 else rawHour
+    }
+
+    /**
+     * کاتی بانگێک دەگۆڕێت بۆ میلی چرکە (epoch millis) بۆ AlarmManager و بەراوردکردن.
+     *
+     * @param timeStr  کاتەکە بە شێوەی "HH:mm" (کاتژمێری 12-سەعەتی بەبێ AM/PM)
+     * @param forcePm  true تەنها بۆ عەسر/مەغریب/خەوتنان. بۆ بەیانی، خۆرهەڵاتن،
+     *                 و **نیوەڕۆ**، false بەکاربێنە (سەیری ڕاڤەی resolveHour24 بکە).
+     * @param year/month/day  بەرواری ئەو ڕۆژەی کاتەکە بۆی حیساب دەکرێت. ئەگەر
+     *                 نەدرێن، بەرواری ئەمڕۆ (سیستەم) بەکاردێت.
+     */
+    fun getPrayerTimeMillis(
+        timeStr: String,
+        forcePm: Boolean = false,
+        year: Int = -1,
+        month: Int = -1,
+        day: Int = -1
+    ): Long {
         return try {
             val parts = timeStr.split(":")
-            var hour = parts[0].toInt()
+            val rawHour = parts[0].toInt()
             val minute = parts[1].toInt()
-            if (isAfternoon && hour < 12) hour += 12
+            val hour24 = resolveHour24(rawHour, forcePm)
+
             val cal = Calendar.getInstance()
-            cal.set(Calendar.HOUR_OF_DAY, hour)
-            cal.set(Calendar.MINUTE, minute)
-            cal.set(Calendar.SECOND, 0)
+            if (year > 0 && month in 1..12 && day in 1..31) {
+                cal.set(year, month - 1, day, hour24, minute, 0)
+            } else {
+                cal.set(Calendar.HOUR_OF_DAY, hour24)
+                cal.set(Calendar.MINUTE, minute)
+                cal.set(Calendar.SECOND, 0)
+            }
             cal.set(Calendar.MILLISECOND, 0)
             cal.timeInMillis
         } catch (e: Exception) {
+            Log.e(TAG, "getPrayerTimeMillis error for '$timeStr': ${e.message}")
             -1L
         }
     }

@@ -11,7 +11,6 @@ import android.widget.RemoteViews
 import android.util.Log
 import java.time.LocalDate
 import java.time.chrono.HijrahDate
-import java.time.format.DateTimeFormatter
 import java.util.Calendar
 
 class PrayerWidgetProvider : AppWidgetProvider() {
@@ -76,6 +75,51 @@ class PrayerWidgetProvider : AppWidgetProvider() {
         )
         private val PRAYER_NAMES = arrayOf("بەیانی", "نیوەڕۆ", "عەسر", "ئێوارە", "خەوتنان")
 
+        // ── چاککراوە: "نیوەڕۆ" چیتر بەزۆرى نەکراوەتە "دوای نیوەڕۆ" ─────────
+        // (بەیانی، نیوەڕۆ، عەسر، مەغریب، خەوتنان) — تەنها عەسر/مەغریب/خەوتنان
+        // بەدڵنیاییەوە "دوای نیوەڕۆ"ن. نیوەڕۆ بەپێی یاسای ١٢ی دوای بانگی
+        // بەیانی خۆی دیاری دەکرێت (سەیری PrayerTimesDatabase.resolveHour24 بکە).
+        private val FORCE_PM = booleanArrayOf(false, false, true, true, true)
+
+        /// زانیاری بانگی داهاتوو — ئەگەر خەوتنانی ئەمڕۆ تێپەڕیوە، خۆکارانە
+        /// دەگەڕێتەوە بۆ بانگی بەیانیی ڕۆژی دواتر (بە مانگ/ڕۆژی ڕاستەقینە)
+        private data class NextPrayerInfo(
+            val index: Int,
+            val timeMillis: Long,
+            val timeStr: String,
+            val isTomorrow: Boolean
+        )
+
+        private fun findNextPrayer(
+            context: Context, city: String, today: LocalDate, now: Long
+        ): NextPrayerInfo? {
+            val todayPrayers = PrayerTimesDatabase.getPrayerTimesForDay(
+                context, city, today.monthValue, today.dayOfMonth
+            ) ?: return null
+            val rawTimes = arrayOf(
+                todayPrayers.fajr, todayPrayers.dhuhr, todayPrayers.asr,
+                todayPrayers.maghrib, todayPrayers.isha
+            )
+
+            for (i in 0..4) {
+                val ms = PrayerTimesDatabase.getPrayerTimeMillis(
+                    rawTimes[i], FORCE_PM[i], today.year, today.monthValue, today.dayOfMonth
+                )
+                if (now < ms) return NextPrayerInfo(i, ms, rawTimes[i], isTomorrow = false)
+            }
+
+            // ── خەوتنانی ئەمڕۆ تێپەڕیوە: بانگی بەیانیی سبەی دەبێتە "داهاتوو" ──
+            val tomorrow = today.plusDays(1)
+            val tomorrowPrayers = PrayerTimesDatabase.getPrayerTimesForDay(
+                context, city, tomorrow.monthValue, tomorrow.dayOfMonth
+            ) ?: return null
+            val ms = PrayerTimesDatabase.getPrayerTimeMillis(
+                tomorrowPrayers.fajr, forcePm = false,
+                year = tomorrow.year, month = tomorrow.monthValue, day = tomorrow.dayOfMonth
+            )
+            return NextPrayerInfo(0, ms, tomorrowPrayers.fajr, isTomorrow = true)
+        }
+
         fun updateAppWidget(context: Context, appWidgetManager: AppWidgetManager, appWidgetId: Int) {
             val prefs = context.getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
             val city = prefs.getString("flutter.selectedCity", "هەولێر") ?: "هەولێر"
@@ -103,30 +147,28 @@ class PrayerWidgetProvider : AppWidgetProvider() {
                 prayers.fajr, prayers.dhuhr, prayers.asr,
                 prayers.maghrib, prayers.isha
             )
-            val isAfternoon = booleanArrayOf(false, true, true, true, true)
 
-            // ── بانگی داهاتوو دەستنیشان دەکات ────────────────────────────
+            // ── بانگی داهاتوو دەستنیشان دەکات (لەگەڵ سەرژمێرکردنی دوای خەوتنان) ──
             val now = System.currentTimeMillis()
-            var nextIndex = 4
-            for (i in 0..4) {
-                val ms = PrayerTimesDatabase.getPrayerTimeMillis(rawTimes[i], isAfternoon[i])
-                if (now < ms) { nextIndex = i; break }
-            }
+            val next = findNextPrayer(context, city, today, now)
 
             for (i in 0..4) {
                 views.setTextViewText(LBL_IDS[i], PRAYER_NAMES[i])
-                views.setTextViewText(TIME_IDS[i], formatTime(rawTimes[i], isAfternoon[i]))
-                when {
-                    i == nextIndex -> {
-                        views.setInt(SLOT_IDS[i], "setBackgroundResource", R.drawable.widget_slot_next_bg)
-                        views.setTextColor(LBL_IDS[i], 0xFFFFFFFF.toInt())
-                        views.setTextColor(TIME_IDS[i], 0xFF66BB6A.toInt())
-                    }
-                    else -> {
-                        views.setInt(SLOT_IDS[i], "setBackgroundResource", 0)
-                        views.setTextColor(LBL_IDS[i], 0xFFFFFFFF.toInt())
-                        views.setTextColor(TIME_IDS[i], 0xFFFFFFFF.toInt())
-                    }
+
+                // ئەگەر بانگی بەیانی پیشاندراوە بەهۆی تێپەڕینی خەوتنانی ئەمڕۆ،
+                // کاتی بانگی بەیانیی سبەی پیشان بدە نەک کاتی ئەمڕۆی پێشووتر تێپەڕیو
+                val showTomorrowFajr = (i == 0 && next?.isTomorrow == true)
+                val timeForDisplay = if (showTomorrowFajr) next!!.timeStr else rawTimes[i]
+                views.setTextViewText(TIME_IDS[i], formatTime(timeForDisplay, FORCE_PM[i]))
+
+                if (next != null && i == next.index) {
+                    views.setInt(SLOT_IDS[i], "setBackgroundResource", R.drawable.widget_slot_next_bg)
+                    views.setTextColor(LBL_IDS[i], 0xFFFFFFFF.toInt())
+                    views.setTextColor(TIME_IDS[i], 0xFF66BB6A.toInt())
+                } else {
+                    views.setInt(SLOT_IDS[i], "setBackgroundResource", 0)
+                    views.setTextColor(LBL_IDS[i], 0xFFFFFFFF.toInt())
+                    views.setTextColor(TIME_IDS[i], 0xFFFFFFFF.toInt())
                 }
             }
 
@@ -163,12 +205,12 @@ class PrayerWidgetProvider : AppWidgetProvider() {
 
             val now = System.currentTimeMillis()
             val rawTimes = arrayOf(prayers.fajr, prayers.dhuhr, prayers.asr, prayers.maghrib, prayers.isha)
-            val isAfternoon = booleanArrayOf(false, true, true, true, true)
-
             val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
             for (i in 0..4) {
-                var ms = PrayerTimesDatabase.getPrayerTimeMillis(rawTimes[i], isAfternoon[i])
+                val ms = PrayerTimesDatabase.getPrayerTimeMillis(
+                    rawTimes[i], FORCE_PM[i], today.year, today.monthValue, today.dayOfMonth
+                )
                 if (ms <= now) continue // تێپەڕیوە
 
                 val intent = Intent(context, PrayerWidgetProvider::class.java).apply {
@@ -189,28 +231,21 @@ class PrayerWidgetProvider : AppWidgetProvider() {
             val prefs = context.getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
             val city = prefs.getString("flutter.selectedCity", "هەولێر") ?: "هەولێر"
             val today = LocalDate.now()
-            val prayers = PrayerTimesDatabase.getPrayerTimesForDay(
-                context, city, today.monthValue, today.dayOfMonth
-            ) ?: return
-
             val now = System.currentTimeMillis()
-            val rawTimes = arrayOf(prayers.fajr, prayers.dhuhr, prayers.asr, prayers.maghrib, prayers.isha)
-            val isAfternoon = booleanArrayOf(false, true, true, true, true)
-            val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
-            for (i in 0..4) {
-                val ms = PrayerTimesDatabase.getPrayerTimeMillis(rawTimes[i], isAfternoon[i])
-                if (ms <= now) continue
-                val intent = Intent(context, PrayerWidgetProvider::class.java).apply {
-                    action = ACTION_PRAYER_ALARM
-                }
-                val pi = PendingIntent.getBroadcast(
-                    context, 2000 + i, intent,
-                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-                )
-                setExactAlarm(alarmManager, ms, pi)
-                break
+            // ── چاککراوە: ئەگەر هیچ بانگێکی ئەمڕۆ نەمابوو (دوای خەوتنان)،
+            // ئەوا بانگی بەیانیی سبەی (بە مانگ/ڕۆژی ڕاستەقینە) دەبینرێتەوە ──
+            val next = findNextPrayer(context, city, today, now) ?: return
+
+            val intent = Intent(context, PrayerWidgetProvider::class.java).apply {
+                action = ACTION_PRAYER_ALARM
             }
+            val pi = PendingIntent.getBroadcast(
+                context, 2000 + next.index, intent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+            val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+            setExactAlarm(alarmManager, next.timeMillis, pi)
         }
 
         private fun scheduleMidnightAlarm(context: Context) {
@@ -262,7 +297,7 @@ class PrayerWidgetProvider : AppWidgetProvider() {
             }
         }
 
-        // ── بەروارەکان ────────────────────────────────────────────────────
+        // ── بەروارەکان (دەستکاری نەکراون) ──────────────────────────────────
 
         private fun getGregorianDate(date: LocalDate): String {
             val day = toKurdishNums(date.dayOfMonth.toString().padStart(2, '0'))
@@ -277,9 +312,9 @@ class PrayerWidgetProvider : AppWidgetProvider() {
                 val day = toKurdishNums(hijri.get(java.time.temporal.ChronoField.DAY_OF_MONTH).toString())
                 val month = getHijriMonthName(hijri.get(java.time.temporal.ChronoField.MONTH_OF_YEAR))
                 val year = toKurdishNums(hijri.get(java.time.temporal.ChronoField.YEAR).toString())
-                "هـ $day $month $year"
+                " $day $month $year"
             } catch (e: Exception) {
-                "هـ"
+                ""
             }
         }
 
@@ -307,7 +342,7 @@ class PrayerWidgetProvider : AppWidgetProvider() {
             }
 
             val safeMonth = kMonth.coerceIn(1, 12)
-            return "ک ${toKurdishNums(kDay.toString())}ـى ${kurdishMonths[safeMonth - 1]} ${toKurdishNums(kYear.toString())}"
+            return " ${toKurdishNums(kDay.toString())}ـى ${kurdishMonths[safeMonth - 1]} ${toKurdishNums(kYear.toString())}"
         }
 
         private fun getHijriMonthName(month: Int): String {
@@ -319,13 +354,14 @@ class PrayerWidgetProvider : AppWidgetProvider() {
             return months.getOrElse(month - 1) { "" }
         }
 
-        private fun formatTime(timeStr: String, isAfternoon: Boolean): String {
+        // ── چاککراوە: چیتر بەزۆری "نیوەڕۆ" نەکراوەتە دوای نیوەڕۆ ───────────
+        private fun formatTime(timeStr: String, forcePm: Boolean): String {
             return try {
                 val parts = timeStr.split(":")
-                var h = parts[0].toInt()
+                val rawHour = parts[0].toInt()
                 val m = parts[1].toInt()
-                if (isAfternoon && h < 12) h += 12
-                val h12 = if (h % 12 == 0) 12 else h % 12
+                val hour24 = if (rawHour == 12) 12 else if (forcePm) rawHour + 12 else rawHour
+                val h12 = if (hour24 % 12 == 0) 12 else hour24 % 12
                 "${toKurdishNums(h12.toString().padStart(2, '0'))}:${toKurdishNums(m.toString().padStart(2, '0'))}"
             } catch (e: Exception) { timeStr }
         }
