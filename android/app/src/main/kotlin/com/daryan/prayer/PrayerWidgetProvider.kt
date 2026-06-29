@@ -303,7 +303,7 @@ class PrayerWidgetProvider : AppWidgetProvider() {
             val day = toKurdishNums(date.dayOfMonth.toString().padStart(2, '0'))
             val month = toKurdishNums(date.monthValue.toString().padStart(2, '0'))
             val year = toKurdishNums(date.year.toString())
-            return "م $year/$month/$day"
+            return "$year/$month/$day"
         }
 
         private fun getHijriDate(): String {
@@ -342,7 +342,7 @@ class PrayerWidgetProvider : AppWidgetProvider() {
             }
 
             val safeMonth = kMonth.coerceIn(1, 12)
-            return " ${toKurdishNums(kDay.toString())}ـى ${kurdishMonths[safeMonth - 1]} ${toKurdishNums(kYear.toString())}"
+            return "${toKurdishNums(kDay.toString())}ى ${kurdishMonths[safeMonth - 1]} ${toKurdishNums(kYear.toString())}"
         }
 
         private fun getHijriMonthName(month: Int): String {

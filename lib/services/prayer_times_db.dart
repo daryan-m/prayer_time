@@ -98,7 +98,7 @@ class PrayerTimesDatabase {
       }
       await batch.commit(noResult: true);
 
-      debugPrint("✅ کاتەکانی '$cityKey' لە SQLite ذەخیرە کران");
+      debugPrint("✅ کاتەکانی '$cityKey' لە SQLite پاشەکەوت کران");
     } catch (e) {
       debugPrint("❌ saveCityPrayerTimes error: $e");
     }
