@@ -132,7 +132,7 @@
                 android:textSize="13sp"
                 android:textStyle="bold"
                 android:gravity="center"
-                android:layout_marginTop="2p" />
+                android:layout_marginTop="2dp" />
         </LinearLayout>
 
         <!-- عەسر -->
