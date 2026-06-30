@@ -19,7 +19,7 @@
         android:paddingStart="2dp"
         android:paddingEnd="2dp"
         android:layout_marginTop="0dp"
-        android:layout_marginBottom="2dp"
+        android:layout_marginBottom="4dp"
         android:layout_marginStart="0dp"
         android:layout_marginEnd="0dp">
 
@@ -60,14 +60,14 @@
         android:minHeight="52dp"
         android:orientation="horizontal"
         android:background="@drawable/widget_arch_bg"
-        android:paddingTop="2dp"
-        android:paddingBottom="2dp"
-        android:paddingStart="2dp"
-        android:paddingEnd="2dp"
-        android:layout_marginTop="2dp"
-        android:layout_marginBottom="2dp"
-        android:layout_marginStart="2dp"
-        android:layout_marginEnd="2dp"
+        android:paddingTop="3dp"
+        android:paddingBottom="3dp"
+        android:paddingStart="4dp"
+        android:paddingEnd="4dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="4dp"
+        android:layout_marginStart="4dp"
+        android:layout_marginEnd="4dp"
         android:gravity="center_vertical"
         android:layoutDirection="rtl">
 
@@ -79,8 +79,8 @@
             android:layout_weight="1"
             android:orientation="vertical"
             android:gravity="center"
-            android:paddingTop="2dp"
-            android:paddingBottom="2dp">
+            android:paddingTop="3dp"
+            android:paddingBottom="3dp">
             <TextView
                 android:id="@+id/lbl_isha"
                 android:layout_width="wrap_content"
@@ -100,7 +100,7 @@
                 android:textSize="13sp"
                 android:textStyle="bold"
                 android:gravity="center"
-                android:layout_marginTop="1dp" />
+                android:layout_marginTop="2dp" />
         </LinearLayout>
 
         <!-- ئێوارە -->
@@ -111,8 +111,8 @@
             android:layout_weight="1"
             android:orientation="vertical"
             android:gravity="center"
-            android:paddingTop="2dp"
-            android:paddingBottom="2dp">
+            android:paddingTop="3dp"
+            android:paddingBottom="3dp">
             <TextView
                 android:id="@+id/lbl_maghrib"
                 android:layout_width="wrap_content"
@@ -132,7 +132,7 @@
                 android:textSize="13sp"
                 android:textStyle="bold"
                 android:gravity="center"
-                android:layout_marginTop="1dp" />
+                android:layout_marginTop="2p" />
         </LinearLayout>
 
         <!-- عەسر -->
@@ -143,8 +143,8 @@
             android:layout_weight="1"
             android:orientation="vertical"
             android:gravity="center"
-            android:paddingTop="2dp"
-            android:paddingBottom="2dp">
+            android:paddingTop="3dp"
+            android:paddingBottom="3dp">
             <TextView
                 android:id="@+id/lbl_asr"
                 android:layout_width="wrap_content"
@@ -164,7 +164,7 @@
                 android:textSize="13sp"
                 android:textStyle="bold"
                 android:gravity="center"
-                android:layout_marginTop="1dp" />
+                android:layout_marginTop="2dp" />
         </LinearLayout>
 
         <!-- نیوەڕۆ -->
@@ -175,8 +175,8 @@
             android:layout_weight="1"
             android:orientation="vertical"
             android:gravity="center"
-            android:paddingTop="2dp"
-            android:paddingBottom="2dp">
+            android:paddingTop="3dp"
+            android:paddingBottom="3dp">
             <TextView
                 android:id="@+id/lbl_dhuhr"
                 android:layout_width="wrap_content"
@@ -196,7 +196,7 @@
                 android:textSize="13sp"
                 android:textStyle="bold"
                 android:gravity="center"
-                android:layout_marginTop="1dp" />
+                android:layout_marginTop="2dp" />
         </LinearLayout>
 
         <!-- بەیانی -->
@@ -207,8 +207,8 @@
             android:layout_weight="1"
             android:orientation="vertical"
             android:gravity="center"
-            android:paddingTop="2dp"
-            android:paddingBottom="2dp">
+            android:paddingTop="3dp"
+            android:paddingBottom="3dp">
             <TextView
                 android:id="@+id/lbl_fajr"
                 android:layout_width="wrap_content"
@@ -228,7 +228,7 @@
                 android:textSize="13sp"
                 android:textStyle="bold"
                 android:gravity="center"
-                android:layout_marginTop="1dp" />
+                android:layout_marginTop="2dp" />
         </LinearLayout>
     </LinearLayout>
 
@@ -240,11 +240,11 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:background="@drawable/widget_card_bg"
-        android:paddingTop="2dp"
-        android:paddingBottom="2dp"
+        android:paddingTop="4dp"
+        android:paddingBottom="4dp"
         android:paddingStart="2dp"
         android:paddingEnd="2dp"
-        android:layout_marginTop="2dp"
+        android:layout_marginTop="4dp"
         android:layout_marginBottom="0dp"
         android:layout_marginStart="0dp"
         android:layout_marginEnd="0dp">
@@ -253,10 +253,10 @@
             android:id="@+id/txt_hijri"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:layout_weight="1.20"
             android:text=" ١٥ ذو الحجة ١٤٤٦"
             android:textColor="#FFD700"
-            android:textSize="12sp"
+            android:textSize="12.5sp"
             android:gravity="center"
             android:maxLines="2"
             android:ellipsize="none" />
@@ -274,8 +274,8 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text=" ٢٠٢٥/٠٦/١٣"
-            android:textColor="#008cfc"
-            android:textSize="12sp"
+            android:textColor="#008cff"
+            android:textSize="12.5sp"
             android:gravity="center"
             android:maxLines="2"
             android:ellipsize="none" />
@@ -291,10 +291,10 @@
             android:id="@+id/txt_kurdish"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:layout_weight="1.20"
             android:text=" ٢٣ گەلاوێژ"
             android:textColor="#02c40a"
-            android:textSize="12sp"
+            android:textSize="12.5sp"
             android:gravity="center"
             android:maxLines="2"
             android:ellipsize="none" />

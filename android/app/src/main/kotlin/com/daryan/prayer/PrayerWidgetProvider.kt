@@ -164,7 +164,7 @@ class PrayerWidgetProvider : AppWidgetProvider() {
                 if (next != null && i == next.index) {
                     views.setInt(SLOT_IDS[i], "setBackgroundResource", R.drawable.widget_slot_next_bg)
                     views.setTextColor(LBL_IDS[i], 0xFFFFFFFF.toInt())
-                    views.setTextColor(TIME_IDS[i], 0xFF66BB6A.toInt())
+                    views.setTextColor(TIME_IDS[i], 0xFF02C40A.toInt())
                 } else {
                     views.setInt(SLOT_IDS[i], "setBackgroundResource", 0)
                     views.setTextColor(LBL_IDS[i], 0xFFFFFFFF.toInt())
