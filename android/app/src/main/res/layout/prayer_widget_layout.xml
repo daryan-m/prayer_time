@@ -4,7 +4,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="@drawable/widget_bg"
-    android:padding="6dp">
+    android:padding="0dp">
 
 
     <!-- ئایکۆنی قورئان -->
@@ -14,25 +14,39 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:background="@drawable/widget_card_bg"
-        android:paddingTop="0dp"
-        android:paddingBottom="1dp"
-        android:paddingStart="0dp"
-        android:paddingEnd="0dp"
+        android:paddingTop="2dp"
+        android:paddingBottom="2dp"
+        android:paddingStart="2dp"
+        android:paddingEnd="2dp"
         android:layout_marginTop="0dp"
-        android:layout_marginBottom="4dp"
-        android:layout_marginStart="4dp"
-        android:layout_marginEnd="4dp">
+        android:layout_marginBottom="2dp"
+        android:layout_marginStart="0dp"
+        android:layout_marginEnd="0dp">
 
-        <TextView
+        <LinearLayout
             android:id="@+id/btn_quran"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="📖  قورئانی پیرۆز"
-            android:textColor="#FFFFFF"
-            android:textSize="13sp"
+            android:orientation="horizontal"
             android:gravity="center"
             android:padding="4dp"
-            android:clickable="true" />
+            android:clickable="true">
+
+            <ImageView
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:src="@drawable/ic_quran_book"
+                android:layout_marginEnd="6dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="قورئانی پیرۆز"
+                android:textColor="#FFFFFF"
+                android:textSize="13sp"
+                android:gravity="center" />
+
+        </LinearLayout>
 
     </LinearLayout>
 
@@ -46,10 +60,14 @@
         android:minHeight="52dp"
         android:orientation="horizontal"
         android:background="@drawable/widget_arch_bg"
-        android:paddingTop="1dp"
-        android:paddingBottom="1dp"
-        android:paddingStart="1dp"
-        android:paddingEnd="1dp"
+        android:paddingTop="2dp"
+        android:paddingBottom="2dp"
+        android:paddingStart="2dp"
+        android:paddingEnd="2dp"
+        android:layout_marginTop="2dp"
+        android:layout_marginBottom="2dp"
+        android:layout_marginStart="2dp"
+        android:layout_marginEnd="2dp"
         android:gravity="center_vertical"
         android:layoutDirection="rtl">
 
@@ -222,14 +240,14 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:background="@drawable/widget_card_bg"
-        android:paddingTop="1dp"
-        android:paddingBottom="0dp"
-        android:paddingStart="0dp"
-        android:paddingEnd="0dp"
-        android:layout_marginTop="1dp"
-        android:layout_marginBottom="1dp"
-        android:layout_marginStart="1dp"
-        android:layout_marginEnd="1dp">
+        android:paddingTop="2dp"
+        android:paddingBottom="2dp"
+        android:paddingStart="2dp"
+        android:paddingEnd="2dp"
+        android:layout_marginTop="2dp"
+        android:layout_marginBottom="0dp"
+        android:layout_marginStart="0dp"
+        android:layout_marginEnd="0dp">
 
         <TextView
             android:id="@+id/txt_hijri"
@@ -256,7 +274,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text=" ٢٠٢٥/٠٦/١٣"
-            android:textColor="#64B5F6"
+            android:textColor="#008cfc"
             android:textSize="12sp"
             android:gravity="center"
             android:maxLines="2"
@@ -275,7 +293,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text=" ٢٣ گەلاوێژ"
-            android:textColor="#81C784"
+            android:textColor="#02c40a"
             android:textSize="12sp"
             android:gravity="center"
             android:maxLines="2"
