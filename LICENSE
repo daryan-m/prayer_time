@@ -1,0 +1,175 @@
+Bang — Prayer Times Kurdistan
+Software License and Terms of Use
+
+Copyright (c) 2025–2026 Daryan-m (Concept) and M_R_M (Development)
+All rights reserved unless expressly granted below.
+
+This license applies to the application source code, documentation, and
+original assets created for this repository. It does NOT transfer ownership
+of third-party data included in or used by the application.
+
+
+================================================================================
+1. DEFINITIONS
+================================================================================
+
+"Software" means the source code, build scripts, UI, and original application
+assets in this repository (excluding Third-Party Data).
+
+"Third-Party Data" means prayer time schedules, Qur'an text and page layout
+data, Qur'an recitation audio, and any other content obtained from external
+sources, including but not limited to:
+
+  - Bang Kurdistan (prayer times)
+    https://github.com/Bang-Kurdistan
+
+  - QUL / Tarteel AI resources (Qur'an page and text layout data)
+    https://qul.tarteel.ai/resources/
+
+  - EveryAyah (Qur'an recitation audio)
+    https://everyayah.com/
+
+
+================================================================================
+2. PERMITTED USE OF THE SOFTWARE
+================================================================================
+
+You may:
+
+  (a) Download, install, and use the compiled application for personal,
+      non-commercial purposes.
+
+  (b) View, study, and fork this repository for learning, contribution, or
+      personal development, provided you comply with this license and retain
+      all copyright and attribution notices.
+
+  (c) Submit improvements via pull requests to the official repository,
+      subject to acceptance by the project maintainers.
+
+
+================================================================================
+3. RESTRICTIONS ON THE SOFTWARE
+================================================================================
+
+You may NOT, without prior written permission from the copyright holders:
+
+  (a) Redistribute modified or unmodified APKs, app bundles, or binaries
+      as your own product without clear attribution to this project and its
+      authors.
+
+  (b) Remove, obscure, or alter copyright notices, license text, or
+      attribution sections in the source code or documentation.
+
+  (c) Use the project name, branding, or icons to imply official endorsement
+      of a derivative work without authorization.
+
+  (d) Use the Software for any unlawful purpose.
+
+
+================================================================================
+4. THIRD-PARTY DATA — ATTRIBUTION REQUIRED
+================================================================================
+
+Third-Party Data is NOT owned by the authors of this project.
+
+If you extract, copy, redistribute, republish, or reuse any Third-Party Data
+(from this repository or from the running application), you MUST:
+
+  (1) Clearly credit the original source by name and URL;
+
+  (2) Include a visible attribution notice in your derivative work,
+      documentation, or distribution; and
+
+  (3) Comply with any additional terms imposed by the original data providers.
+
+Examples of required attribution:
+
+  - Prayer times  →  Bang Kurdistan (https://github.com/Bang-Kurdistan)
+  - Qur'an layout →  QUL / Tarteel AI (https://qul.tarteel.ai/resources/)
+  - Qur'an audio  →  EveryAyah (https://everyayah.com/)
+
+Failure to provide proper attribution when reusing Third-Party Data is
+not permitted under this license.
+
+
+================================================================================
+5. NO OWNERSHIP OF THIRD-PARTY DATA
+================================================================================
+
+The project owner, concept author, and developer claim no copyright over
+Third-Party Data. Inclusion of such data in the application does not grant
+you any rights beyond what the original sources provide. You are responsible
+for verifying compliance with the original providers' terms.
+
+
+================================================================================
+6. DISCLAIMER OF WARRANTIES
+================================================================================
+
+THE SOFTWARE AND ALL INCLUDED DATA ARE PROVIDED "AS IS" AND "AS AVAILABLE",
+WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
+TO WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE,
+ACCURACY, COMPLETENESS, OR NON-INFRINGEMENT.
+
+The authors do not warrant that:
+
+  - Prayer times are accurate for every location or date;
+  - Qur'an text, layout, or recitation timing is error-free;
+  - Notifications, alarms, or widgets will function on every device or OS
+    version; or
+  - The application will be uninterrupted or free of defects.
+
+
+================================================================================
+7. LIMITATION OF LIABILITY
+================================================================================
+
+TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, Daryan-m (project
+owner / concept author), M_R_M (developer), and all contributors shall
+not be liable for
+ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE
+DAMAGES, OR ANY LOSS OF DATA, REVENUE, PRAYERS MISSED, OR OTHER LOSSES
+ARISING FROM OR RELATED TO:
+
+  - Use or inability to use the Software;
+  - Reliance on prayer times, Qur'an content, or audio;
+  - Device battery drain, alarm failures, or notification issues; or
+  - Any other matter relating to this project,
+
+EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+
+
+================================================================================
+8. USER RESPONSIBILITY
+================================================================================
+
+Users are solely responsible for verifying prayer times and religious content
+with authoritative local sources when accuracy is required. Use of this
+application is at your own risk.
+
+
+================================================================================
+9. CHANGES TO THIS LICENSE
+================================================================================
+
+The copyright holders may update this license for future releases. The version
+included in each release tag applies to that release. Continued use after
+changes constitutes acceptance of the updated terms.
+
+
+================================================================================
+10. CONTACT
+================================================================================
+
+Project repository: https://github.com/daryan-m/prayer_time
+
+For licensing inquiries, open an issue on the repository or contact the
+maintainers through the channels listed in README.md.
+
+
+================================================================================
+
+This is NOT the MIT License. Redistribution of Third-Party Data without
+attribution to the original sources listed in Section 4 is prohibited.
+
+================================================================================

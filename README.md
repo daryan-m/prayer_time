@@ -1,91 +1,208 @@
-# 🕌 Prayer Times — Bang Kurdistan
+<div align="center">
 
-**Prayer times for cities and towns in the Kurdistan Region**
-**کاتکانی بانگ بۆ شار و شارۆچکەکانى هەرێمى کوردستان**
+# 🕌 Bang — Prayer Times Kurdistan
 
----
+**Accurate offline prayer times for cities and towns across the Kurdistan Region**
 
-## 🌍 Download & Links / دابەزاندن و بەستەرەکان
+[![Flutter](https://img.shields.io/badge/Flutter-3.0%2B-02569B?logo=flutter&logoColor=white)](https://flutter.dev)
+[![Platform](https://img.shields.io/badge/Platform-Android-3DDC84?logo=android&logoColor=white)](https://www.android.com)
+[![Version](https://img.shields.io/badge/Version-1.1.14-blue)](https://github.com/daryan-m/prayer_time/releases)
+[![License](https://img.shields.io/badge/License-Custom-orange)](LICENSE)
 
-**EN:** You can download the ready-to-use application or watch the demo:
-**KU:** دەتوانیت ئەپڵیکەیشنە ئامادەکراوەکە لەم لینکانەى خوارەوە دابەزێنیت یان بینەری ڤیدیۆکەی بیت:
+*کاتەکانی بانگ بۆ شار و شارۆچکەکانی هەرێمی کوردستان*
 
-- 📥 **Direct Download (APK):** [GitHub Releases](https://github.com/daryan-m/prayer_time/releases)
-- 🛍️ **Google Play Store:** [Get it on Play Store](https://play.google.com/store/apps/details?id=YOUR_APP_ID)
-- 📺 **Video Preview:** [YouTube Channel](https://www.youtube.com/@daryan111)
-
----
-
-## 📝 About / دەربارە
-
-**EN:** This application is currently available only for Android. It features accurate prayer times for 35 cities and towns across the Kurdistan Region. Additionally, it includes several other features such as a Holy Quran section, the 99 Names of Allah, and a date converter from Gregorian to Hijri, Kurdish, and Solar calendars.
-
-**KU:** ئەم ئەپڵیکەیشنە لەکاتى ئیستادا تەنها بۆ ئەندرۆید بەردەستە، بریتییە لە کاتەکانى بانگ بۆ ٣٥ شار و شارۆچکەى هەرێمى کوردستان، وهەروەها هەندێکتایبەمەندى ترى تێدای وەک بەشى قورئنى پیرۆز و ناوەکانى خواى گەورە و بەشى گۆڕینى بەروار لە میلادییەوە بۆ بەروارەکانى کۆچى و کوردى و هەتاوى.
+</div>
 
 ---
 
-## ✨ Key Features / تایبەتمەندییە سەرەکییەکان
+## 📥 Download
 
-- 📂 **Offline Access / کارکردنی ئۆفلاین:** Prayer times loaded from local JSON.
-- 📅 **Calendars / ڕۆژژمێر:** Gregorian, Hijri,solar, and Kurdish (+625 offset).
-- 🔊 **Athan Customization / دەنگی بانگ:** Multiple selectable athan sounds.
-- 🔔 **Notifications / ئاگادارکردنەوە:** Local alerts for each prayer time.
+| Channel | Link |
+|---------|------|
+| **GitHub Releases (APK)** | [Download latest release](https://github.com/daryan-m/prayer_time/releases) |
+| **Google Play** | [Get it on Google Play](https://play.google.com/store/apps/details?id=com.daryan.prayer) |
+| **Video preview** | [YouTube — @daryan111](https://www.youtube.com/@daryan111) |
+
+> **Note:** The app is currently optimized for **Android**. Other platforms exist in the Flutter project but are not the primary target.
 
 ---
 
-## 📂 Project Structure / پێکهاتەی پڕۆژەکە
+## 📖 About
 
-**EN:** Navigation map of the project files:
-**KU:** نەخشەی سەرەکی فایل و فۆڵدەرەکانی پڕۆژەکە:
+**Bang** is a lightweight Flutter application built for Muslims in the Kurdistan Region. It displays daily prayer (adhan) times for **35 cities and towns**, works fully **offline**, and includes Islamic tools such as a Holy Qur'an reader, the 99 Names of Allah, a digital tasbih, and a multi-calendar date converter.
+
+The app is designed with a dark, modern UI, supports multiple color themes, local notifications with selectable athan sounds, and an Android home-screen widget.
+
+---
+
+## ✨ Features
+
+| Feature | Description |
+|---------|-------------|
+| 🕐 **Prayer times** | Fajr, Sunrise, Dhuhr, Asr, Maghrib, and Isha for 35 Kurdistan cities |
+| 📴 **Offline data** | Prayer schedules loaded from bundled JSON files — no internet required |
+| 📅 **Calendars** | Gregorian, Hijri, Kurdish, and Solar (Kurdish year +625 offset) |
+| 🔔 **Notifications** | Scheduled adhan alerts with exact-alarm support on Android |
+| 🔊 **Athan sounds** | Three selectable adhan voices (Makkah, Madinah, Kuwait) |
+| 📖 **Holy Qur'an** | Full mushaf reader with page navigation, surah/juz/hizb lookup |
+| 🎧 **Qur'an audio** | Online streaming and offline download with word highlighting |
+| ☪️ **99 Names of Allah** | Arabic names with Kurdish meanings and audio |
+| 📿 **Tasbih** | Digital counter with sound feedback |
+| 🗓️ **Date converter** | Convert dates and find prayer times by date |
+| 🎨 **Themes** | Six color palettes |
+| 📱 **Home widget** | Android widget showing today's prayer schedule |
+| 🔄 **OTA updates** | Checks for new APK releases every 24 hours |
+
+---
+
+## 🏙️ Supported cities
+
+The app includes prayer data for **35 locations**, including:
+
+> هەولێر · سلێمانی · دهۆک · کەرکووک · هەڵەبجە · کەلار · ڕانیە · کۆیە · سۆران · زاخۆ · خانەقین · چەمچەماڵ · پێنجوێن · سیدصادق · دەربەندیخان · کفری · قەڵادزێ · قەرەداغ · قەسرێ · قادرکەرەم · چوارتا · بازیان · بەرزنجە · عەربەت · ئاکرێ · ئامێدی · پیرەمەگرون · تەکیە · تەق تەق · تاسڵوجە · دوزخورماتو · دوکان · حاجیاوا · خەلەکان · هەڵەبجەی تازە
+
+Data files are stored in [`assets/data/`](assets/data/).
+
+---
+
+## 🛠️ Build from source
+
+### Requirements
+
+- [Flutter](https://docs.flutter.dev/get-started/install) **3.0+**
+- Android SDK (for Android builds)
+- Java **21** (used in CI)
+
+### Steps
+
+```bash
+git clone https://github.com/daryan-m/prayer_time.git
+cd prayer_time
+flutter pub get
+flutter run
+```
+
+### Release builds
+
+```bash
+# APK
+flutter build apk --release
+
+# App Bundle (Google Play)
+flutter build appbundle --release
+```
+
+### Athan audio assets
+
+Ensure these files exist under `assets/audio/`:
+
+```
+assets/audio/
+├── macca.mp3
+├── madina.mp3
+└── kwait.mp3
+```
+
+---
+
+## 📂 Project structure
 
 ```text
 lib/
-├── main.dart
-├── screens/       # UI & Interface / ڕووکاری ئەپەکە
-├── widgets/       # UI Components / پارچە کۆدەکان
-├── services/      # Logic & JSON handling / لۆجیک و داتاکان
-└── utils/         # Helper functions / یارمەتیدەرەکان
+├── main.dart                 # App entry & notification channels
+├── screens/                  # Main UI screens
+├── widgets/                  # Reusable UI components
+├── services/                 # Prayer data, widgets, database logic
+├── quran/                    # Qur'an reader, audio, and database
+└── utils/                    # Constants, permissions, helpers
 
 assets/
-├── data/          # Prayer time JSON files / فایلی کاتەکان
-└── audio/         # Athan mp3 files / فایلە دەنگییەکان
+├── data/                     # Prayer time JSON (35 cities)
+├── audio/                    # Athan & Allah Names audio
+├── quran/                    # Qur'an SQLite databases & fonts
+└── images/                   # App icons & graphics
 
+android/
+└── app/src/main/kotlin/com/daryan/prayer/
+    ├── AthanService.kt       # Foreground athan playback
+    ├── PrayerWidgetProvider.kt
+    └── ...
 ```
 
-🎵 Audio Assets / فایلە دەنگییەکان
+---
 
-EN: Ensure you check the assets/audio/ folder for these files:
-KU: دەتوانیت فایلە دەنگییەکان لەم فۆڵدەرەدا بدۆزیتەوە:
+## 📚 Data sources & attribution
 
-macca.mp3, madina.mp3, kwait.mp3
+> **Important:** The prayer schedules, Qur'an text/page layout, and Qur'an recitation audio used in this app are **not original works of the project owner, concept author, or developer**. They were obtained from third-party sources and are included for convenience inside the application.
+
+If you reuse, redistribute, or republish **any of this data**, you **must** credit the original sources listed below.
+
+| Data | Source | Link |
+|------|--------|------|
+| **Prayer times** | Bang Kurdistan | [github.com/Bang-Kurdistan](https://github.com/Bang-Kurdistan) |
+| **Qur'an page & text layout** | QUL (Tarteel AI resources) | [qul.tarteel.ai/resources](https://qul.tarteel.ai/resources/) |
+| **Qur'an recitation audio** | EveryAyah | [everyayah.com](https://everyayah.com/) |
+
+Additional notes:
+
+- Prayer JSON files in `assets/data/` are derived from the **Bang Kurdistan** project (see also [`assets/data/README.md`](assets/data/README.md)).
+- Qur'an SQLite databases (`qpc-v2*.db`, metadata) come from **QUL / Tarteel AI** resources.
+- Streaming and downloadable recitations are fetched from **EveryAyah.com**.
+- Athan notification sounds and 99 Names audio bundled in `assets/audio/` are included as application media assets.
+
+**Attribution is mandatory** when reusing prayer data, Qur'an text/layout data, or Qur'an audio outside this app.
 
 ---
 
-📚 Attribution & Data Sources / سەرچاوەکان و ئاماژە
+## ⚠️ Disclaimer
 
-Prayer Data: Bang Kurdistan Repository — GitHub
+This software and all included data are provided **"as is"**, without warranty of any kind.
 
-Quran Text: Tanzil Project — Tanzil.net
-
----
-
-⚖️ Licensing / مۆڵەتنامە و یاسا
-
-EN: MIT License. Free for personal and educational use, provided that the project owner is credited when using any part of the code. Furthermore, when using the prayer time files or Quranic texts, you must attribute them to the original sources mentioned above.
-
-KU: مۆڵەتنامەی MIT. بەکارهێنان بۆ مەبەستی کەسی و فێربوون ڕێپێدراوە،بەمەرجێک لە کاتی بەکارهینانى بەشێک لە کۆدەکان دەبێت ناوی خاوەن پڕۆژە ئاماژە پێ بکرێت، وە لەکاتى بەکارهینانى فایلى کاتەکانى بانگ و تیکستەکانى قورئانى پیرۆز، ئەبیت ئاماژە بەسەرچاوە سەرەکییەکانیان بکەیت کە لەسەرەوە ئاماژە دراوە بە سەرچاوەکانیان.
+- The **project owner, concept author, and developer** are **not responsible** for any errors, omissions, or inaccuracies in prayer times, Qur'an text, recitation timing, or any other bundled data.
+- They are **not liable** for any direct or indirect loss, damage, or harm arising from the use of this application or project — including missed prayers, incorrect schedules, or device/battery issues related to alarms and notifications.
+- Users should **verify critical prayer times** with local mosques or official religious authorities when accuracy is essential.
 
 ---
 
-⚠️ Disclaimer / ئاگاداری و ڕەتکردنەوەی بەرپرسیارێتی
+## 📄 License
 
-EN: The project owner and developers are not responsible for any inaccuracies in prayer times or Quranic texts, as they are provided "as is" from original sources. The authors are not liable for any losses arising from the use of this software. Please verify timings with official local sources.
+This project is **not** released under the MIT License.
 
-KU: خاوەن پڕۆژە و داڕێژەر بەرپرسیار نین لە هەر هەڵەیەک لە کاتەکانی بانگ و تێکستی قورئانەکە، لەبەرئەوەی وەک خۆیان لە سەرچاوە ئەسڵییەکانەوە وەرگیراون. هەروەها بەرپرسیار نین لە بەرامبەر هەر زیانێک کە بەهۆی بەکارهێنانی ئەم پڕۆژەیەوە دروست بێت. تکایە کاتەکان و تیکستى قورئانەکەش لەگەڵ سەرچاوە فەرمییەکان بەراورد بکە.
+- The **application source code** is licensed under the terms in [`LICENSE`](LICENSE).
+- **Third-party data** (prayer times, Qur'an text/layout, Qur'an audio) remains subject to the terms and attribution requirements of the original sources above.
+
+The authoritative legal text is in [`LICENSE`](LICENSE) (English).
 
 ---
 
-🤝 Contact / پەیوەندی
-Developer / گەشەپێدەر: Daryan-m
+## 👥 Credits
 
-YouTube / یوتیوب: @daryan111
+| Role | Name |
+|------|------|
+| **Concept** | Daryan_M |
+| **Developer** | M_R_M |
+
+---
+
+## 🤝 Contributing
+
+Issues and pull requests are welcome on the main repository. When modifying data-related features, please preserve attribution to the original data sources.
+
+---
+
+## 📬 Contact
+
+| Platform | Link |
+|----------|------|
+| **GitHub** | [daryan-m/prayer_time](https://github.com/daryan-m/prayer_time) |
+| **YouTube** | [@daryan111](https://www.youtube.com/@daryan111) |
+| **Instagram** | [@prayer_time_ku](https://www.instagram.com/prayer_time_ku/) |
+| **Facebook** | [Prayer Time KU](https://www.facebook.com/profile.php?id=61590536199169) |
+
+---
+
+<div align="center">
+
+**Made with ❤️ for the Kurdistan Region**
+
+</div>

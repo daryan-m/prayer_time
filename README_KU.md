@@ -1,50 +1,100 @@
-# 🕌 Prayer Times — Bang Kurdistan (Bilingual README)
+<div align="center">
 
-English | Kurdish (کوردی)
+# 🕌 بانگ — کاتەکانی نوێژی هەرێمی کوردستان
 
----
+**کاتەکانی بانگی ورد و ئۆفلاین بۆ شار و شارۆچکەکانی هەرێمی کوردستان**
 
-## About — دەربارە
+[![Flutter](https://img.shields.io/badge/Flutter-3.0%2B-02569B?logo=flutter&logoColor=white)](https://flutter.dev)
+[![Platform](https://img.shields.io/badge/Platform-Android-3DDC84?logo=android&logoColor=white)](https://www.android.com)
+[![Version](https://img.shields.io/badge/Version-1.1.14-blue)](https://github.com/daryan-m/prayer_time/releases)
+[![License](https://img.shields.io/badge/License-Custom-orange)](LICENSE)
 
-This project is a lightweight Flutter app that displays daily prayer (adhan) times for two cities (Penjwen and Sulaymaniyah) using offline JSON data. The app includes notification scheduling, selectable athan sounds, and date formats (Gregorian, Hijri, and a Kurdish year offset).
+*Accurate offline prayer times for the Kurdistan Region*
 
-ئەم پرۆژەیە ئەپێکی Flutter-ە و کاتەکانی بانگ (ئاذان) بۆ دوو شار — پێنجوێن و سلێمانی — پیشان دەدات بە بەکارهێنانی داتای ئۆفلاین لە فایلی JSON دا. ئەپەکە ئاگادارکردن، هەڵبژاردنی دەنگ، و فۆرماتەکانی بەروار (میلادی، کۆچی، و ساڵی کوردی) پشتیوانی دەکات.
-
----
-
-## Key Features — تایبەتمەندییە سەرەکییەکان
-
-- Offline prayer times from JSON files.
-- Two cities: Penjwen and Sulaymaniyah.
-- Live clock and daily schedules.
-- Multiple date formats: Gregorian, Hijri, Kurdish (year +625).
-- Three selectable athan sounds.
-- Local notifications for adhan times.
-- Automatic update-check (polls `version.json` every 24 hours).
-
-- داتای بانگ بە شێوەی ئۆفلاین (JSON).
-- دوو شار: پێنجوێن و سلێمانی.
-- کاتژمێر زیندوو و خشتەی ڕۆژانە.
-- فۆرماتەکانی بەروار: میلادی، کۆچی، ساڵی کوردی (+625).
-- ٣ دەنگی هەڵبژێردراو.
-- ئاگادارکردن بۆ کاتەکانی بانگ.
-- پشکنینی ئاپدەیت هەر ٢٤ کاتژمێر.
+</div>
 
 ---
 
-## Installation — دامەزراندن
+## 📥 دابەزاندن
 
-Requirements: Flutter 3.0+
+| کەناڵ | بەستەر |
+|-------|--------|
+| **GitHub Releases (APK)** | [داگرتنی وەشانی نوێ](https://github.com/daryan-m/prayer_time/releases) |
+| **Google Play** | [لە Play Store دابەزێنە](https://play.google.com/store/apps/details?id=com.daryan.prayer) |
+| **پێشبینینی ڤیدیۆ** | [یوتیوب — @daryan111](https://www.youtube.com/@daryan111) |
 
-Clone and install:
+> **تێبینی:** ئەم ئەپە لە ئێستادا بە شێوەی سەرەکی بۆ **ئەندرۆید** دروستکراوە. پلاتفۆرمەکانی تر لە پرۆژەی Flutter دا هەن، بەڵام ئامانجی سەرەکی ئەندرۆیدە.
+
+---
+
+## 📖 دەربارە
+
+**بانگ** ئەپێکی Flutter ـە کە بۆ موسڵمانانی هەرێمی کوردستان دروستکراوە. کاتەکانی نوێژی ڕۆژانە بۆ **٣٥ شار و شارۆچکە** پیشان دەدات، بە تەواوی **ئۆفلاین** کار دەکات، و ئامرازەکانی ئیسلامی وەک قورئانی پیرۆز، ٩٩ ناوی خوا، تەسبیح، و گۆڕینی بەروار لەخۆدەگرێت.
+
+ئەپەکە ڕووکارێکی تاریک و مۆدێرنی هەیە، چەند ڕووکارێکی ڕەنگی پشتیوانی دەکات، ئاگادارکردنەوەی ناوخۆیی بە دەنگی بانگ، و ویدجێتی سەر شاشەی سەرەکی ئەندرۆید.
+
+---
+
+## ✨ تایبەتمەندییەکان
+
+| تایبەتمەندی | وەسف |
+|-------------|------|
+| 🕐 **کاتەکانی بانگ** | بەیانی، خۆرهەڵات، نیوەڕۆ، عەسر، ئێوارە، خەوتنان — بۆ ٣٥ شار |
+| 📴 **داتای ئۆفلاین** | کاتەکان لە فایلی JSON ـی ناو ئەپەوە — پێویستی بە ئینتەرنێت نییە |
+| 📅 **ڕۆژژمێر** | میلادی، کۆچی، کوردی، و هەتاوی (ساڵی کوردی +٦٢٥) |
+| 🔔 **ئاگادارکردنەوە** | بانگ لە کاتی نوێژدا — پشتیوانی exact alarm لە ئەندرۆید |
+| 🔊 **دەنگی بانگ** | ٣ دەنگی جیاواز (مەککە، مەدینە، کویت) |
+| 📖 **قورئانی پیرۆز** | خوێندنەوەی تەواوی قورئان، گەڕان بەپێی سورەت/جوز/حizb |
+| 🎧 **دەنگی قورئان** | گوێگرتن لەسەر ئینتەرنێت + داگرتن بۆ ئۆفلاین لەگەڵ ڕوونکردنەوەی وشە |
+| ☪️ **٩٩ ناوی خوا** | ناوەکان بە عەرەبی لەگەڵ واتای کوردی و دەنگ |
+| 📿 **تەسبیح** | ژمێرەرێکی دیجیتاڵی لەگەڵ دەنگ |
+| 🗓️ **گۆڕینی بەروار** | گۆڕینی بەروار و دۆزینەوەی کاتی بانگ بەپێی ڕۆژ |
+| 🎨 **ڕووکار** | ٦ پاڵێتی ڕەنگ |
+| 📱 **ویدجێت** | ویدجێتی ئەندرۆید بۆ پیشاندانی کاتەکانی ئەمڕۆ |
+| 🔄 **نوێکردنەوەی OTA** | پشکنینی وەشانی نوێ هەر ٢٤ کاتژمێر جارێک |
+
+---
+
+## 🏙️ شارە پشتیوانکراوەکان
+
+ئەپەکە داتای کاتی بانگ بۆ **٣٥ شوێن** لەخۆدەگرێت، لەوانە:
+
+> هەولێر · سلێمانی · دهۆک · کەرکووک · هەڵەبجە · کەلار · ڕانیە · کۆیە · سۆران · زاخۆ · خانەقین · چەمچەماڵ · پێنجوێن · سیدصادق · دەربەندیخان · کفری · قەڵادزێ · قەرەداغ · قەسرێ · قادرکەرەم · چوارتا · بازیان · بەرزنجە · عەربەت · ئاکرێ · ئامێدی · پیرەمەگرون · تەکیە · تەق تەق · تاسڵوجە · دوزخورماتو · دوکان · حاجیاوا · خەلەکان · هەڵەبجەی تازە
+
+فایلەکانی داتا لە [`assets/data/`](assets/data/) دان.
+
+---
+
+## 🛠️ دروستکردن لە سەرچاوە
+
+### پێویستییەکان
+
+- [Flutter](https://docs.flutter.dev/get-started/install) **٣.٠+**
+- Android SDK (بۆ دروستکردنی ئەندرۆید)
+- Java **٢١** (لە CI بەکاردێت)
+
+### هەنگاوەکان
 
 ```bash
 git clone https://github.com/daryan-m/prayer_time.git
 cd prayer_time
 flutter pub get
+flutter run
 ```
 
-Add audio assets to `assets/audio/`:
+### دروستکردنی وەشانی بڵاوکراوە
+
+```bash
+# APK
+flutter build apk --release
+
+# App Bundle (Google Play)
+flutter build appbundle --release
+```
+
+### فایلە دەنگییەکانی بانگ
+
+دڵنیابە لەم فایلانە لە `assets/audio/`:
 
 ```
 assets/audio/
@@ -53,93 +103,106 @@ assets/audio/
 └── kwait.mp3
 ```
 
-Run:
-
-```bash
-# Android
-flutter run
-
-# Build APK
-flutter build apk --release
-
-# Build App Bundle
-flutter build appbundle --release
-```
-
 ---
 
-## Files & Structure — پێکهاتە و فایلەکان
+## 📂 پێکهاتەی پرۆژە
 
-Main folders:
-
-```
+```text
 lib/
-├── main.dart
-├── screens/
-├── widgets/
-├── services/      # JSON loading, time calculations
-└── utils/
+├── main.dart                 # دەستپێکردن و کەناڵەکانی ئاگادارکردنەوە
+├── screens/                  # شاشە سەرەکییەکان
+├── widgets/                  # پارچە UI ـەکان
+├── services/                 # لۆجیکی داتا، ویدجێت، داتابەیس
+├── quran/                    # خوێندنەوەی قورئان، دەنگ، داتابەیس
+└── utils/                    # constants، مۆڵەت، یارمەتیدەر
 
 assets/
-├── data/          # prayer time JSON files
-└── audio/         # athan mp3 files
+├── data/                     # JSON ـی کاتەکانی بانگ (٣٥ شار)
+├── audio/                    # دەنگی بانگ و ناوەکانی خوا
+├── quran/                    # داتابەیسی قورئان و فۆنت
+└── images/                   # ئایکۆن و وێنەکان
+
+android/
+└── app/src/main/kotlin/com/daryan/prayer/
+    ├── AthanService.kt       # لێدانی بانگ لە پاشبنەما
+    ├── PrayerWidgetProvider.kt
+    └── ...
 ```
 
 ---
 
-## Attribution & Data Sources — سەرچاوەکان و ئاماژە
+## 📚 سەرچاوەکان و ئاماژەدان
 
-- Prayer times data: Bang Kurdistan repository — https://github.com/Bang-Kurdistan
-- Qur'an text used for the app's Quran section: Tanzil — https://tanzil.net/
+> **گرنگ:** داتای کاتەکانی بانگ، تێکست/لاپەڕەی قورئان، و دەنگی قورئانی پیرۆز کە لەم ئەپەدا بەکاردەهێنرێن **کارێکی ئەسڵی خاوەن پرۆژە، داھێنەر، یان داڕێژەر نین**. لە سەرچاوەی کەسانی ترەوە وەرگیراون و بۆ ئاسانکاری لە ناو ئەپەکەدا دانراون.
 
-Use of prayer times data and Qur'anic text in this project is permitted only with clear attribution to their original sources listed above. If you redistribute or reuse the data or text, include a reference to these sources.
+ئەگەر **هەر بەشێک** لەم داتایانە دووبارە بەکاربهێنیت، بڵاوی بکەیتەوە، یان لە پرۆژەیەکی تر بخەیتە ناو، **پێویستە** ئاماژە بە سەرچاوە سەرەکییەکان بکەیت.
 
-- داتای کاتەکانی بانگ: Bang-Kurdistan — https://github.com/Bang-Kurdistan
-- دەقەکانی قورئان بۆ بەشەکانی قورئان: Tanzil — https://tanzil.net/
+| داتا | سەرچاوە | بەستەر |
+|------|---------|--------|
+| **کاتەکانی بانگ** | Bang Kurdistan | [github.com/Bang-Kurdistan](https://github.com/Bang-Kurdistan) |
+| **لاپەڕە و تێکستی قورئان** | QUL (Tarteel AI resources) | [qul.tarteel.ai/resources](https://qul.tarteel.ai/resources/) |
+| **دەنگی قورئانی پیرۆز** | EveryAyah | [everyayah.com](https://everyayah.com/) |
 
-بەکارهێنانی داتا و دەقەکان تەنها بە ئاماژەدان بە سەرچاوەکانی سەرەوە ڕێگەپێدراوە. هەر کاتێک دیتا یان دەقەکان دوبارە بەکاربهێنیت، تکایە ئەم ئاماژەیە هەبێت.
+تێبینییەکانی زیاتر:
 
----
+- فایلەکانی JSON لە `assets/data/` لە پرۆژەی **Bang Kurdistan** وەرگیراون (بڕوانە [`assets/data/README.md`](assets/data/README.md)).
+- داتابەیسەکانی SQLite ـی قورئان (`qpc-v2*.db` و metadata) لە **QUL / Tarteel AI** ـەوەن.
+- دەنگی قورئان (stream و download) لە **EveryAyah.com** دەهێنرێت.
+- دەنگی بانگ و ٩٩ ناو لە `assets/audio/` وەک میدیای ناو ئەپەکە دانراون.
 
-## Licensing & Permissions — ماف وڕێگا
-
-This project is released under the MIT License (see the repository `LICENSE`).
-
-Permissions and expectations:
-
-- The app itself is free to use.
-- You may use the project code without modification; if you redistribute or publish binaries, include attribution to this project and to the data sources above.
-- Use of prayer times data (Bang-Kurdistan) and Qur'an text (Tanzil) must always include attribution to their respective sources.
-
-- ئەم پرۆژەیە لە ژێر مافنامەی MIT ئازاد کراوە.
-- ئەپەکە بۆ بەکارهێنەرەکان بەخۆڕاییە.
-- دەتوانیت کۆدی پرۆژە بەبێ دەستکاری بەکاربهێنی؛ بەڵام هەروەها گەر داتای پرۆژە یان نەرمەکاڵاەکان دوبارە بەدابنێیت، تکایە ئاماژە بدە بە ئەسڵی پرۆژە و سەرچاوەکانی داتاکان.
+**ئاماژەدان بە سەرچاوە سەرەکییەکان پێویست و ناچارە** لە کاتی بەکارهێنانی دووبارەی داتاکان لە دەرەوەی ئەم ئەپە.
 
 ---
 
-## Disclaimer — ئاگاداری/ڕەخنە
+## ⚠️ ئاگاداری و ڕەتکردنەوەی بەرپرسیارێتی
 
-This project is provided "as is". The authors and contributors are not responsible for any damages or losses resulting from the use of this software or from inaccurate prayer times. Users should verify critical timings from authoritative local sources when necessary.
+ئەم نەرمەکاڵا و هەموو داتاکانی ناوەوە **«وەک خۆیان» (as is)** پێشکەش دەکرێن، بەبێ هیچ گەرەنتییەک.
 
-ئەم پرۆژەیە بە "وەکە" پێشکەش دەکرێت. نووسەر و بەشداریبەران لەسەر هەر زیان یان کێشانەوەیەک کە ڕەخنە بکات بۆ بەکارهێنانی ئەم سەرچاوە یان نادروستیی کاتەکان، بەرپرسیار نییە. دەستکاریکردن یان دیاریکردنی کاتە گرنگەکان لە سەرچاوەی ناوخۆیی راستەقینە پێویستە.
-
----
-
-## Contribution — بەشداریکردن
-
-Contributions are welcome. Please open issues or pull requests on the main repository. Maintain attribution for data sources when modifying or extending data-related features.
+- **خاوەن پرۆژە، داھێنەر (Concept)، و داڕێژەر (Developer)** **بەرپرسیار نین** لە هەر هەڵە، کەمبوون، یان نادروستییەک لە کاتەکانی بانگ، تێکستی قورئان، کاتی دەنگی قورئان، یان هەر داتایەکی تر.
+- **بەرپرسیار نین** لە هەر زیانێکی ڕاستەوخۆ یان ناڕاستەوخۆ کە بەهۆی بەکارهێنانی ئەم ئەپە یان پرۆژەیەوە دروست بێت — لەوانە لەدەستدانی نوێژ، هەڵەی کات، یان کێشەی ئامێر/پاتری لە ئاگادارکردنەوە و زەنگی بانگ.
+- بەکارهێنەران **پێویستە کاتە گرنگەکان** لەگەڵ مزگەوتە ناوخۆییەکان یان سەرچاوە فەرمییە ئایینییەکان بەراورد بکەن کاتێک وردی پێویستە.
 
 ---
 
-## Contact — پەیوەندی
+## 📄 مۆڵەتنامە (License)
 
-- YouTube / Author: https://www.youtube.com/@daryan111
-- Repo: https://github.com/daryan-m/prayer_time
+ئەم پرۆژەیە **لەژێر مۆڵەتنامەی MIT نییە**.
+
+- **کۆدی سەرچاوەی ئەپەکە** لەژێر مەرجەکانی [`LICENSE`](LICENSE) ـە.
+- **داتای کەسانی سێیەم** (کاتەکانی بانگ، تێکست/لاپەڕەی قورئان، دەنگی قورئان) بە مەرج و ئاماژەی سەرچاوە سەرەکییەکانی خۆیان دەمێننەوە.
+
+دەقی یاسایی فەرمی بە **ئینگلیزی** لە [`LICENSE`](LICENSE) ـدا نووسراوە و ئەو فایلە سەرچاوەی یاسایی سەرەکییە. بۆ وردەکاری تەواو سەیری بکە.
 
 ---
 
-Thank you — سوپاس
+## 👥 دەستپێشخەری
+
+| ڕۆڵ | ناو |
+|-----|-----|
+| **Concept (داھێنان)** | Daryan_M |
+| **Developer (داڕێژەر)** | M_R_M |
 
 ---
 
-**File updated:** [README_KU.md](README_KU.md)
+## 🤝 بەشداریکردن
+
+Issues و Pull Request ـەکان بەخێرایی وەرگیراون. لە کاتی دەستکاریکردنی بەشەکانی پەیوەست بە داتا، تکایە ئاماژەدان بە سەرچاوە سەرەکییەکان بپارێزە.
+
+---
+
+## 📬 پەیوەندی
+
+| پلاتفۆرم | بەستەر |
+|----------|--------|
+| **GitHub** | [daryan-m/prayer_time](https://github.com/daryan-m/prayer_time) |
+| **YouTube** | [@daryan111](https://www.youtube.com/@daryan111) |
+| **Instagram** | [@prayer_time_ku](https://www.instagram.com/prayer_time_ku/) |
+| **Facebook** | [Prayer Time KU](https://www.facebook.com/profile.php?id=61590536199169) |
+
+---
+
+<div align="center">
+
+**بە ❤️ دروستکراوە بۆ هەرێمی کوردستان**
+
+</div>
