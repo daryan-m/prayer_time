@@ -1,3 +1,5 @@
+[🇬🇧 English](README.md) | [🇮🇶 کوردی](README_KU.md)
+
 <div align="center">
 
 # 🕌 بانگ — کاتەکانی نوێژی هەرێمی کوردستان

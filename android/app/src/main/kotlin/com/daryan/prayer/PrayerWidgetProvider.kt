@@ -153,7 +153,7 @@ class PrayerWidgetProvider : AppWidgetProvider() {
             val next = findNextPrayer(context, city, today, now)
 
 
-            // ▼▼▼ ئەم بەشە لێرە زیاد بکە ▼▼▼
+         
 if (next != null) {
     val nextPrayerName = if (next.isTomorrow || next.index == 0) "بەیانی" else PRAYER_NAMES[next.index]
     views.setTextViewText(R.id.txt_countdown_label, "ماوە بۆ بانگی $nextPrayerName")
@@ -165,7 +165,7 @@ if (next != null) {
         views.setChronometerCountDown(R.id.countdown_timer, true)
     }
 }
-// ▲▲▲ کۆتایی بەشی زیادکراو ▲▲▲
+
 
 
 
@@ -181,7 +181,7 @@ if (next != null) {
                 if (next != null && i == next.index) {
                     views.setInt(SLOT_IDS[i], "setBackgroundResource", R.drawable.widget_slot_next_bg)
                     views.setTextColor(LBL_IDS[i], 0xFFFFFFFF.toInt())
-                    views.setTextColor(TIME_IDS[i], 0xFF02C40A.toInt())
+                    views.setTextColor(TIME_IDS[i], 0xFFFFFFFF.toInt())
                 } else {
                     views.setInt(SLOT_IDS[i], "setBackgroundResource", 0)
                     views.setTextColor(LBL_IDS[i], 0xFFFFFFFF.toInt())
@@ -329,7 +329,7 @@ if (next != null) {
                 val day = toKurdishNums(hijri.get(java.time.temporal.ChronoField.DAY_OF_MONTH).toString())
                 val month = getHijriMonthName(hijri.get(java.time.temporal.ChronoField.MONTH_OF_YEAR))
                 val year = toKurdishNums(hijri.get(java.time.temporal.ChronoField.YEAR).toString())
-                " $day $month $year"
+                " $dayى $month $year"
             } catch (e: Exception) {
                 ""
             }

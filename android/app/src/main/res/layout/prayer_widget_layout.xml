@@ -126,7 +126,7 @@
                 android:layout_height="wrap_content"
                 android:text="خەوتنان"
                 android:textColor="#CCFFFFFF"
-                android:textSize="13.5sp"
+                android:textSize="14sp"
                 android:gravity="center"
                 android:maxLines="1"
                 android:ellipsize="none" />
@@ -136,7 +136,7 @@
                 android:layout_height="wrap_content"
                 android:text="٠٩:١٠"
                 android:textColor="#FFFFFF"
-                android:textSize="13.5sp"
+                android:textSize="14sp"
                 android:textStyle="bold"
                 android:gravity="center"
                 android:layout_marginTop="2dp" />
@@ -158,7 +158,7 @@
                 android:layout_height="wrap_content"
                 android:text="ئێوارە"
                 android:textColor="#CCFFFFFF"
-                android:textSize="13.5sp"
+                android:textSize="14sp"
                 android:gravity="center"
                 android:maxLines="1"
                 android:ellipsize="none" />
@@ -168,7 +168,7 @@
                 android:layout_height="wrap_content"
                 android:text="٠٧:٢٢"
                 android:textColor="#FFFFFF"
-                android:textSize="13.5sp"
+                android:textSize="14sp"
                 android:textStyle="bold"
                 android:gravity="center"
                 android:layout_marginTop="2dp" />
@@ -190,7 +190,7 @@
                 android:layout_height="wrap_content"
                 android:text="عەسر"
                 android:textColor="#CCFFFFFF"
-                android:textSize="13.5sp"
+                android:textSize="14sp"
                 android:gravity="center"
                 android:maxLines="1"
                 android:ellipsize="none" />
@@ -200,7 +200,7 @@
                 android:layout_height="wrap_content"
                 android:text="٠٤:٠٥"
                 android:textColor="#FFFFFF"
-                android:textSize="13.5sp"
+                android:textSize="14sp"
                 android:textStyle="bold"
                 android:gravity="center"
                 android:layout_marginTop="2dp" />
@@ -222,7 +222,7 @@
                 android:layout_height="wrap_content"
                 android:text="نیوەڕۆ"
                 android:textColor="#CCFFFFFF"
-                android:textSize="13.5sp"
+                android:textSize="14sp"
                 android:gravity="center"
                 android:maxLines="1"
                 android:ellipsize="none" />
@@ -232,7 +232,7 @@
                 android:layout_height="wrap_content"
                 android:text="١٢:٣٠"
                 android:textColor="#FFFFFF"
-                android:textSize="13.5sp"
+                android:textSize="14sp"
                 android:textStyle="bold"
                 android:gravity="center"
                 android:layout_marginTop="2dp" />
@@ -254,7 +254,7 @@
                 android:layout_height="wrap_content"
                 android:text="بەیانی"
                 android:textColor="#CCFFFFFF"
-                android:textSize="13.5sp"
+                android:textSize="14sp"
                 android:gravity="center"
                 android:maxLines="1"
                 android:ellipsize="none" />
@@ -264,7 +264,7 @@
                 android:layout_height="wrap_content"
                 android:text="٠٣:٤٢"
                 android:textColor="#FFFFFF"
-                android:textSize="13.5sp"
+                android:textSize="14sp"
                 android:textStyle="bold"
                 android:gravity="center"
                 android:layout_marginTop="2dp" />
@@ -333,7 +333,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1.30"
             android:text=" ٢٣ گەلاوێژ"
-            android:textColor="#02c40a"
+            android:textColor="#FFFFFF"
             android:textSize="13sp"
             android:gravity="center"
             android:maxLines="2"

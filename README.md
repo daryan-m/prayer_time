@@ -1,3 +1,5 @@
+[🇬🇧 English](README.md) | [🇮🇶 کوردی](README_KU.md)
+
 <div align="center">
 
 # 🕌 Bang — Prayer Times Kurdistan
