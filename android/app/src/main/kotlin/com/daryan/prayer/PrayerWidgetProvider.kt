@@ -329,7 +329,7 @@ if (next != null) {
                 val day = toKurdishNums(hijri.get(java.time.temporal.ChronoField.DAY_OF_MONTH).toString())
                 val month = getHijriMonthName(hijri.get(java.time.temporal.ChronoField.MONTH_OF_YEAR))
                 val year = toKurdishNums(hijri.get(java.time.temporal.ChronoField.YEAR).toString())
-                " $dayى $month $year"
+                " ${day}ى $month $year"
             } catch (e: Exception) {
                 ""
             }
