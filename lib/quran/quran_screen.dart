@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -36,6 +37,8 @@ class _QuranScreenState extends State<QuranScreen> {
   static const int _totalFonts = 603;
   int _downloadedFonts = 0;
   bool _allFontsDone = false;
+  bool _showFontDownloadNotice = false;
+  Timer? _fontNoticeTimer;
 
   // Page state
   int _currentPage = 1;
@@ -61,6 +64,7 @@ class _QuranScreenState extends State<QuranScreen> {
 
   @override
   void dispose() {
+    _fontNoticeTimer?.cancel();
     _bridge.dispose();
     _audio.stop();
     _pageController.dispose();
@@ -116,8 +120,67 @@ class _QuranScreenState extends State<QuranScreen> {
       }
     }
 
-    if (!_allFontsDone) _runFontQueue();
+    if (!_allFontsDone) {
+      _runFontQueue();
+      _showFirstOpenFontNotice();
+    }
     WakelockPlus.enable();
+  }
+
+  void _showFirstOpenFontNotice() {
+    if (!mounted) return;
+    setState(() => _showFontDownloadNotice = true);
+    _fontNoticeTimer?.cancel();
+    _fontNoticeTimer = Timer(const Duration(seconds: 5), () {
+      if (mounted) setState(() => _showFontDownloadNotice = false);
+    });
+  }
+
+  Widget _buildFontDownloadNotice() {
+    return Positioned.fill(
+      child: IgnorePointer(
+        child: Center(
+          child: Container(
+            margin: const EdgeInsets.symmetric(horizontal: 32),
+            padding: const EdgeInsets.fromLTRB(20, 22, 20, 20),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFDF6E3).withOpacity(0.96),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFF4A7C59), width: 1.2),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.18),
+                  blurRadius: 16,
+                  offset: const Offset(0, 6),
+                ),
+              ],
+            ),
+            child: const Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(
+                  color: Color(0xFF4A7C59),
+                  strokeWidth: 3,
+                ),
+                SizedBox(height: 16),
+                Text(
+                  'فۆنتەکان دادەبەزرێن بۆ کردنەوەى لاپەڕەکان',
+                  textAlign: TextAlign.center,
+                  textDirection: TextDirection.rtl,
+                  style: TextStyle(
+                    fontSize: 15,
+                    height: 1.6,
+                    color: Color(0xFF2D5016),
+                    fontFamily: 'Notonaskh',
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   // ─── Font Management ──────────────────────────────────────────────────────
@@ -321,6 +384,7 @@ class _QuranScreenState extends State<QuranScreen> {
                 behavior: HitTestBehavior.translucent,
                 child: _buildPageView(),
               ),
+              if (_showFontDownloadNotice) _buildFontDownloadNotice(),
               Positioned(
                 bottom: 0,
                 left: 0,

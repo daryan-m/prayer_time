@@ -167,11 +167,21 @@ class FontLoadingPage extends StatelessWidget {
         children: [
           const CircularProgressIndicator(color: Color(0xFF4A7C59)),
           const SizedBox(height: 12),
-          Text(
-            isDownloading
-                ? 'فۆنت دادەبەزێت... ${toKNum(((downloadProgress ?? 0) * 100).toInt())}٪'
-                : 'فۆنت بەردەست نییە',
-            style: const TextStyle(fontSize: 12),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Text(
+              isDownloading
+                  ? 'فۆنتەکان دادەبەزن  بۆ کردنەوەى لاپەڕەکان\n${toKNum(((downloadProgress ?? 0) * 100).toInt())}٪'
+                  : 'فۆنت بەردەست نییە',
+              textAlign: TextAlign.center,
+              textDirection: TextDirection.rtl,
+              style: const TextStyle(
+                fontSize: 14,
+                height: 1.6,
+                color: Color(0xFF2D5016),
+                fontFamily: 'Notonaskh',
+              ),
+            ),
           ),
           if (!isDownloading)
             TextButton(
@@ -208,8 +218,8 @@ class MushafPageLines extends StatelessWidget {
       textDirection: TextDirection.rtl,
       child: Padding(
         padding: const EdgeInsets.only(
-          left: 16,
-          right: 16,
+          left: 6,
+          right: 6,
           top: 0,
           bottom: 76,
         ),
@@ -285,14 +295,34 @@ class MushafPageLines extends StatelessWidget {
   }
 
   Widget _buildWordLine(List<QuranWord> words, bool centered) {
-    return SizedBox(
-      width: double.infinity,
-      child: Wrap(
-        textDirection: TextDirection.rtl,
-        alignment: WrapAlignment.center,
-        runAlignment: WrapAlignment.center,
-        children: words.map((w) => _buildWord(w)).toList(),
-      ),
+    final wordWidgets = words.map((w) => _buildWord(w)).toList();
+
+    if (centered) {
+      return SizedBox(
+        width: double.infinity,
+        child: Row(
+          textDirection: TextDirection.rtl,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: wordWidgets,
+        ),
+      );
+    }
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.center,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minWidth: constraints.maxWidth),
+            child: Row(
+              textDirection: TextDirection.rtl,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: wordWidgets,
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -308,6 +338,9 @@ class MushafPageLines extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 1),
         child: Text(
           word.text,
+          maxLines: 1,
+          softWrap: false,
+          overflow: TextOverflow.visible,
           style: TextStyle(
             fontFamily: fontName,
             fontSize: 18,
