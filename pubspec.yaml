@@ -24,7 +24,7 @@ dependencies:
   http: ^1.2.1
   ota_update: ^7.1.0
   shared_preferences: ^2.2.3
-  android_intent_plus: ^4.0.3
+  android_intent_plus: ^6.1.0
   vibration: ^3.1.8
   http_parser: ^4.1.2
   archive: ^4.0.9
