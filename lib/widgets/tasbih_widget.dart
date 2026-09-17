@@ -427,7 +427,7 @@ class _TasbihDialogState extends State<TasbihDialog>
             ),
           ),
 
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
 
           // دوگمەی ڕیست بە ئایکۆنی لای ڕاست
           TextButton(
@@ -437,12 +437,12 @@ class _TasbihDialogState extends State<TasbihDialog>
               children: [
                 Text("ڕیست",
                     style: TextStyle(color: textSubColor, fontSize: 13)),
-                SizedBox(width: 6),
+                SizedBox(width: 8),
                 Icon(Icons.refresh, color: textSubColor, size: 18),
               ],
             ),
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 16),
         ]),
       ),
     );

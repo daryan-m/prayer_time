@@ -164,7 +164,7 @@ class _QuranScreenState extends State<QuranScreen> {
                 ),
                 SizedBox(height: 16),
                 Text(
-                  'فۆنتەکان دادەبەزرێن بۆ کردنەوەى لاپەڕەکان',
+                  'فۆنتەکان دادەبەزن بۆ کردنەوەى لاپەڕەکان',
                   textAlign: TextAlign.center,
                   textDirection: TextDirection.rtl,
                   style: TextStyle(

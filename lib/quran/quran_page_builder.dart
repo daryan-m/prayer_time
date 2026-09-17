@@ -211,26 +211,31 @@ class MushafPageLines extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    final children = lines.map((l) => _buildLine(l)).toList();
+Widget build(BuildContext context) {
+  final children = lines.map((l) => _buildLine(l)).toList();
+  final screenWidth = MediaQuery.of(context).size.width;
 
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Padding(
-        padding: const EdgeInsets.only(
-          left: 6,
-          right: 6,
-          top: 0,
-          bottom: 76,
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: children,
-        ),
+  // بۆشایی لای لاپەڕە: ڕێژەیی بە پانتایی شاشەکە (٪٤)
+  // لانیکەم ١٤، زۆرترین ٤٨ (بۆ ئەوەی لەسەر ئایپاد/تابلێت زۆر نەبێتەوە)
+  final horizontalPadding = (screenWidth * 0.04).clamp(14.0, 48.0);
+
+  return Directionality(
+    textDirection: TextDirection.rtl,
+    child: Padding(
+      padding: EdgeInsets.only(
+        left: horizontalPadding,
+        right: horizontalPadding,
+        top: 0,
+        bottom: 76,
       ),
-    );
-  }
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: children,
+      ),
+    ),
+  );
+}
 
   Widget _buildLine(QuranPageLine line) {
     switch (line.lineType) {
@@ -294,37 +299,46 @@ class MushafPageLines extends StatelessWidget {
     );
   }
 
-  Widget _buildWordLine(List<QuranWord> words, bool centered) {
-    final wordWidgets = words.map((w) => _buildWord(w)).toList();
+ Widget _buildWordLine(List<QuranWord> words, bool centered) {
+  final wordWidgets = words.map((w) => _buildWord(w)).toList();
 
-    if (centered) {
-      return SizedBox(
-        width: double.infinity,
-        child: Row(
-          textDirection: TextDirection.rtl,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: wordWidgets,
-        ),
-      );
-    }
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
+  return LayoutBuilder(
+    builder: (context, constraints) {
+      if (centered) {
         return FittedBox(
           fit: BoxFit.scaleDown,
           alignment: Alignment.center,
-          child: ConstrainedBox(
-            constraints: BoxConstraints(minWidth: constraints.maxWidth),
-            child: Row(
-              textDirection: TextDirection.rtl,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: wordWidgets,
-            ),
+          child: Row(
+            textDirection: TextDirection.rtl,
+            mainAxisSize: MainAxisSize.min,
+            children: wordWidgets,
           ),
         );
-      },
-    );
+      }
+
+      // وشەکان بە بۆشایی سروشتیی خۆیان ڕیز دەکرێن، پاشان هەموو دێڕەکە
+      // (فۆنت + بۆشایی نێوان وشە) پێکەوە دەگۆڕدرێت بۆ پڕکردنەوەی بەرینایی
+      return FittedBox(
+        fit: BoxFit.fitWidth,
+        alignment: Alignment.center,
+        child: Row(
+          textDirection: TextDirection.rtl,
+          mainAxisSize: MainAxisSize.min,
+          children: _withGaps(wordWidgets),
+        ),
+      );
+    },
+  );
+}
+
+List<Widget> _withGaps(List<Widget> words) {
+  final result = <Widget>[];
+  for (var i = 0; i < words.length; i++) {
+    if (i != 0) result.add(const SizedBox(width: 6));
+    result.add(words[i]);
   }
+  return result;
+}
 
   Widget _buildWord(QuranWord word) {
     final isHighlighted =

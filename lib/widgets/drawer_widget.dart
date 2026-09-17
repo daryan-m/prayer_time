@@ -712,6 +712,28 @@ class _PrayerDrawerState extends State<PrayerDrawer> {
                   ),
                 ),
               ),
+              const SizedBox(width: 16),
+              //ئیمەیل
+              Tooltip(
+  message: 'ئیمەیل',
+  child: InkWell(
+    borderRadius: BorderRadius.circular(20),
+    onTap: () async {
+      final Uri url = Uri(
+        scheme: 'mailto',
+        path: 'prayertimeku@gmail.com',
+        query: 'subject=پەیوەندی لەگەڵ ئەپی کاتی بانگ',
+      );
+      if (!await launchUrl(url)) {
+        debugPrint("کێشەیەک هەیە");
+      }
+    },
+    child: const Padding(
+      padding: EdgeInsets.all(6),
+      child: Icon(Icons.email_outlined, color: Color(0xFFEA4335), size: 28),
+    ),
+  ),
+),
             ],
           ),
         ],

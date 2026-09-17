@@ -429,7 +429,7 @@ class _DateConverterDialogState extends State<DateConverterDialog>
               ],
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 6),
           Divider(color: Theme.of(context).dividerColor.withOpacity(0.2)),
           Expanded(
               child: TabBarView(controller: _tabCtrl, children: [
@@ -461,7 +461,7 @@ class _DateConverterDialogState extends State<DateConverterDialog>
                       color: pc.withOpacity(0.85),
                       fontSize: 11,
                       fontWeight: FontWeight.bold)),
-              const SizedBox(width: 6),
+              const SizedBox(width: 8),
               Icon(Icons.info_outline, color: pc.withOpacity(0.7), size: 12),
             ]),
           ),
@@ -469,7 +469,7 @@ class _DateConverterDialogState extends State<DateConverterDialog>
           _row3(
               _gregDayCtrl, _gregMonthCtrl, _gregYearCtrl, pc, _convertFromGreg,
               topLabel: "میلادی", reverseOrder: true),
-          const SizedBox(height: 6),
+          const SizedBox(height: 8),
           Row(mainAxisAlignment: MainAxisAlignment.center, children: [
             ElevatedButton.icon(
               style: ElevatedButton.styleFrom(
@@ -492,7 +492,7 @@ class _DateConverterDialogState extends State<DateConverterDialog>
                 _convertFromGreg();
               },
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 10),
             OutlinedButton.icon(
               style: OutlinedButton.styleFrom(
                 foregroundColor: Theme.of(context)
@@ -519,12 +519,12 @@ class _DateConverterDialogState extends State<DateConverterDialog>
           ]),
           // ── ڕۆژی هەفتە ژێر دوگمەکان ──
           if (_weekdayResult.isNotEmpty) ...[
-            const SizedBox(height: 15),
+            const SizedBox(height: 18),
             Row(mainAxisAlignment: MainAxisAlignment.center, children: [
               Text(_weekdayResult,
                   style: TextStyle(
                       color: pc, fontSize: 15, fontWeight: FontWeight.bold)),
-              const SizedBox(width: 5),
+              const SizedBox(width: 8),
               Icon(Icons.today, color: pc, size: 15),
             ]),
           ],
