@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'quran_models.dart';
 import 'quran_audio_service.dart';
+import 'package:flutter/gestures.dart';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -214,25 +215,29 @@ class MushafPageLines extends StatelessWidget {
 Widget build(BuildContext context) {
   final children = lines.map((l) => _buildLine(l)).toList();
   final screenWidth = MediaQuery.of(context).size.width;
-
-  // بۆشایی لای لاپەڕە: ڕێژەیی بە پانتایی شاشەکە (٪٤)
-  // لانیکەم ١٤، زۆرترین ٤٨ (بۆ ئەوەی لەسەر ئایپاد/تابلێت زۆر نەبێتەوە)
   final horizontalPadding = (screenWidth * 0.04).clamp(14.0, 48.0);
 
   return Directionality(
     textDirection: TextDirection.rtl,
-    child: Padding(
-      padding: EdgeInsets.only(
-        left: horizontalPadding,
-        right: horizontalPadding,
-        top: 0,
-        bottom: 76,
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: children,
-      ),
+    child: LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          padding: EdgeInsets.only(
+            left: horizontalPadding,
+            right: horizontalPadding,
+            top: 0,
+            bottom: 76,
+          ),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: children,
+            ),
+          ),
+        );
+      },
     ),
   );
 }
@@ -300,73 +305,44 @@ Widget build(BuildContext context) {
   }
 
  Widget _buildWordLine(List<QuranWord> words, bool centered) {
-  final wordWidgets = words.map((w) => _buildWord(w)).toList();
-
   return LayoutBuilder(
     builder: (context, constraints) {
-      if (centered) {
-        return FittedBox(
-          fit: BoxFit.scaleDown,
-          alignment: Alignment.center,
-          child: Row(
-            textDirection: TextDirection.rtl,
-            mainAxisSize: MainAxisSize.min,
-            children: wordWidgets,
-          ),
-        );
-      }
+      final richText = Text.rich(
+        TextSpan(children: words.map((w) => _buildWordSpan(w)).toList()),
+        textDirection: TextDirection.rtl,
+        softWrap: false,
+        overflow: TextOverflow.visible,
+      );
 
-      // وشەکان بە بۆشایی سروشتیی خۆیان ڕیز دەکرێن، پاشان هەموو دێڕەکە
-      // (فۆنت + بۆشایی نێوان وشە) پێکەوە دەگۆڕدرێت بۆ پڕکردنەوەی بەرینایی
       return FittedBox(
-        fit: BoxFit.fitWidth,
+        fit: centered ? BoxFit.scaleDown : BoxFit.fitWidth,
         alignment: Alignment.center,
-        child: Row(
-          textDirection: TextDirection.rtl,
-          mainAxisSize: MainAxisSize.min,
-          children: _withGaps(wordWidgets),
-        ),
+        child: richText,
       );
     },
   );
 }
 
-List<Widget> _withGaps(List<Widget> words) {
-  final result = <Widget>[];
-  for (var i = 0; i < words.length; i++) {
-    if (i != 0) result.add(const SizedBox(width: 6));
-    result.add(words[i]);
-  }
-  return result;
+TextSpan _buildWordSpan(QuranWord word) {
+  final isHighlighted =
+      audio.isCurrentAyah(word.surah, word.ayah) && audio.hasHighlightedAyah;
+
+  return TextSpan(
+    text: '${word.text} ',
+    style: TextStyle(
+      fontFamily: fontName,
+      fontSize: 18,
+      height: 1.6,
+      color: isHighlighted
+          ? const Color(0xFF2D5016)
+          : const Color(0xFF1A1A1A),
+      backgroundColor:
+          isHighlighted ? const Color(0xFFC2E4C2).withOpacity(0.35) : null,
+    ),
+    recognizer: TapGestureRecognizer()
+      ..onTap = () => audio.togglePlayPause(word.surah, word.ayah),
+  );
 }
-
-  Widget _buildWord(QuranWord word) {
-    final isHighlighted =
-        audio.isCurrentAyah(word.surah, word.ayah) && audio.hasHighlightedAyah;
-
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: () => audio.togglePlayPause(word.surah, word.ayah),
-      child: Container(
-        color: isHighlighted ? const Color(0xFFC2E4C2).withOpacity(0.35) : null,
-        padding: const EdgeInsets.symmetric(horizontal: 1),
-        child: Text(
-          word.text,
-          maxLines: 1,
-          softWrap: false,
-          overflow: TextOverflow.visible,
-          style: TextStyle(
-            fontFamily: fontName,
-            fontSize: 18,
-            color: isHighlighted
-                ? const Color(0xFF2D5016)
-                : const Color(0xFF1A1A1A),
-            height: 1.6,
-          ),
-        ),
-      ),
-    );
-  }
 }
 
 // ─── Bottom Bar ───────────────────────────────────────────────────────────────

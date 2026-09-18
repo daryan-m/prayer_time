@@ -429,7 +429,7 @@ class _DateConverterDialogState extends State<DateConverterDialog>
               ],
             ),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 14),
           Divider(color: Theme.of(context).dividerColor.withOpacity(0.2)),
           Expanded(
               child: TabBarView(controller: _tabCtrl, children: [
@@ -469,7 +469,7 @@ class _DateConverterDialogState extends State<DateConverterDialog>
           _row3(
               _gregDayCtrl, _gregMonthCtrl, _gregYearCtrl, pc, _convertFromGreg,
               topLabel: "میلادی", reverseOrder: true),
-          const SizedBox(height: 8),
+          const SizedBox(height: 14),
           Row(mainAxisAlignment: MainAxisAlignment.center, children: [
             ElevatedButton.icon(
               style: ElevatedButton.styleFrom(
@@ -519,7 +519,7 @@ class _DateConverterDialogState extends State<DateConverterDialog>
           ]),
           // ── ڕۆژی هەفتە ژێر دوگمەکان ──
           if (_weekdayResult.isNotEmpty) ...[
-            const SizedBox(height: 18),
+            const SizedBox(height: 22),
             Row(mainAxisAlignment: MainAxisAlignment.center, children: [
               Text(_weekdayResult,
                   style: TextStyle(
@@ -532,7 +532,7 @@ class _DateConverterDialogState extends State<DateConverterDialog>
           // ── کۆچی ──
           Divider(
               color: Theme.of(context).dividerColor.withOpacity(0.5),
-              height: 16,
+              height: 20,
               thickness: 1.5),
           _rowDates(const Color(0xFFF59E0B),
               yearCtrl: _hijriYearCtrl,
@@ -545,7 +545,7 @@ class _DateConverterDialogState extends State<DateConverterDialog>
           // ── کوردی ──
           Divider(
               color: Theme.of(context).dividerColor.withOpacity(0.5),
-              height: 16,
+              height: 20,
               thickness: 1.5),
           _rowDates(const Color(0xFF4ADE80),
               dayCtrl: _kurdDayCtrl,
@@ -558,7 +558,7 @@ class _DateConverterDialogState extends State<DateConverterDialog>
           // ── هەتاوی ──
           Divider(
               color: Theme.of(context).dividerColor.withOpacity(0.5),
-              height: 16,
+              height: 20,
               thickness: 1.5),
           _rowDates(const Color(0xFFF9F516),
               dayCtrl: _shamsiDayCtrl,
@@ -823,7 +823,7 @@ class _DateConverterDialogState extends State<DateConverterDialog>
                 border: Border.all(color: pc.withOpacity(0.2))),
             child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
               Text(
-                  "لە ${_toKurdish(_minYear)} تا ${_toKurdish(_maxYear)} ئەتوانیت داخل بکەیت",
+                  "لە ساڵى ${_toKurdish(_minYear)} تا ${_toKurdish(_maxYear)} ئەتوانیت داخل بکەیت",
                   style: TextStyle(
                       color: pc.withOpacity(0.85),
                       fontSize: 11,
@@ -924,6 +924,11 @@ class _DateConverterDialogState extends State<DateConverterDialog>
                         bottomRight: Radius.circular(10),
                         bottomLeft: Radius.circular(10),
                       ),
+                      child: Scrollbar(                              // ← دێڕی نوێ (١)
+    thumbVisibility: true,                       // ← دێڕی نوێ (٢)
+    thickness: 4,                                // ← دێڕی نوێ (٣)
+    radius: const Radius.circular(10),            // ← دێڕی نوێ (٤)
+    thumbColor: WidgetStateProperty.all(pc.withOpacity(0.6)),  // ← دێڕی نوێ (٥)
                       child: ListView(
                         padding: EdgeInsets.zero,
                         children: kurdistanCitiesData.map((c) {
@@ -941,7 +946,7 @@ class _DateConverterDialogState extends State<DateConverterDialog>
                                   bottom: BorderSide(
                                       color: Theme.of(context)
                                           .dividerColor
-                                          .withOpacity(0.1)),
+                                          .withOpacity(0.2)),
                                 ),
                               ),
                               child: Row(
@@ -972,6 +977,7 @@ class _DateConverterDialogState extends State<DateConverterDialog>
                           );
                         }).toList(),
                       ),
+                      ),                                              // ← داخستنی Scrollbar (٦)
                     ),
                   ),
                 ],
@@ -1136,7 +1142,7 @@ class _DateConverterDialogState extends State<DateConverterDialog>
                     })),
                   ]),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 14),
             Center(
               child: OutlinedButton.icon(
                 style: OutlinedButton.styleFrom(
