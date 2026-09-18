@@ -920,69 +920,74 @@ class _DateConverterDialogState extends State<DateConverterDialog>
                           : const Border(),
                     ),
                     child: ClipRRect(
-                      borderRadius: const BorderRadius.only(
-                        bottomRight: Radius.circular(10),
-                        bottomLeft: Radius.circular(10),
-                      ),
-                      child: Scrollbar(                              // ← دێڕی نوێ (١)
-    thumbVisibility: true,                       // ← دێڕی نوێ (٢)
-    thickness: 4,                                // ← دێڕی نوێ (٣)
-    radius: const Radius.circular(10),            // ← دێڕی نوێ (٤)
-    thumbColor: WidgetStateProperty.all(pc.withOpacity(0.6)),  // ← دێڕی نوێ (٥)
-                      child: ListView(
-                        padding: EdgeInsets.zero,
-                        children: kurdistanCitiesData.map((c) {
-                          final isSelected = _selectedCity == c;
-                          return InkWell(
-                            onTap: () => setState(() {
-                              _selectedCity = c;
-                              _cityDropdownOpen = false;
-                            }),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 14, vertical: 11),
-                              decoration: BoxDecoration(
-                                border: Border(
-                                  bottom: BorderSide(
-                                      color: Theme.of(context)
-                                          .dividerColor
-                                          .withOpacity(0.2)),
-                                ),
-                              ),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  isSelected
-                                      ? Icon(Icons.check, color: pc, size: 16)
-                                      : const SizedBox(width: 16),
-                                  Text(
-                                    c,
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      color: isSelected
-                                          ? pc
-                                          : Theme.of(context)
-                                              .textTheme
-                                              .bodyMedium
-                                              ?.color,
-                                      fontWeight: isSelected
-                                          ? FontWeight.bold
-                                          : FontWeight.normal,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                      ),                                              // ← داخستنی Scrollbar (٦)
+  borderRadius: const BorderRadius.only(
+    bottomRight: Radius.circular(10),
+    bottomLeft: Radius.circular(10),
+  ),
+  child: ScrollbarTheme(
+    data: ScrollbarThemeData(
+      thumbColor: WidgetStateProperty.all(pc.withOpacity(0.6)),
+    ),
+    child: Scrollbar(
+      thumbVisibility: true,
+      thickness: 4,
+      radius: const Radius.circular(10),
+      child: ListView(
+        padding: EdgeInsets.zero,
+        children: kurdistanCitiesData.map((c) {
+          final isSelected = _selectedCity == c;
+          return InkWell(
+            onTap: () => setState(() {
+              _selectedCity = c;
+              _cityDropdownOpen = false;
+            }),
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 14, vertical: 11),
+              decoration: BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(
+                      color: Theme.of(context)
+                          .dividerColor
+                          .withOpacity(0.2)),
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment:
+                    MainAxisAlignment.spaceBetween,
+                children: [
+                  isSelected
+                      ? Icon(Icons.check, color: pc, size: 16)
+                      : const SizedBox(width: 16),
+                  Text(
+                    c,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: isSelected
+                          ? pc
+                          : Theme.of(context)
+                              .textTheme
+                              .bodyMedium
+                              ?.color,
+                      fontWeight: isSelected
+                          ? FontWeight.bold
+                          : FontWeight.normal,
                     ),
                   ),
                 ],
               ),
             ),
+          );
+        }).toList(),
+      ),
+    ),
+  ),
+),                                              // ← داخستنی Scrollbar (٦)
+                    ),
+                    
+          ]),
+            ),
+           
             const SizedBox(width: 10),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
@@ -1169,8 +1174,9 @@ class _DateConverterDialogState extends State<DateConverterDialog>
               ),
             ),
           ],
-        ]),
+      ]),
       );
+      
     });
   }
 
