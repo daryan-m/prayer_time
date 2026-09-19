@@ -198,6 +198,7 @@ Issues و Pull Request ـەکان بەخێرایی وەرگیراون. لە کا
 |----------|--------|
 | **GitHub** | [daryan-m/prayer_time](https://github.com/daryan-m/prayer_time) |
 | **YouTube** | [@daryan111](https://www.youtube.com/@daryan111) |
+| **Email** | [prayertimeku@gmail.com](mailto:prayertimeku@gmail.com) |
 | **Instagram** | [@prayer_time_ku](https://www.instagram.com/prayer_time_ku/) |
 | **Facebook** | [Prayer Time KU](https://www.facebook.com/profile.php?id=61590536199169) |
 
@@ -205,6 +206,5 @@ Issues و Pull Request ـەکان بەخێرایی وەرگیراون. لە کا
 
 <div align="center">
 
-**بە ❤️ دروستکراوە بۆ هەرێمی کوردستان**
 
 </div>
