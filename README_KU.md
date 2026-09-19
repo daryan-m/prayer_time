@@ -102,7 +102,12 @@ flutter build appbundle --release
 assets/audio/
 ├── macca.mp3
 ├── madina.mp3
-└── kwait.mp3
+├── kwait.mp3
+├── minshawi.mp3
+├── abdulbaset.mp3
+├── muhamad rafaat.mp3
+├── muhamad ali albanna.mp3
+└── ahmad muainie.mp3
 ```
 
 ---
