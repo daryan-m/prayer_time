@@ -216,6 +216,7 @@ Widget build(BuildContext context) {
   final children = lines.map((l) => _buildLine(l)).toList();
   final screenWidth = MediaQuery.of(context).size.width;
   final horizontalPadding = (screenWidth * 0.04).clamp(14.0, 48.0);
+  const bottomPadding = 76.0;
 
   return Directionality(
     textDirection: TextDirection.rtl,
@@ -229,7 +230,7 @@ Widget build(BuildContext context) {
             bottom: 76,
           ),
           child: ConstrainedBox(
-            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            constraints: BoxConstraints(minHeight: constraints.maxHeight - bottomPadding,),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               crossAxisAlignment: CrossAxisAlignment.stretch,

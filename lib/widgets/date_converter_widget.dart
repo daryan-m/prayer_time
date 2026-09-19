@@ -444,12 +444,12 @@ class _DateConverterDialogState extends State<DateConverterDialog>
   Widget _buildConverterTab(Color pc) {
     return Builder(builder: (context) {
       return SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+        padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
         child:
             Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           Container(
             padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 12),
-            margin: const EdgeInsets.only(bottom: 8),
+            margin: const EdgeInsets.only(bottom: 12),
             decoration: BoxDecoration(
                 color: pc.withOpacity(0.07),
                 borderRadius: BorderRadius.circular(8),
@@ -469,7 +469,7 @@ class _DateConverterDialogState extends State<DateConverterDialog>
           _row3(
               _gregDayCtrl, _gregMonthCtrl, _gregYearCtrl, pc, _convertFromGreg,
               topLabel: "میلادی", reverseOrder: true),
-          const SizedBox(height: 14),
+          const SizedBox(height: 18),
           Row(mainAxisAlignment: MainAxisAlignment.center, children: [
             ElevatedButton.icon(
               style: ElevatedButton.styleFrom(
@@ -519,12 +519,12 @@ class _DateConverterDialogState extends State<DateConverterDialog>
           ]),
           // ── ڕۆژی هەفتە ژێر دوگمەکان ──
           if (_weekdayResult.isNotEmpty) ...[
-            const SizedBox(height: 22),
+            const SizedBox(height: 26),
             Row(mainAxisAlignment: MainAxisAlignment.center, children: [
               Text(_weekdayResult,
                   style: TextStyle(
                       color: pc, fontSize: 15, fontWeight: FontWeight.bold)),
-              const SizedBox(width: 8),
+              const SizedBox(width: 12),
               Icon(Icons.today, color: pc, size: 15),
             ]),
           ],
@@ -532,7 +532,7 @@ class _DateConverterDialogState extends State<DateConverterDialog>
           // ── کۆچی ──
           Divider(
               color: Theme.of(context).dividerColor.withOpacity(0.5),
-              height: 20,
+              height: 24,
               thickness: 1.5),
           _rowDates(const Color(0xFFF59E0B),
               yearCtrl: _hijriYearCtrl,
@@ -545,7 +545,7 @@ class _DateConverterDialogState extends State<DateConverterDialog>
           // ── کوردی ──
           Divider(
               color: Theme.of(context).dividerColor.withOpacity(0.5),
-              height: 20,
+              height: 24,
               thickness: 1.5),
           _rowDates(const Color(0xFF4ADE80),
               dayCtrl: _kurdDayCtrl,
@@ -558,7 +558,7 @@ class _DateConverterDialogState extends State<DateConverterDialog>
           // ── هەتاوی ──
           Divider(
               color: Theme.of(context).dividerColor.withOpacity(0.5),
-              height: 20,
+              height: 24,
               thickness: 1.5),
           _rowDates(const Color(0xFFF9F516),
               dayCtrl: _shamsiDayCtrl,
@@ -601,7 +601,7 @@ class _DateConverterDialogState extends State<DateConverterDialog>
                   style: TextStyle(color: pc.withOpacity(0.65), fontSize: 15)),
           ],
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: 12),
         Text(label,
             style: TextStyle(
                 color: pc, fontSize: 15, fontWeight: FontWeight.bold)),
@@ -803,7 +803,7 @@ class _DateConverterDialogState extends State<DateConverterDialog>
 
     return Column(children: [
       labelRow,
-      const SizedBox(height: 2),
+      const SizedBox(height: 4),
       fieldRow,
     ]);
   }
