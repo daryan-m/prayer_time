@@ -102,7 +102,12 @@ Ensure these files exist under `assets/audio/`:
 assets/audio/
 ├── macca.mp3
 ├── madina.mp3
-└── kwait.mp3
+├── kwait.mp3
+├── minshawi.mp3
+├── abdulbaset.mp3
+└── muhamad rafaat.mp3
+├── muhamad ali albanna.mp3
+└── ahmad muainie.mp3
 ```
 
 ---
@@ -198,6 +203,7 @@ Issues and pull requests are welcome on the main repository. When modifying data
 |----------|------|
 | **GitHub** | [daryan-m/prayer_time](https://github.com/daryan-m/prayer_time) |
 | **YouTube** | [@daryan111](https://www.youtube.com/@daryan111) |
+| **Email** | [prayertimeku@gmail.com](mailto:prayertimeku@gmail.com) |
 | **Instagram** | [@prayer_time_ku](https://www.instagram.com/prayer_time_ku/) |
 | **Facebook** | [Prayer Time KU](https://www.facebook.com/profile.php?id=61590536199169) |
 
@@ -205,6 +211,5 @@ Issues and pull requests are welcome on the main repository. When modifying data
 
 <div align="center">
 
-**Made with ❤️ for the Kurdistan Region**
 
 </div>
