@@ -107,7 +107,7 @@ assets/audio/
 ├── abdulbaset.mp3
 ├── muhamad rafaat.mp3
 ├── muhamad ali albanna.mp3
-└── ahmad muainie.mp3
+└── ahmad nuainie.mp3
 ```
 
 ---
