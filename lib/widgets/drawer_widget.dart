@@ -127,17 +127,17 @@ class _PrayerDrawerState extends State<PrayerDrawer> {
                   child: ListView(
                     padding: EdgeInsets.zero,
                     children: [
-                      _buildExpansionTile(
-                          Icons.record_voice_over, "دەنگی بانگبێژ", pal, [
-                        _buildAthanOption("بانگی مەککە", "macca.mp3", pal),
-                        _buildAthanOption("بانگى مەدینە", "madina.mp3", pal),
-                        _buildAthanOption("بانگی کوەیت", "kwait.mp3", pal),
-                        _buildAthanOption("محمد على البنا ", "محمد على البنا.mp3", pal),
-                        _buildAthanOption("منشاوى", "منشاوى.mp3", pal),
-                        _buildAthanOption("عبدالباسط", "عبدالباسط.mp3", pal),
-                        _buildAthanOption("احمد معینع", "احمد معینع.mp3", pal),
-                         _buildAthanOption("محمد رفعت", "محمد رفعت.mp3", pal),
-                      ]),
+  _buildExpansionTile(
+      Icons.record_voice_over, "دەنگی بانگبێژ", pal, [
+    _buildAthanOption("بانگی مەککە", "macca.mp3", pal),
+    _buildAthanOption("بانگى مەدینە", "madina.mp3", pal),
+    _buildAthanOption("بانگی کوەیت", "kwait.mp3", pal),
+    _buildAthanOption("محمد على البنا ", "mohammed_albanna.mp3", pal),
+    _buildAthanOption("منشاوى", "minshawy.mp3", pal),
+    _buildAthanOption("عبدالباسط", "abdulbasit.mp3", pal),
+    _buildAthanOption("احمد نعینع", "ahmad_nuainee.mp3", pal),
+    _buildAthanOption("محمد رفعت", "mohammed_rifaat.mp3", pal),
+  ]),
                       _divider(pal),
                       _buildExpansionTile(
                           Icons.location_city,
