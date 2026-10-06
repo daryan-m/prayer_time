@@ -164,6 +164,20 @@ if (next != null) {
     if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
         views.setChronometerCountDown(R.id.countdown_timer, true)
     }
+
+     // ── ڕەنگی گۆڕاو بەپێی ماوەی کاتژمێر ──────────────────────────
+    val remainingMinutes = remaining / 60000
+val criticalColor = android.graphics.Color.parseColor("#EF4444")  // سوور — کەمتر لە ٢ خولەک
+val urgentColor   = android.graphics.Color.parseColor("#FFAB00")  // ئەمبەر — کەمتر لە ١٠ خولەک
+val normalColor   = android.graphics.Color.parseColor("#22D3EE")  // cyan — ئاسایی
+
+val chosenColor = when {
+    remainingMinutes <= 2  -> criticalColor
+    remainingMinutes <= 10 -> urgentColor
+    else -> normalColor
+}
+views.setTextColor(R.id.countdown_timer, chosenColor)
+views.setTextColor(R.id.txt_countdown_label, chosenColor)
 }
 
 
